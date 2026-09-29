@@ -1,4 +1,4 @@
-FROM python:3.12.14-slim-bookworm AS base
+FROM python:3.14.7-slim-bookworm AS base
 
 # DECISION: dependencies are installed as root; the server process is not.
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin ghostline
