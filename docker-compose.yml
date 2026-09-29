@@ -1,0 +1,127 @@
+name: ghostline
+
+# DECISION: each service gets a memory cap and rotated json logs so one query
+# or a long-running process cannot fill the host disk. Postgres stays on the
+# Compose network only.
+x-log: &log
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16.15-alpine3.23
+    # DECISION: the official Postgres image starts its entrypoint as root so it
+    # can initialize the data volume, then the database process runs as postgres.
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ghostline}
+      POSTGRES_USER: ${POSTGRES_USER:-ghostline}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    logging: *log
+    # DECISION: Postgres is only reachable on the Compose network. The host
+    # port is not published.
+
+  backend:
+    build:
+      context: ./backend
+      target: production
+    env_file:
+      - .env
+    environment:
+      # Password must be URL-safe. The example value is.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ghostline}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ghostline}
+      PLAYGROUND_URL: http://playground:8100
+    depends_on:
+      db:
+        condition: service_healthy
+      playground:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 40s
+    restart: unless-stopped
+    mem_limit: 768m
+    cpus: 1.0
+    logging: *log
+
+  # Build-only image for learner workers. Not started as a long-running service.
+  playground-worker:
+    image: ghostline-playground-worker:local
+    build:
+      context: ./playground/worker
+    profiles: ["build"]
+
+  # DECISION: only this service mounts the Docker socket. The public API never
+  # sees it. Network stays internal; workers are started with NetworkDisabled.
+  playground:
+    build:
+      context: ./playground
+    image: ghostline-playground:local
+    environment:
+      PLAYGROUND_TOKEN: ${PLAYGROUND_TOKEN:?Set PLAYGROUND_TOKEN in .env}
+      PLAYGROUND_WORKER_IMAGE: ghostline-playground-worker:local
+      PLAYGROUND_MEMORY_MB: ${PLAYGROUND_MEMORY_MB:-256}
+      PLAYGROUND_CPUS: ${PLAYGROUND_CPUS:-0.5}
+      PLAYGROUND_WORKSPACE_MB: ${PLAYGROUND_WORKSPACE_MB:-64}
+      PLAYGROUND_RUN_TIMEOUT: ${PLAYGROUND_RUN_TIMEOUT:-8}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *log
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *log
+
+volumes:
+  pgdata:

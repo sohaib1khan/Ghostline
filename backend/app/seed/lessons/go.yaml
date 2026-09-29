@@ -1,0 +1,299 @@
+slug: go
+name: Go
+description: Small programs with a clear shape.
+modules:
+- title: A program
+  description: Beginner — The smallest Go program that speaks.
+  status: published
+  lessons:
+  - title: Print hello
+    summary: Print one line from main.
+    body_markdown: A Go program starts in main and prints with the fmt package.
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the call that prints hello.
+      runtime: none
+      code: fmt.Println("hello")
+      tokens:
+      - match: fmt.Println
+        explain: Prints a line.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - fmt.Println("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the package that prints.
+      runtime: none
+      code: fmt.Println("hello")
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ___
+      check:
+        mode: either
+        accepted_answers:
+        - fmt.Println("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Print hello with fmt.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - fmt.Println("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: Print hello before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - fmt.Println("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 40
+      status: published
+      order: null
+  - title: A short variable
+    summary: Declare a string.
+    body_markdown: Inside a function, := both declares and assigns.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a short declaration for a greeting.
+      runtime: none
+      code: greeting := "hello"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - greeting := "hello"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Add ints
+    summary: Return the sum of two ints.
+    body_markdown: The types sit after the names.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Write a function add that returns the sum of two ints.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "func add(left int, right int) int {\n    return left + right\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: func
+          values: []
+          pattern: null
+          hint: Functions start with func.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Flow
+  description: Intermediate — Choose and repeat.
+  status: published
+  lessons:
+  - title: A loop
+    summary: Print 0, 1, and 2.
+    body_markdown: Go has one looping keyword.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a loop that prints 0, 1, and 2.
+      runtime: none
+      code: "for number := 0; number < 3; number++ {\n    fmt.Println(number)\n}"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "for number := 0; number < 3; number++ {\n    fmt.Println(number)\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A choice
+    summary: Print yes when a value is positive.
+    body_markdown: if does not need parentheses.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Print yes when count is greater than zero.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "if count > 0 {\n    fmt.Println(\"yes\")\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: if
+          values: []
+          pattern: null
+          hint: Start with if.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A named result
+    summary: Return a greeting from a function.
+    body_markdown: The result type comes after the parameter list.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the keyword that starts a function.
+      runtime: none
+      code: "func greet() string {\n    return \"hello\"\n}"
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - "func greet() string {\n    return \"hello\"\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

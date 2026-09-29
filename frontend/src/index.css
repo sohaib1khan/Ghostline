@@ -1,0 +1,530 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/inter-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/inter-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/inter-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Dark is the default. Light is one attribute switch. */
+:root {
+  color-scheme: dark;
+  --bg: #1b1f23;
+  --surface: #232a2f;
+  --text: #d8dee4;
+  --muted: #8b98a5;
+  --accent: #8fb9a8;
+  --accent-2: #a3b8d4;
+  --success: #9ccc9c;
+  --error: #e39a9a;
+  --ghost: rgba(216, 222, 228, 0.3);
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --text: #2b3137;
+  --muted: #6b7680;
+  --accent: #5f8f7e;
+  --accent-2: #6c87ab;
+  --success: #4f8f4f;
+  --error: #b85c5c;
+  --ghost: rgba(43, 49, 55, 0.3);
+  --shadow: 0 16px 40px rgba(43, 49, 55, 0.08);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  background:
+    radial-gradient(
+      ellipse 90% 55% at 12% -8%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 70% 45% at 100% 0%,
+      color-mix(in srgb, var(--accent-2) 12%, transparent),
+      transparent 52%
+    ),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: linear-gradient(var(--text) 1px, transparent 1px),
+    linear-gradient(90deg, var(--text) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 20%, transparent 75%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* iOS zooms the page when a focused field is under 16px. The attribute
+   selector outranks a utility class such as text-sm. */
+@media (max-width: 640px) {
+  input[class],
+  select[class],
+  textarea[class] {
+    font-size: 1rem;
+  }
+}
+
+.ghost-text {
+  color: var(--ghost);
+}
+
+.practice-rise {
+  animation: practice-rise 700ms ease-out both;
+}
+
+.practice-rise-delay {
+  animation: practice-rise 700ms ease-out 120ms both;
+}
+
+.ghost-breathe {
+  animation: ghost-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes practice-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ghost-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-rise,
+  .practice-rise-delay,
+  .ghost-breathe {
+    animation: none;
+  }
+}
+
+:root[data-reduce-motion="true"] .practice-rise,
+:root[data-reduce-motion="true"] .practice-rise-delay,
+:root[data-reduce-motion="true"] .ghost-breathe {
+  animation: none;
+}
+
+.strength-track {
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.strength-1 {
+  background: var(--error);
+}
+
+.strength-2 {
+  background: var(--accent-2);
+}
+
+.strength-3 {
+  background: var(--success);
+}
+
+/* CodeMirror layout lives here so the app style policy can stay style-src 'self'. */
+.cm-editor {
+  min-height: 3rem;
+  color: var(--text);
+  background: transparent;
+}
+
+.cm-scroller {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.cm-content {
+  flex: 1 1 auto;
+  white-space: pre;
+  caret-color: transparent;
+  padding: 0.75rem 0;
+  min-height: 1.6em;
+  outline: none;
+}
+
+.cm-line {
+  padding: 0 0.75rem;
+}
+
+/* Solid caret drawn by CodeMirror, not the browser blink. */
+.cm-editor .cm-cursor {
+  border-left: 2px solid var(--text);
+  margin-left: -1px;
+}
+
+.cm-focused > .cm-scroller > .cm-cursorLayer {
+  animation: none;
+}
+
+.ghost-wrong {
+  color: var(--error);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ghost-shake {
+  animation: ghost-shake 180ms ease;
+}
+
+@keyframes ghost-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ghost-shake {
+    animation: none;
+  }
+}
+
+:root[data-reduce-motion="true"] .ghost-shake {
+  animation: none;
+}
+
+.streak-flame {
+  display: inline-block;
+  margin-right: 0.25rem;
+  animation: flame-flicker 1.2s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+  50% {
+    transform: translateY(-1px) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame {
+    animation: none;
+  }
+}
+
+:root[data-reduce-motion="true"] .streak-flame {
+  animation: none;
+}
+
+.example-panel {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 8%, transparent),
+    transparent 55%
+  );
+}
+
+.example-line {
+  display: block;
+  padding: 0.1rem 0;
+}
+
+.example-line-hot {
+  color: var(--accent-2);
+}
+
+.hint-card {
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  padding-left: 0.65rem;
+}
+
+.session-bar,
+.lesson-bar,
+.pool-fill {
+  transition: width 400ms ease;
+}
+
+.token-rise {
+  animation: practice-rise 500ms ease-out both;
+}
+
+.pulse-urgent {
+  animation: pulse-urgent 900ms ease-in-out infinite;
+}
+
+@keyframes pulse-urgent {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.type-chip {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+
+.game-card {
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 6%, transparent),
+    transparent 40%
+  );
+}
+
+.project-card,
+.project-module {
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-2) 10%, transparent),
+    transparent 45%
+  );
+}
+
+.level-card.level-beginner {
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+}
+
+.level-card.level-intermediate {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.level-card.level-advanced {
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+
+.level-section.level-beginner,
+.level-section.level-intermediate,
+.level-section.level-advanced {
+  scroll-margin-top: 1rem;
+}
+
+/* Playground — soft desk, language chips, timer, sprinkle motion */
+.playground-shell {
+  background-image:
+    radial-gradient(
+      ellipse 70% 50% at 0% 0%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 55% 40% at 100% 10%,
+      color-mix(in srgb, var(--accent-2) 10%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--surface) 100%, transparent),
+      color-mix(in srgb, var(--bg) 8%, var(--surface))
+    );
+}
+
+.playground-sprinkle {
+  position: absolute;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  opacity: 0.35;
+}
+
+.playground-sprinkle:nth-child(odd) {
+  background: color-mix(in srgb, var(--accent-2) 50%, transparent);
+}
+
+.playground-sprinkle-float {
+  animation: playground-sprinkle 4.8s ease-in-out infinite;
+}
+
+@keyframes playground-sprinkle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-7px) scale(1.15);
+    opacity: 0.55;
+  }
+}
+
+.playground-lang-chip {
+  border-color: color-mix(in srgb, var(--lang, var(--accent)) 28%, transparent);
+  background: color-mix(in srgb, var(--lang, var(--accent)) 8%, transparent);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.playground-lang-chip-hot {
+  border-color: color-mix(in srgb, var(--lang, var(--accent)) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lang, var(--accent)) 25%, transparent);
+  animation: playground-chip-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes playground-chip-glow {
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+.playground-timer-bar {
+  transition: width 900ms linear;
+}
+
+.playground-panel {
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 7%, transparent),
+    transparent 45%
+  );
+}
+
+.playground-editor {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-2) 4%, transparent),
+    transparent 28%
+  );
+}
+
+.playground-terminal {
+  border-left: 2px solid color-mix(in srgb, var(--success) 45%, transparent);
+}
+
+.playground-run-pulse {
+  animation: playground-run-pulse 700ms ease-in-out infinite;
+}
+
+@keyframes playground-run-pulse {
+  50% {
+    filter: brightness(1.08);
+    transform: scale(1.02);
+  }
+}
+
+.playground-burst {
+  pointer-events: none;
+  position: absolute;
+  left: 55%;
+  top: -0.5rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0;
+  animation: playground-burst 700ms ease-out forwards;
+}
+
+@keyframes playground-burst {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.4);
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent),
+      12px -8px 0 -2px color-mix(in srgb, var(--accent-2) 50%, transparent),
+      -14px -4px 0 -2px color-mix(in srgb, var(--success) 45%, transparent);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+    box-shadow:
+      0 0 0 18px transparent,
+      28px -22px 0 -2px transparent,
+      -30px -16px 0 -2px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-bar,
+  .lesson-bar,
+  .pool-fill,
+  .token-rise,
+  .pulse-urgent,
+  .playground-sprinkle-float,
+  .playground-lang-chip-hot,
+  .playground-run-pulse,
+  .playground-burst,
+  .playground-timer-bar {
+    animation: none;
+    transition: none;
+  }
+}
+
+:root[data-reduce-motion="true"] .session-bar,
+:root[data-reduce-motion="true"] .lesson-bar,
+:root[data-reduce-motion="true"] .pool-fill,
+:root[data-reduce-motion="true"] .token-rise,
+:root[data-reduce-motion="true"] .pulse-urgent,
+:root[data-reduce-motion="true"] .playground-sprinkle-float,
+:root[data-reduce-motion="true"] .playground-lang-chip-hot,
+:root[data-reduce-motion="true"] .playground-run-pulse,
+:root[data-reduce-motion="true"] .playground-burst,
+:root[data-reduce-motion="true"] .playground-timer-bar {
+  animation: none;
+  transition: none;
+}
+

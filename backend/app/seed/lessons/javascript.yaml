@@ -1,0 +1,300 @@
+slug: javascript
+name: JavaScript
+description: The language of the browser, learned by typing.
+modules:
+- title: On the page
+  description: Beginner — Print, store, and wrap a value.
+  status: published
+  lessons:
+  - title: Log hello
+    summary: Write a line to the console.
+    body_markdown: console.log is the usual first line while you are learning.
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a line that logs hello.
+      runtime: none
+      code: console.log("hello")
+      tokens:
+      - match: console.log
+        explain: Writes a line to the console.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - console.log("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the object that owns log.
+      runtime: none
+      code: console.log("hello")
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: _______
+      check:
+        mode: either
+        accepted_answers:
+        - console.log("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Log the word hello.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - console.log("hello")
+        - console.log('hello')
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: Log hello before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - console.log("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 40
+      status: published
+      order: null
+  - title: A constant
+    summary: Store a greeting.
+    body_markdown: const names a value that you do not plan to reassign.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a constant named greeting.
+      runtime: none
+      code: const greeting = "hello"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - const greeting = "hello"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A function
+    summary: Name a greeting.
+    body_markdown: A function is a reusable block.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Write a function greet that returns hello.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "function greet() {\n  return \"hello\"\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: function
+          values: []
+          pattern: null
+          hint: Use the function keyword.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Collections
+  description: Intermediate — A list and a sentence.
+  status: published
+  lessons:
+  - title: An array
+    summary: Make a list of two names.
+    body_markdown: Square brackets hold a list.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type an array of Ada and Grace.
+      runtime: none
+      code: const names = ["Ada", "Grace"]
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - const names = ["Ada", "Grace"]
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: How many
+    summary: Read the length of a list.
+    body_markdown: length is a property, not a call.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Log the length of names.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - console.log(names.length)
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: length
+          values: []
+          pattern: null
+          hint: Use the length property.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A template
+    summary: Build a sentence with a name.
+    body_markdown: Backticks allow a value inside the text.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the character that starts a template string.
+      runtime: none
+      code: console.log(`Hello ${name}`)
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - console.log(`Hello ${name}`)
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

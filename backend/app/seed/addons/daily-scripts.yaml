@@ -1,0 +1,732 @@
+# Guided multi-line scripts. Short track modules stay teasers; these keep
+# the hands warm with progressive hints. Seed imports in extend mode when
+# a track is missing the "Daily scripts" module.
+tracks:
+- slug: bash
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer shell scripts with guided hints.
+    status: published
+    lessons:
+    - title: Backup the notes folder
+      summary: Copy today's notes into a dated backup directory.
+      body_markdown: Short drills teach one command. A daily script strings a few together until the shape lives in your fingers. Use hints when you stall — that is the point of guided practice, not a timed sprint.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: set -euo pipefail
+          explain: Exit on error, unset vars, and failed pipes.
+        - match: STAMP=$(date +%Y-%m-%d)
+          explain: Today's date as a folder name.
+        - match: mkdir -p
+          explain: Create the destination, including parents.
+        - match: cp -a
+          explain: Copy the tree and keep attributes.
+        blanks: []
+        simulated_output: 'backed up ./notes to ./backups/2026-09-28
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this backup script. Tab fills the next indent from the ghost.
+        code: '#!/usr/bin/env bash
+
+          set -euo pipefail
+
+          SRC="${1:-./notes}"
+
+          STAMP=$(date +%Y-%m-%d)
+
+          DEST="./backups/${STAMP}"
+
+          mkdir -p "$DEST"
+
+          cp -a "$SRC" "$DEST/"
+
+          echo "backed up $SRC to $DEST"'
+        check:
+          mode: either
+          accepted_answers:
+          - '#!/usr/bin/env bash
+
+            set -euo pipefail
+
+            SRC="${1:-./notes}"
+
+            STAMP=$(date +%Y-%m-%d)
+
+            DEST="./backups/${STAMP}"
+
+            mkdir -p "$DEST"
+
+            cp -a "$SRC" "$DEST/"
+
+            echo "backed up $SRC to $DEST"'
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: false
+            case_sensitive: true
+          rules: []
+        hints:
+        - Start with a bash shebang.
+        - Use set -euo pipefail near the top.
+        - Default SRC to ./notes when $1 is empty.
+        - Build DEST under ./backups with today's date.
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Write a short bash script that backs up a notes folder into ./backups/YYYY-MM-DD. Default the source to ./notes. Fail fast. Print a one-line confirmation.
+        code: '#!/usr/bin/env bash
+
+          set -euo pipefail
+
+          SRC="${1:-./notes}"
+
+          STAMP=$(date +%Y-%m-%d)
+
+          DEST="./backups/${STAMP}"
+
+          mkdir -p "$DEST"
+
+          cp -a "$SRC" "$DEST/"
+
+          echo "backed up $SRC to $DEST"'
+        check:
+          mode: either
+          accepted_answers:
+          - '#!/usr/bin/env bash
+
+            set -euo pipefail
+
+            SRC="${1:-./notes}"
+
+            STAMP=$(date +%Y-%m-%d)
+
+            DEST="./backups/${STAMP}"
+
+            mkdir -p "$DEST"
+
+            cp -a "$SRC" "$DEST/"
+
+            echo "backed up $SRC to $DEST"'
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - set -euo pipefail
+            - mkdir -p
+            - cp -a
+            - date +%Y-%m-%d
+            pattern: null
+            hint: You need fail-fast, mkdir -p, cp -a, and a dated stamp.
+            minimum: null
+            maximum: null
+        hints:
+        - 'Open with #!/usr/bin/env bash'
+        - Add set -euo pipefail so mistakes stop the script.
+        - Read the source from $1, defaulting to ./notes
+        - STAMP=$(date +%Y-%m-%d)
+        - DEST="./backups/${STAMP}" then mkdir -p "$DEST"
+        - cp -a "$SRC" "$DEST/"
+        - echo a short confirmation with both paths
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the notes backup script from memory. Use hints if you need them — muscle memory over racing the clock.
+        code: '#!/usr/bin/env bash
+
+          set -euo pipefail
+
+          SRC="${1:-./notes}"
+
+          STAMP=$(date +%Y-%m-%d)
+
+          DEST="./backups/${STAMP}"
+
+          mkdir -p "$DEST"
+
+          cp -a "$SRC" "$DEST/"
+
+          echo "backed up $SRC to $DEST"'
+        check:
+          mode: either
+          accepted_answers:
+          - '#!/usr/bin/env bash
+
+            set -euo pipefail
+
+            SRC="${1:-./notes}"
+
+            STAMP=$(date +%Y-%m-%d)
+
+            DEST="./backups/${STAMP}"
+
+            mkdir -p "$DEST"
+
+            cp -a "$SRC" "$DEST/"
+
+            echo "backed up $SRC to $DEST"'
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - set -euo pipefail
+            - mkdir -p
+            - cp -a
+            pattern: null
+            hint: Keep fail-fast, mkdir -p, and cp -a.
+            minimum: null
+            maximum: null
+        hints:
+        - Shebang, then set -euo pipefail
+        - SRC default ./notes
+        - Date stamp and DEST under ./backups
+        - mkdir, copy, echo
+        xp: 60
+- slug: python
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer Python scripts with guided hints.
+    status: published
+    lessons:
+    - title: Summarize a word list
+      summary: Read lines, count words, print the top ones.
+      body_markdown: Teaser lessons print one line. A daily script walks a file, counts, and prints a small report. Hints walk you through the shape when memory slips.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: Counter
+          explain: Tallies how often each word appears.
+        - match: Path(path).read_text
+          explain: Load the file as text.
+        - match: most_common
+          explain: Highest counts first.
+        - match: __name__ == "__main__"
+          explain: Run only when this file is the entry point.
+        blanks: []
+        simulated_output: 'the: 12
+
+          code: 7
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this word-count script. Keep the blank lines and spaces exact.
+        code: "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+        check:
+          mode: either
+          accepted_answers:
+          - "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: false
+            case_sensitive: true
+          rules: []
+        hints:
+        - Import Counter and Path.
+        - Define top_words with a default limit of 5.
+        - Lowercase the file text, then keep alphabetic tokens.
+        - Return Counter(...).most_common(limit)
+        - 'Print word: count under if __name__ == "__main__"'
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: 'Write a Python script that reads notes.txt, counts alphabetic words (case-insensitive), and prints the five most common as "word: count".'
+        code: "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+        check:
+          mode: either
+          accepted_answers:
+          - "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - Counter
+            - Path
+            - most_common
+            - notes.txt
+            pattern: null
+            hint: Use Counter, Path, most_common, and notes.txt.
+            minimum: null
+            maximum: null
+        hints:
+        - from collections import Counter
+        - from pathlib import Path
+        - Define top_words(path, limit=5)
+        - Read and lowercase the file
+        - Keep tokens where w.isalpha()
+        - return Counter(words).most_common(limit)
+        - 'Loop and print f"{word}: {count}"'
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the top-words script. Open hints when you need a nudge.
+        code: "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+        check:
+          mode: either
+          accepted_answers:
+          - "from collections import Counter\nfrom pathlib import Path\n\ndef top_words(path: str, limit: int = 5) -> list[tuple[str, int]]:\n    text = Path(path).read_text(encoding=\"utf-8\").lower()\n    words = [w for w in text.split() if w.isalpha()]\n    return Counter(words).most_common(limit)\n\nif __name__ == \"__main__\":\n    for word, count in top_words(\"notes.txt\"):\n        print(f\"{word}: {count}\")"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - Counter
+            - most_common
+            pattern: null
+            hint: Counter and most_common should appear.
+            minimum: null
+            maximum: null
+        hints:
+        - Imports first
+        - top_words helper
+        - Filter alphabetic tokens
+        - Print under __main__
+        xp: 60
+- slug: go
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer Go programs with guided hints.
+    status: published
+    lessons:
+    - title: Count lines in files
+      summary: Walk arguments, open each file, count lines.
+      body_markdown: One-liners teach syntax. A daily Go script practices packages, loops, and error handling in one sitting. Use hints instead of guessing.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: bufio.NewScanner
+          explain: Reads the file one line at a time.
+        - match: defer f.Close()
+          explain: Close the file when the function returns.
+        - match: os.Args[1:]
+          explain: Paths passed on the command line.
+        blanks: []
+        simulated_output: 'notes.txt: 42
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this line-count program. Match every line and space.
+        code: "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: false
+            case_sensitive: true
+          rules: []
+        hints:
+        - package main, then import bufio, fmt, os
+        - countLines opens the file and defers Close
+        - Scan in a loop, increment n
+        - main ranges over os.Args[1:]
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: 'Write a Go program that prints "path: N" for each file argument, where N is the number of lines. Skip files that fail to open.'
+        code: "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - bufio.NewScanner
+            - defer f.Close()
+            - os.Args[1:]
+            pattern: null
+            hint: Need a scanner, defer Close, and os.Args[1:].
+            minimum: null
+            maximum: null
+        hints:
+        - package main with bufio, fmt, os
+        - countLines returns (int, error)
+        - defer f.Close() after a successful Open
+        - Scan until done, return s.Err()
+        - main loops Args[1:], prints path and count
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the line-count program. Hints are there when memory blanks.
+        code: "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "package main\n\nimport (\n  \"bufio\"\n  \"fmt\"\n  \"os\"\n)\n\nfunc countLines(path string) (int, error) {\n  f, err := os.Open(path)\n  if err != nil {\n    return 0, err\n  }\n  defer f.Close()\n  n := 0\n  s := bufio.NewScanner(f)\n  for s.Scan() {\n    n++\n  }\n  return n, s.Err()\n}\n\nfunc main() {\n  for _, path := range os.Args[1:] {\n    n, err := countLines(path)\n    if err != nil {\n      fmt.Fprintln(os.Stderr, err)\n      continue\n    }\n    fmt.Printf(\"%s: %d\\n\", path, n)\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - NewScanner
+            - os.Args
+            pattern: null
+            hint: Scanner and Args should show up.
+            minimum: null
+            maximum: null
+        hints:
+        - Imports and countLines
+        - defer Close
+        - main over Args[1:]
+        xp: 60
+- slug: javascript
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer JavaScript scripts with guided hints.
+    status: published
+    lessons:
+    - title: Filter and format tasks
+      summary: Keep open tasks, sort by due date, print a checklist.
+      body_markdown: Short demos teach one expression. A daily script chains filter, sort, and map until the pipeline feels natural. Use hints at each step.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: filter
+          explain: Drop finished tasks.
+        - match: localeCompare
+          explain: Sort due dates as strings.
+        - match: map
+          explain: Turn each task into a checklist line.
+        blanks: []
+        simulated_output: '- [ ] draft (2026-09-25)
+
+          - [ ] ship (2026-10-01)
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this task-list script. Keep the indentation.
+        code: "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+        check:
+          mode: either
+          accepted_answers:
+          - "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - Start with a tasks array of objects.
+        - filter where done is false
+        - sort with localeCompare on due
+        - map to checklist lines, then join
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Write a script with three sample tasks. Print open ones as "- [ ] title (due)", sorted by due date ascending.
+        code: "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+        check:
+          mode: either
+          accepted_answers:
+          - "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - filter
+            - localeCompare
+            - map
+            - console.log
+            pattern: null
+            hint: Chain filter, sort with localeCompare, map, then log.
+            minimum: null
+            maximum: null
+        hints:
+        - const tasks = [ ... three objects ... ]
+        - openChecklist filters !done
+        - sort by a.due.localeCompare(b.due)
+        - map to checklist line with title and due
+        - join with newline and console.log
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the open-checklist script. Hints stay available.
+        code: "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+        check:
+          mode: either
+          accepted_answers:
+          - "const tasks = [\n  { title: \"ship\", done: false, due: \"2026-10-01\" },\n  { title: \"review\", done: true, due: \"2026-09-20\" },\n  { title: \"draft\", done: false, due: \"2026-09-25\" },\n];\n\nfunction openChecklist(items) {\n  return items\n    .filter((t) => !t.done)\n    .sort((a, b) => a.due.localeCompare(b.due))\n    .map((t) => `- [ ] ${t.title} (${t.due})`)\n    .join(\"\\n\");\n}\n\nconsole.log(openChecklist(tasks));"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - filter
+            - localeCompare
+            pattern: null
+            hint: filter and localeCompare should appear.
+            minimum: null
+            maximum: null
+        hints:
+        - Sample tasks array
+        - filter → sort → map → join
+        - console.log the result
+        xp: 60
+- slug: sql
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer SQL scripts with guided hints.
+    status: published
+    lessons:
+    - title: Weekly sales report
+      summary: CTE, join, group, and order a small report query.
+      body_markdown: Early SQL lessons are one SELECT. A daily script stacks a CTE, a join, and aggregates so the pattern sticks. Open hints when a clause slips.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: WITH recent AS
+          explain: Name a filtered set of recent orders.
+        - match: INTERVAL '7 days'
+          explain: Last week relative to today.
+        - match: HAVING
+          explain: Filter groups after aggregation.
+        - match: ORDER BY revenue_cents DESC
+          explain: Highest revenue first.
+        blanks: []
+        simulated_output: 'customer | order_count | revenue_cents
+
+          Ada      | 3           | 24500
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this weekly sales report. Keep newlines and spacing.
+        code: "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+        check:
+          mode: either
+          accepted_answers:
+          - "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: false
+          rules: []
+        hints:
+        - Start with WITH recent AS (...)
+        - Filter orders from the last 7 days
+        - Join customers, group by name
+        - HAVING sum at least 10000, order by revenue desc
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Write a query that lists customers with at least 10000 cents of revenue from orders in the last 7 days. Show name, order_count, and revenue_cents, highest revenue first.
+        code: "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+        check:
+          mode: either
+          accepted_answers:
+          - "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: false
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - with recent as
+            - interval '7 days'
+            - having
+            - group by
+            pattern: null
+            hint: Need a CTE, 7-day interval, GROUP BY, and HAVING.
+            minimum: null
+            maximum: null
+        hints:
+        - WITH recent AS (SELECT ... FROM orders WHERE ...)
+        - CURRENT_DATE - INTERVAL '7 days'
+        - JOIN customers ON c.id = r.customer_id
+        - GROUP BY c.name
+        - HAVING SUM(r.total_cents) >= 10000
+        - ORDER BY revenue_cents DESC
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the weekly sales report. Use hints freely.
+        code: "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+        check:
+          mode: either
+          accepted_answers:
+          - "WITH recent AS (\n  SELECT order_id, customer_id, total_cents, ordered_at\n  FROM orders\n  WHERE ordered_at >= CURRENT_DATE - INTERVAL '7 days'\n)\nSELECT\n  c.name AS customer,\n  COUNT(*) AS order_count,\n  SUM(r.total_cents) AS revenue_cents\nFROM recent r\nJOIN customers c ON c.id = r.customer_id\nGROUP BY c.name\nHAVING SUM(r.total_cents) >= 10000\nORDER BY revenue_cents DESC;"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: false
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - with recent
+            - having
+            pattern: null
+            hint: CTE named recent and a HAVING clause.
+            minimum: null
+            maximum: null
+        hints:
+        - CTE for the last 7 days
+        - Join, group, having, order
+        xp: 60

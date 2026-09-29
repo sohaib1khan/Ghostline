@@ -1,0 +1,353 @@
+slug: bash
+name: Bash
+description: The shell, one command at a time.
+modules:
+- title: Looking around
+  description: Beginner — See where you are and what is there.
+  status: published
+  lessons:
+  - title: List the files
+    summary: Show everything in this folder.
+    body_markdown: 'A directory listing is the first thing you reach for in a shell.
+
+
+      `ls` prints names. Flags change the shape of that list.'
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the command that lists every file, including hidden ones, in long
+        format.
+      runtime: none
+      code: ls -la
+      tokens:
+      - match: ls
+        explain: Lists the names in a directory.
+      - match: -la
+        explain: Long format, and include hidden names.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ls -la
+        - ls -al
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: ls
+          values: []
+          pattern: null
+          hint: Which command lists directory contents?
+          minimum: null
+          maximum: null
+        - kind: must_contain_any
+          value: null
+          values:
+          - -a
+          - -la
+          - -al
+          pattern: null
+          hint: You still need the flag that shows hidden names.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: 'total 8
+
+        -rw-r--r-- 1 user user 24 notes.txt'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the flag that shows hidden names in long format.
+      runtime: none
+      code: ls -la
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: __
+      check:
+        mode: either
+        accepted_answers:
+        - ls -la
+        - ls -al
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints:
+      - The flag is two letters.
+      - One letter means long format, the other means all.
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Write a command that lists hidden files in long format.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ls -la
+        - ls -al
+        - ls -l -a
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: ls
+          values: []
+          pattern: null
+          hint: Start with the listing command.
+          minimum: null
+          maximum: null
+      hints:
+      - Two letters.
+      - Combine the long and all flags.
+      simulated_output: -rw-r--r-- 1 user user 24 .bashrc
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: List hidden files in long format before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ls -la
+        - ls -al
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: regex
+          value: null
+          values: []
+          pattern: ^ls( -[la]+)+$
+          hint: Keep it to ls and those flags.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 45
+      status: published
+      order: null
+  - title: Where am I
+    summary: Print the current directory.
+    body_markdown: The shell has a working directory. This command prints it.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the command that prints the working directory.
+      runtime: none
+      code: pwd
+      tokens:
+      - match: pwd
+        explain: Print working directory.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - pwd
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: /home/user/notes
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Make a folder
+    summary: Create a directory named notes.
+    body_markdown: New folders are created by name. Nothing is printed when it works.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Create a directory named notes.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - mkdir notes
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: mkdir
+          values: []
+          pattern: null
+          hint: The command that makes a directory is mkdir.
+          minimum: null
+          maximum: null
+      hints:
+      - The command is five letters.
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Reading a file
+  description: Intermediate — Look inside a text file without opening an editor.
+  status: published
+  lessons:
+  - title: Show a file
+    summary: Print the whole file.
+    body_markdown: When a file is short, print it all.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the command that prints notes.txt.
+      runtime: none
+      code: cat notes.txt
+      tokens:
+      - match: cat
+        explain: Prints a file.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - cat notes.txt
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: hello from notes
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: The first lines
+    summary: Show only the start of a file.
+    body_markdown: A long file is easier to sample from the top.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Show the first 5 lines of notes.txt.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - head -n 5 notes.txt
+        - head -5 notes.txt
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: head
+          values: []
+          pattern: null
+          hint: The command for the start of a file is head.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Count the words
+    summary: Count lines, words, and bytes.
+    body_markdown: A small count tells you how big a file is before you open it.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the command that counts words in notes.txt.
+      runtime: none
+      code: wc notes.txt
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: __
+      check:
+        mode: either
+        accepted_answers:
+        - wc notes.txt
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

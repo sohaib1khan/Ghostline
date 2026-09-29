@@ -1,0 +1,46 @@
+[project]
+name = "ghostline"
+version = "1.0.0"
+description = "Ghostline learning platform API"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "alembic>=1.20.0",
+    "asyncpg>=0.31.0",
+    "cryptography>=50.0.1",
+    "email-validator>=2.3.0",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "pwdlib[argon2]>=0.3.1",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0.3",
+    "slowapi>=0.1.10",
+    "sqlalchemy[asyncio]>=2.0",
+    "uvicorn[standard]>=0.32",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "ruff==0.16.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# FastAPI's Depends() is a function call in an argument default.
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+pythonpath = ["."]
+testpaths = ["tests"]

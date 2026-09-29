@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ghostline sandbox</title>
+  </head>
+  <body>
+    <script>
+      // DECISION: this frame is same-origin so it can load /pyodide. A unique
+      // origin cannot start the Pyodide module worker. Learner code runs in the
+      // worker below, after network calls are replaced. The parent page keeps
+      // a script policy with no eval.
+      const RUN_MS = 3000;
+      const LOAD_MS = 20000;
+
+      function reply(payload) {
+        parent.postMessage({ source: "ghostline-sandbox", ...payload }, "*");
+      }
+
+      function jsWorker() {
+        return `
+          const lines = [];
+          const write = (...args) => lines.push(args.map((item) => String(item)).join(" "));
+          self.console = { log: write, info: write, warn: write, error: write };
+          self.fetch = () => Promise.reject(new Error("Network is disabled"));
+          self.XMLHttpRequest = class {
+            open() { throw new Error("Network is disabled"); }
+          };
+          self.importScripts = () => { throw new Error("Network is disabled"); };
+          self.onmessage = (event) => {
+            try {
+              const run = new Function(String(event.data.code || ""));
+              run();
+              self.postMessage({ output: lines.join("\\n") });
+            } catch (error) {
+              self.postMessage({
+                output: String(error && error.message ? error.message : error),
+                error: "runtime",
+              });
+            }
+          };
+        `;
+      }
+
+      function pythonWorker(indexURL) {
+        return `
+          import { loadPyodide } from "${indexURL}pyodide.mjs";
+          const lines = [];
+          let pyodide;
+          try {
+            pyodide = await loadPyodide({
+              indexURL: "${indexURL}",
+              stdout: (text) => lines.push(String(text)),
+              stderr: (text) => lines.push(String(text)),
+            });
+          } catch (error) {
+            self.postMessage({
+              output: String(error && error.message ? error.message : error),
+              error: "runtime",
+            });
+            throw error;
+          }
+          self.fetch = () => Promise.reject(new Error("Network is disabled"));
+          self.XMLHttpRequest = class {
+            open() { throw new Error("Network is disabled"); }
+          };
+          self.importScripts = () => { throw new Error("Network is disabled"); };
+          self.onmessage = (event) => {
+            try {
+              pyodide.runPython(String(event.data.code || ""));
+              self.postMessage({ output: lines.join("\\n") });
+            } catch (error) {
+              self.postMessage({
+                output: String(error && error.message ? error.message : error),
+                error: "runtime",
+              });
+            }
+          };
+          self.postMessage({ ready: true });
+        `;
+      }
+
+      window.addEventListener("message", (event) => {
+        if (event.source !== parent) return;
+        if (!event.data || event.data.source !== "ghostline-parent") return;
+        if (!/^https?:\/\/[A-Za-z0-9.:-]+$/.test(event.origin)) return;
+        const runtime = event.data.runtime === "pyodide" ? "pyodide" : "browser_js";
+        const indexURL = `${event.origin}/pyodide/`;
+        const source = runtime === "pyodide" ? pythonWorker(indexURL) : jsWorker();
+        const blob = new Blob([source], { type: "text/javascript" });
+        const url = URL.createObjectURL(blob);
+        let worker;
+        try {
+          worker = new Worker(url, runtime === "pyodide" ? { type: "module" } : undefined);
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reply({
+            output: String(error && error.message ? error.message : error),
+            error: "runtime",
+          });
+          return;
+        }
+        let settled = false;
+        let timer = 0;
+
+        function finish(payload) {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          worker.terminate();
+          URL.revokeObjectURL(url);
+          reply(payload);
+        }
+
+        timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), LOAD_MS);
+        worker.onmessage = (message) => {
+          const data = message.data || {};
+          if (data.ready) {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), RUN_MS);
+            worker.postMessage({ code: String(event.data.code || "") });
+            return;
+          }
+          finish({ output: data.output || "", error: data.error || null });
+        };
+        worker.onerror = (event) => {
+          finish({
+            output: String(event && event.message ? event.message : "worker error"),
+            error: "runtime",
+          });
+        };
+        if (runtime === "browser_js") {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), RUN_MS);
+          worker.postMessage({ code: String(event.data.code || "") });
+        }
+      });
+    </script>
+  </body>
+</html>

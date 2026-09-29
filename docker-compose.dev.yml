@@ -1,0 +1,46 @@
+# Hot reload for local work:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  backend:
+    build:
+      target: development
+    command:
+      [
+        "uv",
+        "run",
+        "--no-dev",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+
+  web:
+    image: node:22.23.3-alpine
+    build: !reset null
+    user: "0:0"
+    working_dir: /app
+    entrypoint: ["/bin/sh", "/app/docker-dev-entrypoint.sh"]
+    volumes: !override
+      - ./frontend:/app
+      - web_node_modules:/app/node_modules
+    ports: !override
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY: http://backend:8000
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 90s
+
+volumes:
+  web_node_modules:

@@ -1,0 +1,3638 @@
+slug: sql
+name: SQL
+description: Standard SQL, one statement at a time. Written the way PostgreSQL reads
+  it.
+modules:
+- title: Reading rows
+  description: Beginner — Ask a table for the rows you want.
+  status: published
+  lessons:
+  - title: One column
+    summary: Read a single column from a table.
+    body_markdown: 'A table holds rows. A column is one fact on every row, such as
+      a title.
+
+
+      `SELECT` chooses columns. `FROM` names the table. Text in the database uses
+      single quotes; these names do not, because they are identifiers.
+
+
+      Keywords may be upper or lower case. A semicolon can end the statement. Both
+      are accepted here.'
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that reads the title of every book.
+      runtime: none
+      code: SELECT title FROM books
+      tokens:
+      - match: SELECT
+        explain: Chooses which columns come back.
+      - match: FROM
+        explain: Names the table that holds the rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books
+        - SELECT title FROM books;
+        normalize: &id001
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: false
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that names the table.
+      runtime: none
+      code: SELECT title FROM books
+      tokens: []
+      blanks:
+      - index: 3
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books
+        - SELECT title FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read the title column from books.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books
+        - SELECT title FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Every column
+    summary: Read a whole row without naming each column.
+    body_markdown: '`*` means every column. It is handy while you are looking around.
+      Name the columns in a query you plan to keep, so a new column does not change
+      the shape of the result.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that reads every column from books.
+      runtime: none
+      code: SELECT * FROM books
+      tokens:
+      - match: SELECT
+        explain: Starts the query.
+      - match: '*'
+        explain: Means every column.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT * FROM books
+        - SELECT * FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'id | title | year
+
+        1 | Dune | 1965'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the mark that means every column.
+      runtime: none
+      code: SELECT * FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT * FROM books
+        - SELECT * FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: id | title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read every column from books.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT * FROM books
+        - SELECT * FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: id | title | year
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A matching row
+    summary: Keep only the rows that pass a test.
+    body_markdown: '`WHERE` runs a test on each row. `=` asks whether two values are
+      the same. Numbers are written without quotes.
+
+
+      `WHERE` does not change the stored table. It only chooses what this query returns.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that reads titles of books from 1965.
+      runtime: none
+      code: SELECT title FROM books WHERE year = 1965
+      tokens:
+      - match: WHERE
+        explain: Keeps rows that pass the test.
+      - match: '='
+        explain: Compares two values for equality.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year = 1965
+        - SELECT title FROM books WHERE year = 1965;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that filters rows.
+      runtime: none
+      code: SELECT title FROM books WHERE year = 1965
+      tokens: []
+      blanks:
+      - index: 5
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year = 1965
+        - SELECT title FROM books WHERE year = 1965;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles of books whose year is 1965.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year = 1965
+        - SELECT title FROM books WHERE year = 1965;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Sort and stop
+    summary: Order the rows, then keep a page of them.
+    body_markdown: '`ORDER BY` sorts the result. `DESC` puts the largest value first.
+      `ASC` is the default.
+
+
+      `LIMIT` stops after a number of rows. `OFFSET` skips rows before that page.
+      PostgreSQL, MySQL, and SQLite use `LIMIT`. SQL Server writes `OFFSET ... FETCH`
+      instead.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for the five newest titles.
+      runtime: none
+      code: SELECT title FROM books ORDER BY year DESC LIMIT 5
+      tokens:
+      - match: ORDER BY
+        explain: Sorts the result.
+      - match: LIMIT
+        explain: Stops after this many rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books ORDER BY year DESC LIMIT 5
+        - SELECT title FROM books ORDER BY year DESC LIMIT 5;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        The Dispossessed
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that sorts the result.
+      runtime: none
+      code: SELECT title FROM books ORDER BY year DESC LIMIT 5
+      tokens: []
+      blanks:
+      - index: 5
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books ORDER BY year DESC LIMIT 5
+        - SELECT title FROM books ORDER BY year DESC LIMIT 5;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Skip 10 titles and then read the next 5, in title order.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books ORDER BY title LIMIT 5 OFFSET 10
+        - SELECT title FROM books ORDER BY title LIMIT 5 OFFSET 10;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Choosing rows
+  description: Beginner — Combine tests, match patterns, and notice missing values.
+  status: published
+  lessons:
+  - title: Two tests
+    summary: Require both conditions.
+    body_markdown: '`AND` keeps a row only when both tests pass. `OR` keeps it when
+      either test passes. `AND` binds more tightly than `OR`, so use parentheses when
+      you mix them.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for books after 2000 that are shorter than 400 pages.
+      runtime: none
+      code: SELECT title FROM books WHERE year > 2000 AND pages < 400
+      tokens:
+      - match: AND
+        explain: Both tests must pass.
+      - match: WHERE
+        explain: Holds the tests.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that requires both tests.
+      runtime: none
+      code: SELECT title FROM books WHERE year > 2000 AND pages < 400
+      tokens: []
+      blanks:
+      - index: 9
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles where the year is greater than 2000 and pages are under
+        400.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400
+        - SELECT title FROM books WHERE year > 2000 AND pages < 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A set of values
+    summary: Match any value in a list.
+    body_markdown: '`IN` is true when the value is one of the items in parentheses.
+      It is the same idea as several `OR` tests, and easier to read.
+
+
+      Strings use single quotes. A quote inside a string is written twice, as in `''O''''Brien''`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for novels and essays.
+      runtime: none
+      code: SELECT title FROM books WHERE genre IN ('novel', 'essay')
+      tokens:
+      - match: IN
+        explain: Tests membership in a list.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay')
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that tests a list.
+      runtime: none
+      code: SELECT title FROM books WHERE genre IN ('novel', 'essay')
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay')
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles whose genre is novel or essay.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay')
+        - SELECT title FROM books WHERE genre IN ('novel', 'essay');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A range
+    summary: Match a value between two ends.
+    body_markdown: '`BETWEEN` includes both ends. `year BETWEEN 1960 AND 1970` is
+      the same as `year >= 1960 AND year <= 1970`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for books from 1960 through 1970.
+      runtime: none
+      code: SELECT title FROM books WHERE year BETWEEN 1960 AND 1970
+      tokens:
+      - match: BETWEEN
+        explain: Includes both ends of the range.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword for an inclusive range.
+      runtime: none
+      code: SELECT title FROM books WHERE year BETWEEN 1960 AND 1970
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles whose year is from 1960 through 1970.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970
+        - SELECT title FROM books WHERE year BETWEEN 1960 AND 1970;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A pattern
+    summary: Match part of a string.
+    body_markdown: '`LIKE` matches a pattern. `%` means any sequence of characters.
+      `_` means one character. `D%` means the text starts with D.
+
+
+      PostgreSQL also has `ILIKE` for a case-insensitive pattern. Standard `LIKE`
+      follows the database''s collation.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for titles that start with D.
+      runtime: none
+      code: SELECT title FROM books WHERE title LIKE 'D%'
+      tokens:
+      - match: '%'
+        explain: In a LIKE pattern, any run of characters.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE title LIKE 'D%'
+        - SELECT title FROM books WHERE title LIKE 'D%';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that matches a pattern.
+      runtime: none
+      code: SELECT title FROM books WHERE title LIKE 'D%'
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE title LIKE 'D%'
+        - SELECT title FROM books WHERE title LIKE 'D%';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles that start with the letter D.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE title LIKE 'D%'
+        - SELECT title FROM books WHERE title LIKE 'D%';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: An empty value
+    summary: Find rows where a column was never set.
+    body_markdown: '`NULL` means the value is missing. It is not an empty string,
+      and it is not equal to anything, including another `NULL`.
+
+
+      Use `IS NULL` or `IS NOT NULL`. The test `subtitle = NULL` does not find those
+      rows.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for books with no subtitle.
+      runtime: none
+      code: SELECT title FROM books WHERE subtitle IS NULL
+      tokens:
+      - match: IS NULL
+        explain: Is true when the value is missing.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE subtitle IS NULL
+        - SELECT title FROM books WHERE subtitle IS NULL;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that tests for a missing value.
+      runtime: none
+      code: SELECT title FROM books WHERE subtitle IS NULL
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE subtitle IS NULL
+        - SELECT title FROM books WHERE subtitle IS NULL;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles whose subtitle is missing.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE subtitle IS NULL
+        - SELECT title FROM books WHERE subtitle IS NULL;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: The opposite
+    summary: Keep the rows that fail a test.
+    body_markdown: '`NOT` flips a test. `<>` means not equal, and so does `!=` in
+      PostgreSQL. Prefer `<>` when you want the standard spelling.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for books that are not poetry.
+      runtime: none
+      code: SELECT title FROM books WHERE NOT genre = 'poetry'
+      tokens:
+      - match: NOT
+        explain: Flips the test that follows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE NOT genre = 'poetry'
+        - SELECT title FROM books WHERE NOT genre = 'poetry';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that flips a test.
+      runtime: none
+      code: SELECT title FROM books WHERE NOT genre = 'poetry'
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE NOT genre = 'poetry'
+        - SELECT title FROM books WHERE NOT genre = 'poetry';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles whose genre is not poetry.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE NOT genre = 'poetry'
+        - SELECT title FROM books WHERE NOT genre = 'poetry';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Shaping values
+  description: Beginner — Rename, calculate, and fill in a result column.
+  status: published
+  lessons:
+  - title: A new name
+    summary: Give a result column a name of your choosing.
+    body_markdown: '`AS` names a column in the result. It does not rename the stored
+      column. You can order by that name in the same query.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that calls the title column name.
+      runtime: none
+      code: SELECT title AS name FROM books
+      tokens:
+      - match: AS
+        explain: Names the result column.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title AS name FROM books
+        - SELECT title AS name FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'name
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that names a result column.
+      runtime: none
+      code: SELECT title AS name FROM books
+      tokens: []
+      blanks:
+      - index: 3
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title AS name FROM books
+        - SELECT title AS name FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'name
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles, and call that column name.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title AS name FROM books
+        - SELECT title AS name FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'name
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Unique values
+    summary: Drop repeated values from the result.
+    body_markdown: '`DISTINCT` keeps one copy of each result row. On one column, that
+      is the set of values in use. It sorts enough to find the duplicates, so a large
+      table can make it slow.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for each genre once.
+      runtime: none
+      code: SELECT DISTINCT genre FROM books
+      tokens:
+      - match: DISTINCT
+        explain: Drops duplicate result rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT DISTINCT genre FROM books
+        - SELECT DISTINCT genre FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'genre
+
+        essay
+
+        novel'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that drops duplicates.
+      runtime: none
+      code: SELECT DISTINCT genre FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT DISTINCT genre FROM books
+        - SELECT DISTINCT genre FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read each genre once.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT DISTINCT genre FROM books
+        - SELECT DISTINCT genre FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'genre
+
+        essay
+
+        novel'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A calculation
+    summary: Build a column from other values.
+    body_markdown: 'You can multiply, add, subtract, and divide in the select list.
+      Naming the result with `AS` keeps the output readable.
+
+
+      Dividing two integers often stays integer arithmetic. Cast one side when you
+      want a fraction.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that doubles each price.
+      runtime: none
+      code: SELECT price * 2 AS doubled FROM books
+      tokens:
+      - match: '*'
+        explain: Multiplies two numbers.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT price * 2 AS doubled FROM books
+        - SELECT price * 2 AS doubled FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'doubled
+
+        20'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the name of the doubled column.
+      runtime: none
+      code: SELECT price * 2 AS doubled FROM books
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT price * 2 AS doubled FROM books
+        - SELECT price * 2 AS doubled FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'doubled
+
+        20'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read each price doubled, in a column named doubled.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT price * 2 AS doubled FROM books
+        - SELECT price * 2 AS doubled FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'doubled
+
+        20'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A fallback
+    summary: Replace a missing value in the result.
+    body_markdown: '`COALESCE` returns the first argument that is not `NULL`. The
+      stored value stays `NULL`. Only this result shows the fallback.
+
+
+      Joining text with `||` is standard SQL. If either side is `NULL`, the whole
+      result is `NULL`, which is another place `COALESCE` helps. MySQL often wants
+      `CONCAT` instead of `||`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that shows none when the subtitle is missing.
+      runtime: none
+      code: SELECT COALESCE(subtitle, 'none') AS subtitle FROM books
+      tokens:
+      - match: COALESCE
+        explain: Returns the first value that is not NULL.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT COALESCE(subtitle, 'none') AS subtitle FROM books
+        - SELECT COALESCE(subtitle, 'none') AS subtitle FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'subtitle
+
+        none'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the function that replaces NULL.
+      runtime: none
+      code: SELECT COALESCE(subtitle, 'none') AS subtitle FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT COALESCE(subtitle, 'none') AS subtitle FROM books
+        - SELECT COALESCE(subtitle, 'none') AS subtitle FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'subtitle
+
+        none'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Join title, a space, and genre into a column named label.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title || ' ' || genre AS label FROM books
+        - SELECT title || ' ' || genre AS label FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'label
+
+        Dune novel'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A conversion
+    summary: Change the type of a value.
+    body_markdown: '`CAST(value AS type)` converts a value. `text`, `integer`, `numeric`,
+      `boolean`, `date`, and `timestamp` cover most everyday work.
+
+
+      A cast fails the statement when the value cannot be converted, rather than quietly
+      inventing a result.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that reads the year as text.
+      runtime: none
+      code: SELECT CAST(year AS text) AS year_text FROM books
+      tokens:
+      - match: CAST
+        explain: Converts a value to another type.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CAST(year AS text) AS year_text FROM books
+        - SELECT CAST(year AS text) AS year_text FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'year_text
+
+        1965'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the function that converts a type.
+      runtime: none
+      code: SELECT CAST(year AS text) AS year_text FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CAST(year AS text) AS year_text FROM books
+        - SELECT CAST(year AS text) AS year_text FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: year_text
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read the year cast to text, named year_text.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CAST(year AS text) AS year_text FROM books
+        - SELECT CAST(year AS text) AS year_text FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'year_text
+
+        1965'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A branch
+    summary: Pick a result from a condition.
+    body_markdown: '`CASE` checks `WHEN` tests in order and returns the matching `THEN`
+      value. `ELSE` covers every other row. `END` closes the expression.
+
+
+      A searched `CASE` can test anything. A simple `CASE` compares one value: `CASE
+      genre WHEN ''novel'' THEN ''story'' END`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that labels a book long when it has more than 400 pages.
+      runtime: none
+      code: SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+        books
+      tokens:
+      - match: CASE
+        explain: Chooses a result from tests.
+      - match: END
+        explain: Closes the CASE.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'length
+
+        long'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that closes the branch.
+      runtime: none
+      code: SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+        books
+      tokens: []
+      blanks:
+      - index: 11
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'length
+
+        long'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Label each book long when pages are over 400, otherwise short. Name
+        the column length.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books
+        - SELECT CASE WHEN pages > 400 THEN 'long' ELSE 'short' END AS length FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'length
+
+        long'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Groups
+  description: Beginner — Collapse many rows into one answer per group.
+  status: published
+  lessons:
+  - title: How many
+    summary: Count the rows that match.
+    body_markdown: '`COUNT(*)` counts rows, including rows that contain `NULL`. `COUNT(subtitle)`
+      counts rows where that column is not `NULL`.
+
+
+      An aggregate without `GROUP BY` returns one row for the whole filtered table.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that counts books.
+      runtime: none
+      code: SELECT COUNT(*) AS total FROM books
+      tokens:
+      - match: COUNT(*)
+        explain: Counts rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT COUNT(*) AS total FROM books
+        - SELECT COUNT(*) AS total FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'total
+
+        2'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the call that counts rows.
+      runtime: none
+      code: SELECT COUNT(*) AS total FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT COUNT(*) AS total FROM books
+        - SELECT COUNT(*) AS total FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'total
+
+        2'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Count the rows in books, and name the column total.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT COUNT(*) AS total FROM books
+        - SELECT COUNT(*) AS total FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'total
+
+        2'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A total and a typical value
+    summary: Add numbers, or find their average.
+    body_markdown: '`SUM` adds a numeric column and ignores `NULL`. `AVG` is the average
+      of the non-null values. `MIN` and `MAX` return an extreme value and also work
+      on text and dates.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that adds every page count.
+      runtime: none
+      code: SELECT SUM(pages) AS total_pages FROM books
+      tokens:
+      - match: SUM
+        explain: Adds the non-null values.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT SUM(pages) AS total_pages FROM books
+        - SELECT SUM(pages) AS total_pages FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'total_pages
+
+        812'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the function that adds numbers.
+      runtime: none
+      code: SELECT SUM(pages) AS total_pages FROM books
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT SUM(pages) AS total_pages FROM books
+        - SELECT SUM(pages) AS total_pages FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: total_pages
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read the average page count, in a column named typical.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT AVG(pages) AS typical FROM books
+        - SELECT AVG(pages) AS typical FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'typical
+
+        406'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: One row per group
+    summary: Count inside each genre.
+    body_markdown: '`GROUP BY` collapses rows that share a key. Every selected column
+      must be in the group key or inside an aggregate.
+
+
+      `WHERE` filters rows before they are grouped. It cannot see the aggregate.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that counts books in each genre.
+      runtime: none
+      code: SELECT genre, COUNT(*) AS total FROM books GROUP BY genre
+      tokens:
+      - match: GROUP BY
+        explain: Collapses rows that share these values.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'genre | total
+
+        novel | 2'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keywords that form the groups.
+      runtime: none
+      code: SELECT genre, COUNT(*) AS total FROM books GROUP BY genre
+      tokens: []
+      blanks:
+      - index: 8
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | total
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: For each genre, read the genre and a count named total.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | total
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A filter after the group
+    summary: Keep groups that pass a test.
+    body_markdown: '`HAVING` filters groups, so it may use aggregates. `WHERE` cannot.
+      Put row tests in `WHERE` and group tests in `HAVING`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for genres that have more than two books.
+      runtime: none
+      code: SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+        > 2
+      tokens:
+      - match: HAVING
+        explain: Keeps groups that pass a test.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'genre | total
+
+        novel | 4'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that filters groups.
+      runtime: none
+      code: SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+        > 2
+      tokens: []
+      blanks:
+      - index: 11
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | total
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read genres whose book count is greater than 2. Name the count total.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2
+        - SELECT genre, COUNT(*) AS total FROM books GROUP BY genre HAVING COUNT(*)
+          > 2;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | total
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Joins
+  description: Beginner — Read columns that live in more than one table.
+  status: published
+  lessons:
+  - title: Matching rows
+    summary: Keep rows that have a partner.
+    body_markdown: '`INNER JOIN` pairs rows whose `ON` test is true. A book with no
+      matching author disappears from the result. So does an author with no book.
+
+
+      The `ON` test is usually a foreign key equaling a primary key. You can still
+      join on any true expression.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that reads each book title with its author's name.
+      runtime: none
+      code: SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+        = authors.id
+      tokens:
+      - match: INNER JOIN
+        explain: Keeps pairs that match.
+      - match: 'ON'
+        explain: Says how the rows pair.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title | name
+
+        Dune | Herbert'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the join that keeps only matches.
+      runtime: none
+      code: SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+        = authors.id
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read books.title and authors.name for books that have an author.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books INNER JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Keep one side
+    summary: Show every book, even with no author.
+    body_markdown: '`LEFT JOIN` keeps every row of the left table. When the right
+      table has no match, its columns are `NULL`.
+
+
+      `RIGHT JOIN` keeps the right table. `FULL JOIN` keeps both. Rewriting a right
+      join as a left join is easier to read.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for every book title, with the author when there is one.
+      runtime: none
+      code: SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+        = authors.id
+      tokens:
+      - match: LEFT JOIN
+        explain: Keeps every row from the left table.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title | name
+
+        Dune | Herbert'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the join that keeps the left table.
+      runtime: none
+      code: SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+        = authors.id
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read every book title and the author's name when the author exists.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id
+        - SELECT books.title, authors.name FROM books LEFT JOIN authors ON books.author_id
+          = authors.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Short names
+    summary: Give each table a name for this query.
+    body_markdown: '`AS` after a table name creates an alias used in that query. `books
+      AS b` lets you write `b.title`. The alias replaces the table name in the rest
+      of the query.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the inner join using b for books and a for authors.
+      runtime: none
+      code: SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+        = a.id
+      tokens:
+      - match: AS
+        explain: Names a table inside this query.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title | name
+
+        Dune | Herbert'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the alias for the authors table.
+      runtime: none
+      code: SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+        = a.id
+      tokens: []
+      blanks:
+      - index: 12
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Join books as b to authors as a and read b.title and a.name.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id
+        - SELECT b.title, a.name FROM books AS b INNER JOIN authors AS a ON b.author_id
+          = a.id;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | name
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Changing rows
+  description: Intermediate — Add, edit, and remove data.
+  status: published
+  lessons:
+  - title: Add a row
+    summary: Insert one row into a table.
+    body_markdown: '`INSERT` names the columns and then the values, in the same order.
+      Omitted columns use their default, or `NULL` when they have no default and allow
+      it.
+
+
+      A second form, `INSERT INTO books SELECT ...`, copies rows from a query.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that adds Dune, published in 1965.
+      runtime: none
+      code: INSERT INTO books (title, year) VALUES ('Dune', 1965)
+      tokens:
+      - match: INSERT INTO
+        explain: Adds rows to a table.
+      - match: VALUES
+        explain: Supplies the new row.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965)
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that supplies the new row.
+      runtime: none
+      code: INSERT INTO books (title, year) VALUES ('Dune', 1965)
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965)
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Add a book titled Dune with year 1965.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965)
+        - INSERT INTO books (title, year) VALUES ('Dune', 1965);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Change a row
+    summary: Update values that are already stored.
+    body_markdown: '`SET` assigns new values. `WHERE` chooses which rows change. Without
+      `WHERE`, every row in the table changes.
+
+
+      Check the `WHERE` with a `SELECT` before you update.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that sets the year of Dune to 1965.
+      runtime: none
+      code: UPDATE books SET year = 1965 WHERE title = 'Dune'
+      tokens:
+      - match: UPDATE
+        explain: Changes stored rows.
+      - match: SET
+        explain: Assigns the new value.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - UPDATE books SET year = 1965 WHERE title = 'Dune'
+        - UPDATE books SET year = 1965 WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that assigns the new value.
+      runtime: none
+      code: UPDATE books SET year = 1965 WHERE title = 'Dune'
+      tokens: []
+      blanks:
+      - index: 3
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - UPDATE books SET year = 1965 WHERE title = 'Dune'
+        - UPDATE books SET year = 1965 WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Set year to 1965 on the row whose title is Dune.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - UPDATE books SET year = 1965 WHERE title = 'Dune'
+        - UPDATE books SET year = 1965 WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Remove a row
+    summary: Delete the rows that match.
+    body_markdown: '`DELETE FROM` removes whole rows. `WHERE` chooses which ones.
+      Without `WHERE`, the table is emptied. The table itself remains.
+
+
+      `TRUNCATE` also empties a table and is usually faster, and it cannot take a
+      `WHERE`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that removes the book titled Dune.
+      runtime: none
+      code: DELETE FROM books WHERE title = 'Dune'
+      tokens:
+      - match: DELETE FROM
+        explain: Removes rows.
+      - match: WHERE
+        explain: Chooses which rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - DELETE FROM books WHERE title = 'Dune'
+        - DELETE FROM books WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that removes rows.
+      runtime: none
+      code: DELETE FROM books WHERE title = 'Dune'
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - DELETE FROM books WHERE title = 'Dune'
+        - DELETE FROM books WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Remove books whose title is Dune.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - DELETE FROM books WHERE title = 'Dune'
+        - DELETE FROM books WHERE title = 'Dune';
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Defining tables
+  description: Intermediate — Create the shape of the data, then change it.
+  status: published
+  lessons:
+  - title: Create a table
+    summary: Name the columns and the primary key.
+    body_markdown: '`CREATE TABLE` defines columns and constraints. `integer` and
+      `text` are common PostgreSQL types. `PRIMARY KEY` identifies a row and implies
+      `NOT NULL` and unique.
+
+
+      `NOT NULL` refuses a missing value. The person who creates a table owns it.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that creates books with an id and a required title.
+      runtime: none
+      code: CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL)
+      tokens:
+      - match: PRIMARY KEY
+        explain: Identifies each row.
+      - match: NOT NULL
+        explain: Refuses a missing value.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL)
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keywords for the row's identity.
+      runtime: none
+      code: CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL)
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL)
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Create books with an integer id primary key and a text title that is
+        required.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL)
+        - CREATE TABLE books (id integer PRIMARY KEY, title text NOT NULL);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A link between tables
+    summary: Point a column at a row in another table.
+    body_markdown: '`REFERENCES` declares a foreign key. PostgreSQL then refuses a
+      loan whose book_id is not an id in books, and refuses to delete that book while
+      a loan points at it.
+
+
+      `ON DELETE CASCADE` deletes the child rows too. Use it only when the child has
+      no meaning without the parent.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that creates loans pointing at books.
+      runtime: none
+      code: CREATE TABLE loans (book_id integer REFERENCES books (id))
+      tokens:
+      - match: REFERENCES
+        explain: Points at a row in another table.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE loans (book_id integer REFERENCES books (id))
+        - CREATE TABLE loans (book_id integer REFERENCES books (id));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that points at another table.
+      runtime: none
+      code: CREATE TABLE loans (book_id integer REFERENCES books (id))
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE loans (book_id integer REFERENCES books (id))
+        - CREATE TABLE loans (book_id integer REFERENCES books (id));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Create loans with an integer book_id that references books (id).
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE loans (book_id integer REFERENCES books (id))
+        - CREATE TABLE loans (book_id integer REFERENCES books (id));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Add a column
+    summary: Change a table that already has rows.
+    body_markdown: '`ALTER TABLE` changes a definition. `ADD COLUMN` adds a column.
+      Existing rows receive `NULL` unless you set a default.
+
+
+      `DROP COLUMN` removes one. `RENAME TO` renames the table. These statements change
+      the shape, not one cell.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that adds an integer pages column to books.
+      runtime: none
+      code: ALTER TABLE books ADD COLUMN pages integer
+      tokens:
+      - match: ALTER TABLE
+        explain: Changes a table's definition.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE books ADD COLUMN pages integer
+        - ALTER TABLE books ADD COLUMN pages integer;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keywords that change the table.
+      runtime: none
+      code: ALTER TABLE books ADD COLUMN pages integer
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE books ADD COLUMN pages integer
+        - ALTER TABLE books ADD COLUMN pages integer;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Add an integer column named pages to books.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE books ADD COLUMN pages integer
+        - ALTER TABLE books ADD COLUMN pages integer;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Remove a table
+    summary: Drop a table you no longer want.
+    body_markdown: '`DROP TABLE` deletes the table and its rows. `DROP TABLE IF EXISTS
+      scratch` does nothing when the table is already gone, instead of failing.
+
+
+      This is not `DELETE`. After `DROP`, the name no longer exists.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that removes the scratch table.
+      runtime: none
+      code: DROP TABLE scratch
+      tokens:
+      - match: DROP TABLE
+        explain: Deletes the table and its rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - DROP TABLE scratch
+        - DROP TABLE scratch;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that deletes a table.
+      runtime: none
+      code: DROP TABLE scratch
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - DROP TABLE scratch
+        - DROP TABLE scratch;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Remove the table named scratch.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - DROP TABLE scratch
+        - DROP TABLE scratch;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A saved query
+    summary: Name a query and read it like a table.
+    body_markdown: 'A view stores a query, not a second copy of the rows. `SELECT
+      * FROM long_books` runs the saved query.
+
+
+      A simple view can accept `INSERT` and `UPDATE` in PostgreSQL. A view with a
+      join or an aggregate is read-only unless you add triggers.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that saves titles of books over 400 pages as long_books.
+      runtime: none
+      code: CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400
+      tokens:
+      - match: CREATE VIEW
+        explain: Saves a query under a name.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keywords that save a query.
+      runtime: none
+      code: CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Create a view long_books that reads titles of books with more than 400
+        pages.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400
+        - CREATE VIEW long_books AS SELECT title FROM books WHERE pages > 400;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Rules and speed
+  description: Intermediate — Protect values, and help the database find them.
+  status: published
+  lessons:
+  - title: Refuse a duplicate
+    summary: Allow each email once.
+    body_markdown: '`UNIQUE` rejects a second row with the same value. You can write
+      it on the column, as in `email text UNIQUE`, or add it later as a constraint.
+      `NULL` is the exception in PostgreSQL: more than one `NULL` is allowed, because
+      `NULL` is not equal to `NULL`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that makes readers.email unique.
+      runtime: none
+      code: ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email)
+      tokens:
+      - match: UNIQUE
+        explain: Rejects a repeated value.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email)
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that rejects a duplicate.
+      runtime: none
+      code: ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email)
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email)
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Add a constraint named readers_email that makes readers.email unique.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email)
+        - ALTER TABLE readers ADD CONSTRAINT readers_email UNIQUE (email);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A rule on the value
+    summary: Reject a number that cannot be a page count.
+    body_markdown: '`CHECK` rejects a row when its expression is false. A `NULL` input
+      makes the check unknown, and PostgreSQL then allows the row. Pair `CHECK` with
+      `NOT NULL` when the value is required.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that creates books whose pages must be greater than
+        0.
+      runtime: none
+      code: CREATE TABLE books (pages integer CHECK (pages > 0))
+      tokens:
+      - match: CHECK
+        explain: Rejects a row when the expression is false.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (pages integer CHECK (pages > 0))
+        - CREATE TABLE books (pages integer CHECK (pages > 0));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that checks a value.
+      runtime: none
+      code: CREATE TABLE books (pages integer CHECK (pages > 0))
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (pages integer CHECK (pages > 0))
+        - CREATE TABLE books (pages integer CHECK (pages > 0));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Create books with an integer pages column that must be greater than
+        0.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE TABLE books (pages integer CHECK (pages > 0))
+        - CREATE TABLE books (pages integer CHECK (pages > 0));
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: An index
+    summary: Help a filter find rows without reading the whole table.
+    body_markdown: 'An index is a side structure the database can use for `WHERE`,
+      `JOIN`, and `ORDER BY`. It does not change the result. It costs space, and it
+      slows writes a little.
+
+
+      A primary key already has an index. Add one for columns you filter on often,
+      such as `year`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that indexes books by year.
+      runtime: none
+      code: CREATE INDEX books_year ON books (year)
+      tokens:
+      - match: CREATE INDEX
+        explain: Builds a side structure for lookups.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE INDEX books_year ON books (year)
+        - CREATE INDEX books_year ON books (year);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that builds an index.
+      runtime: none
+      code: CREATE INDEX books_year ON books (year)
+      tokens: []
+      blanks:
+      - index: 2
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE INDEX books_year ON books (year)
+        - CREATE INDEX books_year ON books (year);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Create an index named books_year on books (year).
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - CREATE INDEX books_year ON books (year)
+        - CREATE INDEX books_year ON books (year);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Let someone read
+    summary: Grant a privilege on a table.
+    body_markdown: '`GRANT` gives a privilege to a role. `SELECT` lets that role read.
+      `INSERT`, `UPDATE`, `DELETE`, and `REFERENCES` are the other everyday privileges.
+
+
+      `REVOKE SELECT ON books FROM reader` takes the privilege back. Privileges do
+      not change the rows.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that lets reader run select on books.
+      runtime: none
+      code: GRANT SELECT ON books TO reader
+      tokens:
+      - match: GRANT
+        explain: Gives a privilege to a role.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - GRANT SELECT ON books TO reader
+        - GRANT SELECT ON books TO reader;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that gives a privilege.
+      runtime: none
+      code: GRANT SELECT ON books TO reader
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - GRANT SELECT ON books TO reader
+        - GRANT SELECT ON books TO reader;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Grant select on books to the role reader.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - GRANT SELECT ON books TO reader
+        - GRANT SELECT ON books TO reader;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Queries inside queries
+  description: Intermediate — Use one result as the input to another.
+  status: published
+  lessons:
+  - title: A list from another query
+    summary: Filter with the rows another query returns.
+    body_markdown: 'A subquery in parentheses can stand where a list is allowed. `IN
+      (SELECT ...)` keeps rows whose value appears in that list.
+
+
+      If the inner query must return one value, a scalar subquery can sit in the select
+      list. More than one row there is an error.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for books by Le Guin.
+      runtime: none
+      code: SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+        name = 'Le Guin')
+      tokens:
+      - match: IN
+        explain: Keeps values that appear in the inner query.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin')
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that tests the inner list.
+      runtime: none
+      code: SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+        name = 'Le Guin')
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin')
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles whose author_id is among authors named Le Guin.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin')
+        - SELECT title FROM books WHERE author_id IN (SELECT id FROM authors WHERE
+          name = 'Le Guin');
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A row that has a match
+    summary: Keep a row when another query finds something.
+    body_markdown: '`EXISTS` is true when the inner query returns at least one row.
+      The inner query often refers to the outer row, which makes it a correlated subquery.
+      It runs again for each outer row.
+
+
+      `NOT EXISTS` keeps the outer rows that have no match.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for titles that have a loan.
+      runtime: none
+      code: SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+        = books.id)
+      tokens:
+      - match: EXISTS
+        explain: Is true when the inner query returns a row.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id)
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that tests for any inner row.
+      runtime: none
+      code: SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+        = books.id)
+      tokens: []
+      blanks:
+      - index: 6
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id)
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles of books that have at least one loan.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id)
+        - SELECT title FROM books WHERE EXISTS (SELECT 1 FROM loans WHERE loans.book_id
+          = books.id);
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A named result
+    summary: Name a query and use it in the next one.
+    body_markdown: '`WITH` defines a common table expression. The main query reads
+      that name as if it were a table. The expression is for this statement only.
+
+
+      Use one when a subquery would be copied twice, or when a name makes the statement
+      easier to read.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that names recent books and then reads their titles.
+      runtime: none
+      code: WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+        FROM recent
+      tokens:
+      - match: WITH
+        explain: Names a query for the rest of the statement.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        The Dispossessed'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that names a nested query.
+      runtime: none
+      code: WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+        FROM recent
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Name recent as titles of books after 2000, then read title from recent.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent
+        - WITH recent AS (SELECT title FROM books WHERE year > 2000) SELECT title
+          FROM recent;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Sets, windows, and transactions
+  description: Intermediate — Combine results, look across rows, and save work safely.
+  status: published
+  lessons:
+  - title: Stack two results
+    summary: Append one result under another.
+    body_markdown: '`UNION` stacks two results and drops duplicate rows. `UNION ALL`
+      keeps duplicates and is faster when you know they cannot happen.
+
+
+      Both sides need the same number of columns and compatible types.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that stacks book titles and magazine titles, without
+        duplicates.
+      runtime: none
+      code: SELECT title FROM books UNION SELECT title FROM magazines
+      tokens:
+      - match: UNION
+        explain: Stacks results and drops duplicate rows.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books UNION SELECT title FROM magazines
+        - SELECT title FROM books UNION SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title
+
+        Dune'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword that stacks results.
+      runtime: none
+      code: SELECT title FROM books UNION SELECT title FROM magazines
+      tokens: []
+      blanks:
+      - index: 5
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books UNION SELECT title FROM magazines
+        - SELECT title FROM books UNION SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles from books and from magazines as one set, without duplicates.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books UNION SELECT title FROM magazines
+        - SELECT title FROM books UNION SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Rows in both, or only in one
+    summary: Compare two results as sets.
+    body_markdown: '`INTERSECT` keeps rows that appear in both results. `EXCEPT` keeps
+      rows from the first result that are not in the second. Duplicates are removed.
+
+
+      Oracle spells `EXCEPT` as `MINUS`.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query for titles that are both books and magazines.
+      runtime: none
+      code: SELECT title FROM books INTERSECT SELECT title FROM magazines
+      tokens:
+      - match: INTERSECT
+        explain: Keeps rows that appear in both results.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books INTERSECT SELECT title FROM magazines
+        - SELECT title FROM books INTERSECT SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keyword for rows only in the first result.
+      runtime: none
+      code: SELECT title FROM books EXCEPT SELECT title FROM magazines
+      tokens: []
+      blanks:
+      - index: 5
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books EXCEPT SELECT title FROM magazines
+        - SELECT title FROM books EXCEPT SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read titles that are in books and not in magazines.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title FROM books EXCEPT SELECT title FROM magazines
+        - SELECT title FROM books EXCEPT SELECT title FROM magazines;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Number the rows
+    summary: Look at neighboring rows without collapsing them.
+    body_markdown: 'A window function computes a value from a set of rows related
+      to the current one, and it does not collapse the row. `OVER` defines that window.
+
+
+      `ROW_NUMBER()` numbers the rows in the `ORDER BY` of the window. `RANK()` repeats
+      a number on ties and then skips. `DENSE_RANK()` does not skip.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that numbers books by year.
+      runtime: none
+      code: SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books
+      tokens:
+      - match: ROW_NUMBER()
+        explain: Numbers rows inside the window.
+      - match: OVER
+        explain: Defines the window.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: 'title | n
+
+        Dune | 1'
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the clause that defines the window.
+      runtime: none
+      code: SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books
+      tokens: []
+      blanks:
+      - index: 4
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | n
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read title and a row number n ordered by year.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books
+        - SELECT title, ROW_NUMBER() OVER (ORDER BY year) AS n FROM books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: title | n
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A count beside each row
+    summary: Aggregate without grouping the row away.
+    body_markdown: '`PARTITION BY` splits the window into groups. `COUNT(*) OVER (PARTITION
+      BY genre)` repeats, on every book, how many books share its genre. The book
+      row stays in the result.
+
+
+      That is the difference from `GROUP BY`, which would return one row per genre.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the query that keeps each title and the size of its genre.
+      runtime: none
+      code: SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre
+        FROM books
+      tokens:
+      - match: PARTITION BY
+        explain: Splits the window into groups.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | title | in_genre
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the keywords that split the window.
+      runtime: none
+      code: SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre
+        FROM books
+      tokens: []
+      blanks:
+      - index: 7
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | title | in_genre
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Read genre, title, and a window count of the genre named in_genre.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books
+        - SELECT genre, title, COUNT(*) OVER ( PARTITION BY genre ) AS in_genre FROM
+          books;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: genre | title | in_genre
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Save or undo
+    summary: Group changes into one transaction.
+    body_markdown: '`BEGIN` starts a transaction. Later statements are invisible to
+      other sessions until `COMMIT` saves them. `ROLLBACK` throws those statements
+      away.
+
+
+      PostgreSQL starts a transaction with `BEGIN`. Some databases use `START TRANSACTION`.
+      One statement on its own is already a transaction: it commits if it succeeds.'
+    status: published
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the statement that starts a transaction.
+      runtime: none
+      code: BEGIN
+      tokens:
+      - match: BEGIN
+        explain: Starts a transaction.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - BEGIN
+        - BEGIN;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the statement that saves the transaction.
+      runtime: none
+      code: COMMIT
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - COMMIT
+        - COMMIT;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Throw away the open transaction.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - ROLLBACK
+        - ROLLBACK;
+        normalize: *id001
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

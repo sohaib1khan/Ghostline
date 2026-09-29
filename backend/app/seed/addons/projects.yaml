@@ -1,0 +1,607 @@
+# Preconfigured mini-projects. Type end-to-end for basic understanding.
+# Seed extends when a track is missing the "Projects" module.
+tracks:
+- slug: bash
+  modules:
+  - title: Projects
+    description: Advanced — small shell projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Hello log
+      summary: Greet someone and append a log line.
+      body_markdown: '# Project: Hello log
+
+
+        One short script: take a name, stamp the time, print a greeting, append to `hello.log`.
+
+
+        Type the whole thing. Use hints when a line slips — understanding by doing.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: set -euo pipefail
+          explain: Stop on errors and unset variables.
+        - match: NAME="${1:-friend}"
+          explain: First argument, or friend.
+        - match: '>>'
+          explain: Append to the log.
+        blanks: []
+        simulated_output: 'hello, friend — it is 17:05
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Hello log project end to end.
+        code: '#!/usr/bin/env bash
+
+          set -euo pipefail
+
+          NAME="${1:-friend}"
+
+          STAMP=$(date +%H:%M)
+
+          echo "hello, $NAME — it is $STAMP"
+
+          echo "$STAMP $NAME" >> ./hello.log'
+        check:
+          mode: either
+          accepted_answers:
+          - '#!/usr/bin/env bash
+
+            set -euo pipefail
+
+            NAME="${1:-friend}"
+
+            STAMP=$(date +%H:%M)
+
+            echo "hello, $NAME — it is $STAMP"
+
+            echo "$STAMP $NAME" >> ./hello.log'
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - Shebang and set -euo pipefail
+        - Default NAME to friend
+        - Echo, then append to hello.log
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks:
+        - index: 3
+          placeholder: ____
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: fill
+        order: 2
+        prompt: Fill the operator that appends to the log.
+        code: echo line >> hello.log
+        check:
+          mode: either
+          accepted_answers:
+          - echo line >> hello.log
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - '>>'
+            pattern: null
+            hint: Use >> to append.
+            minimum: null
+            maximum: null
+        hints:
+        - Append uses two greater-than signs.
+        xp: 15
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 3
+        prompt: Rebuild Hello log from memory.
+        code: '#!/usr/bin/env bash
+
+          set -euo pipefail
+
+          NAME="${1:-friend}"
+
+          STAMP=$(date +%H:%M)
+
+          echo "hello, $NAME — it is $STAMP"
+
+          echo "$STAMP $NAME" >> ./hello.log'
+        check:
+          mode: either
+          accepted_answers:
+          - '#!/usr/bin/env bash
+
+            set -euo pipefail
+
+            NAME="${1:-friend}"
+
+            STAMP=$(date +%H:%M)
+
+            echo "hello, $NAME — it is $STAMP"
+
+            echo "$STAMP $NAME" >> ./hello.log'
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - set -euo pipefail
+            - hello.log
+            - '>>'
+            pattern: null
+            hint: Need fail-fast, hello.log, and >>.
+            minimum: null
+            maximum: null
+        hints:
+        - Shebang + set -euo pipefail
+        - NAME and STAMP
+        - echo greeting
+        - append to hello.log
+        xp: 40
+- slug: python
+  modules:
+  - title: Projects
+    description: Advanced — small Python projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Scoreboard
+      summary: Rank scores and print the top names.
+      body_markdown: '# Project: Scoreboard
+
+
+        Sort scores high to low, keep the top two, print `name: score`.
+
+        Dict → sort → slice → print — type it until the path feels obvious.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: sorted
+          explain: Orders the pairs.
+        - match: reverse=True
+          explain: Highest first.
+        - match: ranked[:limit]
+          explain: Top entries only.
+        blanks: []
+        simulated_output: 'grace: 18
+
+          ada: 12
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Scoreboard project.
+        code: "scores = {\"ada\": 12, \"grace\": 18, \"linus\": 9}\n\ndef leaders(table, limit=2):\n    ranked = sorted(table.items(), key=lambda item: item[1], reverse=True)\n    return ranked[:limit]\n\nfor name, score in leaders(scores):\n    print(f\"{name}: {score}\")"
+        check:
+          mode: either
+          accepted_answers:
+          - "scores = {\"ada\": 12, \"grace\": 18, \"linus\": 9}\n\ndef leaders(table, limit=2):\n    ranked = sorted(table.items(), key=lambda item: item[1], reverse=True)\n    return ranked[:limit]\n\nfor name, score in leaders(scores):\n    print(f\"{name}: {score}\")"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - scores dict
+        - sorted reverse=True
+        - 'print name: score'
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks:
+        - index: 3
+          placeholder: ____
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: fill
+        order: 2
+        prompt: Fill True so high scores come first.
+        code: reverse = True
+        check:
+          mode: either
+          accepted_answers:
+          - reverse = True
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - "True"
+            pattern: null
+            hint: The boolean is True.
+            minimum: null
+            maximum: null
+        hints:
+        - Capital T — True
+        xp: 15
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 3
+        prompt: Write Scoreboard again.
+        code: "scores = {\"ada\": 12, \"grace\": 18, \"linus\": 9}\n\ndef leaders(table, limit=2):\n    ranked = sorted(table.items(), key=lambda item: item[1], reverse=True)\n    return ranked[:limit]\n\nfor name, score in leaders(scores):\n    print(f\"{name}: {score}\")"
+        check:
+          mode: either
+          accepted_answers:
+          - "scores = {\"ada\": 12, \"grace\": 18, \"linus\": 9}\n\ndef leaders(table, limit=2):\n    ranked = sorted(table.items(), key=lambda item: item[1], reverse=True)\n    return ranked[:limit]\n\nfor name, score in leaders(scores):\n    print(f\"{name}: {score}\")"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - sorted
+            - reverse=True
+            - print
+            pattern: null
+            hint: Need sorted, reverse=True, print.
+            minimum: null
+            maximum: null
+        hints:
+        - scores = {...}
+        - def leaders
+        - sorted ... reverse=True
+        - print f-strings
+        xp: 40
+- slug: go
+  modules:
+  - title: Projects
+    description: Advanced — small Go projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Greeter CLI
+      summary: Read a name from Args and print a greeting with its length.
+      body_markdown: '# Project: Greeter CLI
+
+
+        If there is no name, print usage. Otherwise greet them and show letter count.
+
+        Type package, imports, and main until Args feels natural.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: os.Args
+          explain: Command-line arguments.
+        - match: len(name)
+          explain: Letter count.
+        blanks: []
+        simulated_output: 'hello, ada (3 letters)
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Greeter CLI project.
+        code: "package main\n\nimport (\n  \"fmt\"\n  \"os\"\n)\n\nfunc main() {\n  if len(os.Args) < 2 {\n    fmt.Println(\"usage: greeter <name>\")\n    return\n  }\n  name := os.Args[1]\n  fmt.Printf(\"hello, %s (%d letters)\\n\", name, len(name))\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "package main\n\nimport (\n  \"fmt\"\n  \"os\"\n)\n\nfunc main() {\n  if len(os.Args) < 2 {\n    fmt.Println(\"usage: greeter <name>\")\n    return\n  }\n  name := os.Args[1]\n  fmt.Printf(\"hello, %s (%d letters)\\n\", name, len(name))\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - package main
+        - Guard short Args
+        - Printf hello with length
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Rebuild Greeter CLI.
+        code: "package main\n\nimport (\n  \"fmt\"\n  \"os\"\n)\n\nfunc main() {\n  if len(os.Args) < 2 {\n    fmt.Println(\"usage: greeter <name>\")\n    return\n  }\n  name := os.Args[1]\n  fmt.Printf(\"hello, %s (%d letters)\\n\", name, len(name))\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "package main\n\nimport (\n  \"fmt\"\n  \"os\"\n)\n\nfunc main() {\n  if len(os.Args) < 2 {\n    fmt.Println(\"usage: greeter <name>\")\n    return\n  }\n  name := os.Args[1]\n  fmt.Printf(\"hello, %s (%d letters)\\n\", name, len(name))\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - os.Args
+            - len(name)
+            - Printf
+            pattern: null
+            hint: Need Args, len(name), Printf.
+            minimum: null
+            maximum: null
+        hints:
+        - package main
+        - len(os.Args)
+        - name := os.Args[1]
+        - fmt.Printf
+        xp: 40
+- slug: javascript
+  modules:
+  - title: Projects
+    description: Advanced — small JavaScript projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Cart total
+      summary: Reduce a cart into a dollar total.
+      body_markdown: '# Project: Cart total
+
+
+        Each item has price and quantity. Reduce into one number, print `due: $…` with two decimals.
+
+        Typing reduce on a real cart is how it sticks.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: reduce
+          explain: Folds the list into one total.
+        - match: toFixed(2)
+          explain: Two decimal places.
+        blanks: []
+        simulated_output: 'due: $12.75
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Cart total project.
+        code: "const cart = [\n  { name: \"notebook\", price: 4.5, qty: 2 },\n  { name: \"pen\", price: 1.25, qty: 3 },\n];\n\nfunction total(items) {\n  return items.reduce((sum, item) => sum + item.price * item.qty, 0);\n}\n\nconsole.log(`due: $${total(cart).toFixed(2)}`);"
+        check:
+          mode: either
+          accepted_answers:
+          - "const cart = [\n  { name: \"notebook\", price: 4.5, qty: 2 },\n  { name: \"pen\", price: 1.25, qty: 3 },\n];\n\nfunction total(items) {\n  return items.reduce((sum, item) => sum + item.price * item.qty, 0);\n}\n\nconsole.log(`due: $${total(cart).toFixed(2)}`);"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - cart array
+        - reduce price * qty
+        - console.log due
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks:
+        - index: 5
+          placeholder: ____
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: fill
+        order: 2
+        prompt: Fill qty in the reduce body.
+        code: sum + item.price * item.qty
+        check:
+          mode: either
+          accepted_answers:
+          - sum + item.price * item.qty
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - item.qty
+            pattern: null
+            hint: Multiply by item.qty.
+            minimum: null
+            maximum: null
+        hints:
+        - Quantity field is qty.
+        xp: 15
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 3
+        prompt: Rebuild Cart total.
+        code: "const cart = [\n  { name: \"notebook\", price: 4.5, qty: 2 },\n  { name: \"pen\", price: 1.25, qty: 3 },\n];\n\nfunction total(items) {\n  return items.reduce((sum, item) => sum + item.price * item.qty, 0);\n}\n\nconsole.log(`due: $${total(cart).toFixed(2)}`);"
+        check:
+          mode: either
+          accepted_answers:
+          - "const cart = [\n  { name: \"notebook\", price: 4.5, qty: 2 },\n  { name: \"pen\", price: 1.25, qty: 3 },\n];\n\nfunction total(items) {\n  return items.reduce((sum, item) => sum + item.price * item.qty, 0);\n}\n\nconsole.log(`due: $${total(cart).toFixed(2)}`);"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - reduce
+            - toFixed
+            - console.log
+            pattern: null
+            hint: Need reduce, toFixed, console.log.
+            minimum: null
+            maximum: null
+        hints:
+        - cart array
+        - function total
+        - reduce
+        - console.log
+        xp: 40
+- slug: sql
+  modules:
+  - title: Projects
+    description: Advanced — small SQL projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Books still out
+      summary: Join users, loans, and books for open loans.
+      body_markdown: '# Project: Books still out
+
+
+        Join users → loans → books. Keep open loans, count books per reader, busiest first.
+
+        Typing the joins in order is the understanding.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: JOIN loans
+          explain: People to loans.
+        - match: returned_at IS NULL
+          explain: Still out.
+        - match: GROUP BY
+          explain: One row per reader.
+        blanks: []
+        simulated_output: 'name | books_out
+
+          Ada  | 3
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Books still out report.
+        code: "SELECT\n  u.name,\n  COUNT(b.id) AS books_out\nFROM users u\nJOIN loans l ON l.user_id = u.id\nJOIN books b ON b.id = l.book_id\nWHERE l.returned_at IS NULL\nGROUP BY u.name\nORDER BY books_out DESC;"
+        check:
+          mode: either
+          accepted_answers:
+          - "SELECT\n  u.name,\n  COUNT(b.id) AS books_out\nFROM users u\nJOIN loans l ON l.user_id = u.id\nJOIN books b ON b.id = l.book_id\nWHERE l.returned_at IS NULL\nGROUP BY u.name\nORDER BY books_out DESC;"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: false
+          rules: []
+        hints:
+        - SELECT name and COUNT
+        - JOIN loans and books
+        - WHERE returned_at IS NULL
+        - GROUP BY, ORDER BY DESC
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Rebuild Books still out.
+        code: "SELECT\n  u.name,\n  COUNT(b.id) AS books_out\nFROM users u\nJOIN loans l ON l.user_id = u.id\nJOIN books b ON b.id = l.book_id\nWHERE l.returned_at IS NULL\nGROUP BY u.name\nORDER BY books_out DESC;"
+        check:
+          mode: either
+          accepted_answers:
+          - "SELECT\n  u.name,\n  COUNT(b.id) AS books_out\nFROM users u\nJOIN loans l ON l.user_id = u.id\nJOIN books b ON b.id = l.book_id\nWHERE l.returned_at IS NULL\nGROUP BY u.name\nORDER BY books_out DESC;"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: false
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - join loans
+            - returned_at is null
+            - group by
+            pattern: null
+            hint: Need loans join, open loans, GROUP BY.
+            minimum: null
+            maximum: null
+        hints:
+        - FROM users u
+        - JOIN loans and books
+        - WHERE returned_at IS NULL
+        - GROUP BY ORDER BY
+        xp: 40

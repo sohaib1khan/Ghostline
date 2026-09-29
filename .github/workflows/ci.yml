@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend lint and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16.15-alpine3.23
+        env:
+          POSTGRES_USER: ghostline
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: ghostline_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ghostline -d ghostline_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://ghostline:test@localhost:5432/ghostline_test
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  frontend:
+    name: Frontend lint and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: "22.23.3"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+
+  gitleaks:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks detect --source . --verbose --redact
+
+  release:
+    name: Image scan and browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: "22.23.3"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Start a fresh stack
+        run: |
+          cp .env.example .env
+          docker compose up -d --build --wait
+      - name: Scan images
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.66.0 image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ghostline-backend
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.66.0 image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ghostline-web
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: |
+          export E2E_BASE_URL=http://127.0.0.1:8080
+          cd e2e && npx playwright test
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v

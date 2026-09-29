@@ -1,0 +1,309 @@
+slug: python
+name: Python
+description: Readable programs, typed until they stick.
+modules:
+- title: First lines
+  description: Beginner — Print, name, and measure a value.
+  status: published
+  lessons:
+  - title: Say hello
+    summary: Print a short greeting.
+    body_markdown: A Python program can start with one line that prints text.
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a line that prints hello.
+      runtime: none
+      code: print("hello")
+      tokens:
+      - match: print
+        explain: Sends text to the output.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - print("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the word that prints text.
+      runtime: none
+      code: print("hello")
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - print("hello")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Print the word hello.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - print("hello")
+        - print('hello')
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: print
+          values: []
+          pattern: null
+          hint: Use print.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: Print hello before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - print("hello")
+        - print('hello')
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 40
+      status: published
+      order: null
+  - title: A name
+    summary: Store text in a variable.
+    body_markdown: A name holds a value so you can use it again.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a line that stores the name Ada.
+      runtime: none
+      code: name = "Ada"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - name = "Ada"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: How long
+    summary: Ask for the length of a word.
+    body_markdown: len counts the characters in a string.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Print the length of the word hello.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - print(len("hello"))
+        - print(len('hello'))
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: len
+          values: []
+          pattern: null
+          hint: len counts characters.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Small pieces
+  description: Intermediate — Loops and functions, still tiny.
+  status: published
+  lessons:
+  - title: Add two numbers
+    summary: Define a function that adds.
+    body_markdown: A function gives a name to a calculation.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a function that returns the sum of two numbers.
+      runtime: none
+      code: "def add(left, right):\n    return left + right"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "def add(left, right):\n    return left + right"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Count to three
+    summary: Loop over three numbers.
+    body_markdown: range builds a sequence of numbers you can walk.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Print the numbers 0, 1, and 2 on their own lines.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "for number in range(3):\n    print(number)"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: range
+          values: []
+          pattern: null
+          hint: range builds the sequence.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A formatted line
+    summary: Build a sentence from a name.
+    body_markdown: An f-string drops a value into text.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the prefix that marks a formatted string.
+      runtime: none
+      code: print(f"Hello {name}")
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ____
+      check:
+        mode: either
+        accepted_answers:
+        - print(f"Hello {name}")
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
