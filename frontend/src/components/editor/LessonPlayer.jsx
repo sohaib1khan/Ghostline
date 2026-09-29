@@ -306,7 +306,7 @@ export default function LessonPlayer({
                 type="button"
                 disabled={pending || expired || Boolean(result?.passed)}
                 onClick={() => submit(answer)}
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23] disabled:opacity-50"
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
               >
                 {pending ? "Checking…" : "Check"}
               </button>
@@ -367,7 +367,7 @@ export default function LessonPlayer({
           {hasNextExercise ? (
             <button
               type="button"
-              className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23]"
+              className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
               onClick={() => setIndex((value) => value + 1)}
             >
               Continue
@@ -378,7 +378,7 @@ export default function LessonPlayer({
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Link
                 to={`/learn/lessons/${nextLesson.id}`}
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23]"
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
               >
                 Continue{nextLesson.title ? `: ${nextLesson.title}` : ""}
               </Link>

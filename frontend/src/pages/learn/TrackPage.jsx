@@ -125,7 +125,7 @@ export default function TrackPage() {
             <p className="mt-6 text-sm">
               <Link
                 to={`/learn/lessons/${continueAt.lesson.id}`}
-                className="rounded-xl bg-accent px-4 py-2 font-medium text-[#1b1f23]"
+                className="rounded-xl bg-accent px-4 py-2 font-medium text-on-accent"
               >
                 {continueAt.lesson.progress === "new" ? "Start here" : "Continue"}:{" "}
                 {continueAt.lesson.title}

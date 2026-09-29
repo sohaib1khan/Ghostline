@@ -12,6 +12,7 @@ export default {
         "accent-2": "var(--accent-2)",
         success: "var(--success)",
         error: "var(--error)",
+        "on-accent": "var(--on-accent)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],

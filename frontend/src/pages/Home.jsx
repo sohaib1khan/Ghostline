@@ -68,7 +68,7 @@ export default function HomePage() {
           <span className="ghost-text ghost-breathe">&quot;hello, ghostline&quot;</span>
         </p>
         <div className="practice-rise-delay mt-8 flex flex-wrap gap-4 text-sm">
-          <Link to="/demo" className="rounded-xl bg-accent px-4 py-2 font-medium text-[#1b1f23]">
+          <Link to="/demo" className="rounded-xl bg-accent px-4 py-2 font-medium text-on-accent">
             Try a free lesson
           </Link>
           <Link to="/signup" className="rounded-xl border border-muted/30 px-4 py-2 text-muted">

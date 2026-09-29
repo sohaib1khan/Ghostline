@@ -20,8 +20,10 @@ const GUEST = [
 ];
 
 function keyClass(active) {
-  return `inline-flex min-h-10 items-center rounded-full px-3.5 text-sm ${
-    active ? "bg-bg text-text shadow-[var(--shadow)]" : "text-muted hover:text-text"
+  return `inline-flex min-h-10 items-center rounded-full px-3.5 text-sm transition-colors duration-200 ${
+    active
+      ? "bg-bg text-accent shadow-[0_0_16px_color-mix(in_srgb,var(--accent)_22%,transparent)] ring-1 ring-accent/30"
+      : "text-muted hover:text-text"
   }`;
 }
 
@@ -54,7 +56,7 @@ export default function AppNav({ user, theme, onTheme, onSignOut, signingOut }) 
 
   return (
     <nav aria-label="Main" className="max-w-full overflow-x-auto">
-      <div className="flex w-max min-w-full items-center gap-1 rounded-2xl border border-muted/15 bg-surface p-1.5 shadow-[var(--shadow)]">
+      <div className="flex w-max min-w-full items-center gap-1 rounded-2xl border border-accent/15 bg-surface/90 p-1.5 shadow-[var(--shadow)] backdrop-blur-sm">
         {user ? (
           <Group label="Learn">
             {LEARN.map((item) => (

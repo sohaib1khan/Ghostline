@@ -1,5 +1,5 @@
 const THEME_KEY = "ghostline-theme";
-const THEME_COLORS = { dark: "#1b1f23", light: "#f6f4ef" };
+const THEME_COLORS = { dark: "#070b12", light: "#eef3f7" };
 
 export function readTheme() {
   const stored = localStorage.getItem(THEME_KEY);

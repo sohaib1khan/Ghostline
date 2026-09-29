@@ -62,7 +62,7 @@ export default function WorkedExample({
       {done ? (
         <button
           type="button"
-          className="mt-4 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23]"
+          className="mt-4 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
           onClick={onStart}
         >
           I studied it — start typing

@@ -60,7 +60,7 @@ export default function DemoPage() {
                 onClick={() => setSlug(track.slug)}
                 className={`rounded-full border px-4 py-2 text-sm ${
                   track.slug === slug
-                    ? "border-accent bg-accent text-[#1b1f23]"
+                    ? "border-accent bg-accent text-on-accent"
                     : "border-muted/30 text-muted"
                 }`}
               >

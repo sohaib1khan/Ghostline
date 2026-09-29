@@ -61,7 +61,7 @@ export default function GamesPage() {
               onClick={() => setSlug(track.slug)}
               className={`rounded-full border px-4 py-2 text-sm transition ${
                 track.slug === slug
-                  ? "border-accent bg-accent text-[#1b1f23]"
+                  ? "border-accent bg-accent text-on-accent"
                   : "border-muted/30 text-muted hover:border-accent/50"
               }`}
             >

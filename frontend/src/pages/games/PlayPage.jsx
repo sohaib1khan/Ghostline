@@ -262,7 +262,7 @@ export default function PlayPage() {
                 type="button"
                 disabled={locked}
                 onClick={() => submit(answer)}
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23] disabled:opacity-50"
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
               >
                 {pending ? "Checking…" : "Check"}
               </button>

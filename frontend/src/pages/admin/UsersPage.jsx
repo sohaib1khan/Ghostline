@@ -238,7 +238,7 @@ export default function UsersPage() {
             role="tab"
             aria-selected={status === tab}
             className={`rounded-full px-3 py-1 text-sm capitalize ${
-              status === tab ? "bg-accent text-[#1b1f23]" : "text-muted"
+              status === tab ? "bg-accent text-on-accent" : "text-muted"
             }`}
             onClick={() => {
               setStatus(tab);

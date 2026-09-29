@@ -453,7 +453,7 @@ export default function ContentPage() {
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
-                  className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23]"
+                  className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
                   onClick={async () => {
                     setError("");
                     setNotice("");

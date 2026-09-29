@@ -252,25 +252,29 @@ export default function GhostEditor({
   return (
     <div className={wrong ? "ghost-shake" : undefined}>
       {activeToken ? (
-        <p className="mb-2 rounded-xl bg-bg px-3 py-2 text-sm text-muted">{activeToken.explain}</p>
+        <p className="mb-2 rounded-xl border border-accent/20 bg-bg/80 px-3 py-2 text-sm text-muted">
+          {activeToken.explain}
+        </p>
       ) : null}
-      <div
-        className={`overflow-hidden rounded-xl border border-muted/30 bg-bg ${
-          script ? "min-h-56" : ""
-        }`}
-      >
-        <CodeMirror
-          value={value}
-          basicSetup={setup}
-          extensions={extensions}
-          editable={!disabled}
-          indentWithTab={false}
-          onChange={() => {}}
-          theme="none"
-        />
+      <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
+        <div className="ghost-frame-chrome" aria-hidden="true">
+          <span className="ghost-frame-dot" />
+          <span>trace // live</span>
+        </div>
+        <div className="ghost-frame-body">
+          <CodeMirror
+            value={value}
+            basicSetup={setup}
+            extensions={extensions}
+            editable={!disabled}
+            indentWithTab={false}
+            onChange={() => {}}
+            theme="none"
+          />
+        </div>
       </div>
-      <p className="mt-2 text-right font-mono text-xs text-muted">
-        {stats.wpm} wpm · {stats.accuracy}%
+      <p className="ghost-stats">
+        <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%
       </p>
     </div>
   );

@@ -537,7 +537,7 @@ export default function PlaygroundPage() {
               type="button"
               disabled={disabled || pending}
               onClick={startSession}
-              className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-[#1b1f23] disabled:opacity-50"
+              className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
             >
               {pending ? "Starting…" : "Start session"}
             </button>
@@ -711,7 +711,7 @@ export default function PlaygroundPage() {
                   type="button"
                   disabled={pending || !canRunPath(path)}
                   onClick={runFile}
-                  className={`rounded-xl bg-accent px-3 py-1.5 text-sm font-medium text-[#1b1f23] disabled:opacity-50 ${
+                  className={`rounded-xl bg-accent px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50 ${
                     running && !reduce ? "playground-run-pulse" : ""
                   }`}
                 >
