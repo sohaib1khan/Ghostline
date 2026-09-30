@@ -1,7 +1,7 @@
 import { EditorState, Prec } from "@codemirror/state";
 import { Decoration, EditorView, drawSelection, keymap, WidgetType } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { playSound } from "../../sounds.js";
 
 class TypeMarkerWidget extends WidgetType {
@@ -149,12 +149,25 @@ function isScript(text) {
 }
 
 function LineHelper({ guide }) {
+  const scroller = useRef(null);
+  const currentRow = useRef(null);
+
+  useEffect(() => {
+    if (!currentRow.current) {
+      return;
+    }
+    currentRow.current.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  }, [guide?.lineIndex]);
+
   if (!guide) {
     return null;
   }
   const label = displayChar(guide.nextChar);
   return (
-    <div className="line-helper" key={guide.lineIndex}>
+    <div className="line-helper">
       <div className="line-helper-meta">
         <span className="line-helper-step">
           Line {Math.min(guide.lineIndex + 1, guide.lineCount)} of {guide.lineCount}
@@ -167,35 +180,50 @@ function LineHelper({ guide }) {
           <span className="line-helper-key line-helper-key-done">Line clear</span>
         )}
       </div>
-      {guide.prevLine !== null ? (
-        <p className="line-helper-row line-helper-prev">
-          <span className="line-helper-mark" aria-hidden="true">
-            ✓
-          </span>
-          <code>{guide.prevLine || " "}</code>
-        </p>
-      ) : null}
-      <p className="line-helper-row line-helper-current" aria-live="polite">
-        <span className="line-helper-mark" aria-hidden="true">
-          ▸
-        </span>
-        <code>
-          <span className="line-helper-done">{guide.done}</span>
-          {guide.nextChar && guide.nextChar !== "\n" ? (
-            <span className="line-helper-next">{guide.nextChar}</span>
-          ) : null}
-          {guide.nextChar === "\n" ? <span className="line-helper-next line-helper-return">↵</span> : null}
-          <span className="line-helper-rest">{guide.rest}</span>
-        </code>
-      </p>
-      {guide.nextLine !== null ? (
-        <p className="line-helper-row line-helper-upcoming">
-          <span className="line-helper-mark" aria-hidden="true">
-            ·
-          </span>
-          <code>{guide.nextLine || " "}</code>
-        </p>
-      ) : null}
+      <div className="line-helper-scroll" ref={scroller} role="list">
+        {guide.lines.map((line, index) => {
+          const done = index < guide.lineIndex;
+          const current = index === guide.lineIndex && !guide.complete;
+          let rowClass = "line-helper-row line-helper-upcoming";
+          if (done) {
+            rowClass = "line-helper-row line-helper-prev";
+          } else if (current) {
+            rowClass = "line-helper-row line-helper-current";
+          }
+          return (
+            <p
+              key={`guide-line-${index}`}
+              className={rowClass}
+              role="listitem"
+              ref={current ? currentRow : undefined}
+              aria-current={current ? "step" : undefined}
+            >
+              <span className="line-helper-gutter" aria-hidden="true">
+                {index + 1}
+              </span>
+              <span className="line-helper-mark" aria-hidden="true">
+                {done ? "✓" : current ? "▸" : "·"}
+              </span>
+              <code>
+                {current ? (
+                  <>
+                    <span className="line-helper-done">{guide.done}</span>
+                    {guide.nextChar && guide.nextChar !== "\n" ? (
+                      <span className="line-helper-next">{guide.nextChar}</span>
+                    ) : null}
+                    {guide.nextChar === "\n" ? (
+                      <span className="line-helper-next line-helper-return">↵</span>
+                    ) : null}
+                    <span className="line-helper-rest">{guide.rest}</span>
+                  </>
+                ) : (
+                  line || " "
+                )}
+              </code>
+            </p>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -254,15 +254,34 @@ body::after {
   font-weight: 600;
 }
 
+.line-helper-scroll {
+  max-height: min(16rem, 42vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem 0 0.55rem;
+  scroll-behavior: smooth;
+}
+
 .line-helper-row {
   display: flex;
   align-items: flex-start;
-  gap: 0.55rem;
+  gap: 0.45rem;
   margin: 0;
-  padding: 0.35rem 0.9rem;
+  padding: 0.28rem 0.9rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.55;
+}
+
+.line-helper-gutter {
+  flex-shrink: 0;
+  width: 1.4rem;
+  text-align: right;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  color: var(--guide-dim);
+  opacity: 0.7;
+  user-select: none;
 }
 
 .line-helper-row code {
@@ -282,7 +301,7 @@ body::after {
 
 .line-helper-prev {
   color: var(--guide-dim);
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .line-helper-prev .line-helper-mark {
@@ -290,12 +309,26 @@ body::after {
 }
 
 .line-helper-current {
-  padding-top: 0.45rem;
-  padding-bottom: 0.45rem;
-  background: color-mix(in srgb, var(--guide) 10%, transparent);
+  position: sticky;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  margin: 0.15rem 0;
+  border-radius: 0.4rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  background: color-mix(in srgb, var(--guide) 14%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--guide) 28%, transparent);
   color: var(--guide);
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 500;
+  scroll-margin-block: 0.75rem;
+}
+
+.line-helper-current .line-helper-gutter {
+  color: var(--guide);
+  opacity: 1;
+  font-weight: 600;
 }
 
 .line-helper-current .line-helper-mark {
@@ -330,8 +363,7 @@ body::after {
 
 .line-helper-upcoming {
   color: var(--guide-dim);
-  opacity: 0.55;
-  padding-bottom: 0.55rem;
+  opacity: 0.58;
 }
 
 @keyframes line-helper-in {
