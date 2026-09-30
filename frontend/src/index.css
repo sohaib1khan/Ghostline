@@ -183,6 +183,178 @@ body::after {
   animation: practice-rise 500ms ease-out both;
 }
 
+/* Line teleprompter — stable guide above the editor (no erasing ghost). */
+.line-helper {
+  --guide: #f0d9a8;
+  --guide-dim: #9a8b6e;
+  --guide-done: #b7d4c4;
+  --guide-next-bg: #f4c15d;
+  --guide-next-fg: #1b1f23;
+  --guide-panel: #252018;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--guide) 28%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--guide) 8%, transparent), transparent 55%),
+    var(--guide-panel);
+  box-shadow: var(--shadow);
+  animation: line-helper-in 420ms ease-out both;
+}
+
+:root[data-theme="light"] .line-helper {
+  --guide: #7a5c1e;
+  --guide-dim: #8a7a5c;
+  --guide-done: #3d7a5c;
+  --guide-next-bg: #e8a820;
+  --guide-next-fg: #1b1f23;
+  --guide-panel: #f7f1e4;
+}
+
+.line-helper-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--guide) 18%, transparent);
+  padding: 0.55rem 0.9rem;
+}
+
+.line-helper-step {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--guide);
+  font-weight: 600;
+}
+
+.line-helper-key {
+  font-size: 0.82rem;
+  color: var(--guide-dim);
+}
+
+.line-helper-key kbd {
+  display: inline-block;
+  margin-left: 0.25rem;
+  border-radius: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--guide-next-bg) 55%, transparent);
+  background: var(--guide-next-bg);
+  padding: 0.12rem 0.45rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--guide-next-fg);
+  animation: type-marker-pulse 1.1s ease-in-out infinite;
+}
+
+.line-helper-key-done {
+  color: var(--guide-done);
+  font-weight: 600;
+}
+
+.line-helper-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.line-helper-row code {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.line-helper-mark {
+  flex-shrink: 0;
+  width: 1rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.line-helper-prev {
+  color: var(--guide-dim);
+  opacity: 0.85;
+}
+
+.line-helper-prev .line-helper-mark {
+  color: var(--guide-done);
+}
+
+.line-helper-current {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  background: color-mix(in srgb, var(--guide) 10%, transparent);
+  color: var(--guide);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.line-helper-current .line-helper-mark {
+  color: var(--guide-next-bg);
+  animation: type-marker-pulse 1.1s ease-in-out infinite;
+}
+
+.line-helper-done {
+  color: var(--guide-done);
+}
+
+.line-helper-next {
+  display: inline-block;
+  margin: 0 1px;
+  border-radius: 3px;
+  background: var(--guide-next-bg);
+  padding: 0 0.18em;
+  font-weight: 700;
+  color: var(--guide-next-fg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--guide-next-bg) 40%, transparent);
+  animation: next-key-glow 1.1s ease-in-out infinite;
+}
+
+.line-helper-return {
+  letter-spacing: 0;
+}
+
+.line-helper-rest {
+  color: var(--guide);
+  opacity: 0.78;
+}
+
+.line-helper-upcoming {
+  color: var(--guide-dim);
+  opacity: 0.55;
+  padding-bottom: 0.55rem;
+}
+
+@keyframes line-helper-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes next-key-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
 @keyframes type-marker-pulse {
   0%,
   100% {
@@ -505,6 +677,10 @@ body::after {
   .ghost-frame-badge,
   .ghost-type-marker,
   .ghost-type-hint,
+  .line-helper,
+  .line-helper-key kbd,
+  .line-helper-current .line-helper-mark,
+  .line-helper-next,
   .cm-focused > .cm-scroller > .cm-cursorLayer {
     animation: none;
   }
@@ -515,6 +691,10 @@ body::after {
 :root[data-reduce-motion="true"] .ghost-frame-badge,
 :root[data-reduce-motion="true"] .ghost-type-marker,
 :root[data-reduce-motion="true"] .ghost-type-hint,
+:root[data-reduce-motion="true"] .line-helper,
+:root[data-reduce-motion="true"] .line-helper-key kbd,
+:root[data-reduce-motion="true"] .line-helper-current .line-helper-mark,
+:root[data-reduce-motion="true"] .line-helper-next,
 :root[data-reduce-motion="true"] .cm-focused > .cm-scroller > .cm-cursorLayer {
   animation: none;
 }

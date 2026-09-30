@@ -4,24 +4,6 @@ import CodeMirror from "@uiw/react-codemirror";
 import { useMemo, useRef, useState } from "react";
 import { playSound } from "../../sounds.js";
 
-class GhostWidget extends WidgetType {
-  constructor(text) {
-    super();
-    this.text = text;
-  }
-
-  toDOM() {
-    const span = document.createElement("span");
-    span.className = "ghost-text";
-    span.textContent = this.text;
-    return span;
-  }
-
-  ignoreEvent() {
-    return true;
-  }
-}
-
 class TypeMarkerWidget extends WidgetType {
   toDOM() {
     const span = document.createElement("span");
@@ -37,39 +19,6 @@ class TypeMarkerWidget extends WidgetType {
 
   eq() {
     return true;
-  }
-}
-
-class NextCharWidget extends WidgetType {
-  constructor(char) {
-    super();
-    this.char = char;
-  }
-
-  toDOM() {
-    const span = document.createElement("span");
-    span.className = "ghost-next-char";
-    span.setAttribute("aria-hidden", "true");
-    if (this.char === "\n") {
-      span.classList.add("ghost-next-char-nl");
-      span.textContent = "↵";
-    } else if (this.char === " ") {
-      span.classList.add("ghost-next-char-space");
-      span.textContent = "·";
-    } else if (this.char === "\t") {
-      span.textContent = "⇥";
-    } else {
-      span.textContent = this.char;
-    }
-    return span;
-  }
-
-  ignoreEvent() {
-    return true;
-  }
-
-  eq(other) {
-    return other instanceof NextCharWidget && other.char === this.char;
   }
 }
 
@@ -131,6 +80,55 @@ function liveStats(startedAt, correctChars, mistakes) {
   return { wpm, accuracy };
 }
 
+function displayChar(char) {
+  if (char === "\n") {
+    return "↵ return";
+  }
+  if (char === " ") {
+    return "space";
+  }
+  if (char === "\t") {
+    return "tab";
+  }
+  return char;
+}
+
+/** Stable line-by-line progress — guide stays put; editor only shows typed text. */
+function lineGuide(target, typed) {
+  if (!target) {
+    return null;
+  }
+  const lines = target.split("\n");
+  const correct = sharedPrefix(target, typed);
+  let offset = 0;
+  let lineIndex = 0;
+  for (let index = 0; index < lines.length; index += 1) {
+    const withBreak = lines[index].length + (index < lines.length - 1 ? 1 : 0);
+    if (correct < offset + withBreak || index === lines.length - 1) {
+      lineIndex = index;
+      break;
+    }
+    offset += withBreak;
+  }
+  const line = lines[lineIndex] || "";
+  const col = Math.min(Math.max(0, correct - offset), line.length);
+  const needsReturn = col >= line.length && lineIndex < lines.length - 1;
+  const nextChar = needsReturn ? "\n" : line[col] || "";
+  return {
+    lines,
+    lineIndex,
+    lineCount: lines.length,
+    line,
+    col,
+    done: line.slice(0, col),
+    nextChar,
+    rest: needsReturn ? "" : line.slice(col + (nextChar ? 1 : 0)),
+    prevLine: lineIndex > 0 ? lines[lineIndex - 1] : null,
+    nextLine: lineIndex < lines.length - 1 ? lines[lineIndex + 1] : null,
+    complete: correct >= target.length,
+  };
+}
+
 const SETUP = {
   lineNumbers: false,
   foldGutter: false,
@@ -148,6 +146,58 @@ const SETUP = {
 
 function isScript(text) {
   return Boolean(text) && (text.includes("\n") || text.length > 80);
+}
+
+function LineHelper({ guide }) {
+  if (!guide) {
+    return null;
+  }
+  const label = displayChar(guide.nextChar);
+  return (
+    <div className="line-helper" key={guide.lineIndex}>
+      <div className="line-helper-meta">
+        <span className="line-helper-step">
+          Line {Math.min(guide.lineIndex + 1, guide.lineCount)} of {guide.lineCount}
+        </span>
+        {!guide.complete && guide.nextChar ? (
+          <span className="line-helper-key" title="Next key to press">
+            Next: <kbd>{label}</kbd>
+          </span>
+        ) : (
+          <span className="line-helper-key line-helper-key-done">Line clear</span>
+        )}
+      </div>
+      {guide.prevLine !== null ? (
+        <p className="line-helper-row line-helper-prev">
+          <span className="line-helper-mark" aria-hidden="true">
+            ✓
+          </span>
+          <code>{guide.prevLine || " "}</code>
+        </p>
+      ) : null}
+      <p className="line-helper-row line-helper-current" aria-live="polite">
+        <span className="line-helper-mark" aria-hidden="true">
+          ▸
+        </span>
+        <code>
+          <span className="line-helper-done">{guide.done}</span>
+          {guide.nextChar && guide.nextChar !== "\n" ? (
+            <span className="line-helper-next">{guide.nextChar}</span>
+          ) : null}
+          {guide.nextChar === "\n" ? <span className="line-helper-next line-helper-return">↵</span> : null}
+          <span className="line-helper-rest">{guide.rest}</span>
+        </code>
+      </p>
+      {guide.nextLine !== null ? (
+        <p className="line-helper-row line-helper-upcoming">
+          <span className="line-helper-mark" aria-hidden="true">
+            ·
+          </span>
+          <code>{guide.nextLine || " "}</code>
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 export default function GhostEditor({
@@ -168,13 +218,13 @@ export default function GhostEditor({
   notify.current = onChange;
   complete.current = onComplete;
   const script = isScript(target) || isScript(value);
+  const locked = Boolean(target);
+  const guide = useMemo(() => (locked ? lineGuide(target, value) : null), [locked, target, value]);
 
   const extensions = useMemo(() => {
-    const locked = Boolean(target);
     return [
       EditorView.editable.of(!disabled),
-      // DECISION: a solid CodeMirror caret. The browser caret blinks against
-      // ghost text and restarts whenever the selection is pinned to the end.
+      // DECISION: solid caret. Guide lives outside the editor so typing stays calm.
       drawSelection({ cursorBlinkRate: 0 }),
       EditorView.domEventHandlers({
         paste(event) {
@@ -277,33 +327,18 @@ export default function GhostEditor({
               if (typed.length === correct + 1) {
                 marks.push(Decoration.mark({ class: "ghost-wrong" }).range(correct, typed.length));
               }
-              const rest = target.slice(correct);
-              if (rest) {
-                // Always show where to type — block caret + next character callout.
+              // Only a typing caret in the editor — no fading ghost overlay.
+              if (typed.length < target.length) {
                 marks.push(
                   Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(typed.length),
                 );
-                marks.push(
-                  Decoration.widget({
-                    widget: new NextCharWidget(rest[0]),
-                    side: 1,
-                  }).range(typed.length),
-                );
-                const after = rest.slice(1);
-                if (after) {
-                  marks.push(
-                    Decoration.widget({ widget: new GhostWidget(after), side: 1 }).range(
-                      typed.length,
-                    ),
-                  );
-                }
               }
               return Decoration.set(marks, true);
             }),
           ]
         : []),
     ];
-  }, [disabled, target]);
+  }, [disabled, locked, target]);
 
   const activeToken = target ? tokenAt(target, tokens, sharedPrefix(target, value)) : null;
   const wrong = Boolean(target) && value.length > 0 && !target.startsWith(value);
@@ -315,8 +350,6 @@ export default function GhostEditor({
     [script],
   );
 
-  const waiting = Boolean(target) && value.length === 0;
-
   return (
     <div className={wrong ? "ghost-shake" : undefined}>
       {activeToken ? (
@@ -324,6 +357,7 @@ export default function GhostEditor({
           {activeToken.explain}
         </p>
       ) : null}
+      {guide ? <LineHelper guide={guide} /> : null}
       <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
         <div className="ghost-frame-chrome" aria-hidden="true">
           <span className="ghost-frame-traffic">
@@ -331,15 +365,9 @@ export default function GhostEditor({
             <span className="ghost-frame-dot" />
             <span className="ghost-frame-dot" />
           </span>
-          <span className="ghost-frame-title">Ghostline · Trace</span>
+          <span className="ghost-frame-title">Your typing</span>
           <span className="ghost-frame-badge">live</span>
         </div>
-        {waiting ? (
-          <p className="ghost-type-hint" role="status">
-            <span className="ghost-type-marker ghost-type-marker-inline" aria-hidden="true" />
-            Click in the box and type — follow the guide. The bright mark is your next key.
-          </p>
-        ) : null}
         <div className="ghost-frame-body">
           <CodeMirror
             value={value}
