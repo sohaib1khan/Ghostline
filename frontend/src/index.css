@@ -42,39 +42,40 @@
   font-display: swap;
 }
 
-/* Dark is the default — clean cyberpunk, high contrast. Light stays calm. */
+/* Dark — cyber accents kept, contrast tuned for low vision. */
 :root {
   color-scheme: dark;
-  --bg: #070b12;
-  --surface: #0e1520;
-  --text: #e6f0f7;
-  --muted: #7f93a8;
-  --accent: #3dffe0;
-  --accent-2: #ff4fd8;
-  --success: #5dff9f;
-  --error: #ff6b8a;
+  --bg: #0b1018;
+  --surface: #141b26;
+  --text: #f2f7fb;
+  --muted: #b0c0d0;
+  --accent: #5affd7;
+  --accent-2: #ff7ae0;
+  --success: #6dffb0;
+  --error: #ff8aa3;
   --on-accent: #041018;
-  --ghost: rgba(61, 255, 224, 0.38);
+  /* Ghost guide text must stay clearly readable — solid mid-bright, not faint. */
+  --ghost: #9eb8cc;
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --frame-glow: color-mix(in srgb, var(--accent) 28%, transparent);
-  --scanline: rgba(61, 255, 224, 0.04);
+  --frame-glow: color-mix(in srgb, var(--accent) 18%, transparent);
+  --scanline: transparent;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
   --bg: #eef3f7;
   --surface: #ffffff;
-  --text: #15202b;
-  --muted: #5a6d7e;
-  --accent: #0d9f8a;
-  --accent-2: #c026a0;
-  --success: #1f9a5a;
-  --error: #c23b55;
+  --text: #12202c;
+  --muted: #3d5163;
+  --accent: #0a8a78;
+  --accent-2: #b01f90;
+  --success: #1a8a50;
+  --error: #b8324a;
   --on-accent: #ffffff;
-  --ghost: rgba(13, 159, 138, 0.35);
+  --ghost: #4a6478;
   --shadow: 0 16px 40px rgba(21, 32, 43, 0.1);
-  --frame-glow: color-mix(in srgb, var(--accent) 22%, transparent);
-  --scanline: rgba(13, 159, 138, 0.05);
+  --frame-glow: color-mix(in srgb, var(--accent) 16%, transparent);
+  --scanline: transparent;
 }
 
 body {
@@ -109,30 +110,16 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: 0;
-  opacity: 0.055;
+  opacity: 0.03;
   background-image:
     linear-gradient(var(--accent) 1px, transparent 1px),
     linear-gradient(90deg, var(--accent) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: radial-gradient(ellipse 75% 55% at 50% 15%, #000 15%, transparent 78%);
-  animation: grid-drift 28s linear infinite;
 }
 
 body::after {
-  content: "";
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  opacity: 0.5;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    var(--scanline) 2px,
-    var(--scanline) 3px
-  );
-  animation: scan-drift 12s linear infinite;
+  content: none;
 }
 
 #root {
@@ -158,7 +145,8 @@ body::after {
 
 .ghost-text {
   color: var(--ghost);
-  animation: ghost-shimmer 2.4s ease-in-out infinite;
+  opacity: 1;
+  font-weight: 500;
 }
 
 .practice-rise {
@@ -227,26 +215,14 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .practice-rise,
   .practice-rise-delay,
-  .ghost-breathe,
-  .ghost-text {
-    animation: none;
-  }
-
-  body::before,
-  body::after {
+  .ghost-breathe {
     animation: none;
   }
 }
 
 :root[data-reduce-motion="true"] .practice-rise,
 :root[data-reduce-motion="true"] .practice-rise-delay,
-:root[data-reduce-motion="true"] .ghost-breathe,
-:root[data-reduce-motion="true"] .ghost-text {
-  animation: none;
-}
-
-:root[data-reduce-motion="true"] body::before,
-:root[data-reduce-motion="true"] body::after {
+:root[data-reduce-motion="true"] .ghost-breathe {
   animation: none;
 }
 
@@ -266,68 +242,35 @@ body::after {
   background: var(--success);
 }
 
-/* Typing frame — terminal chrome around the ghost editor. */
+/* Typing frame — clear terminal chrome; no overlays on the code. */
 .ghost-frame {
   position: relative;
   overflow: hidden;
   border-radius: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 7%, transparent),
-      transparent 42%
-    ),
-    color-mix(in srgb, var(--bg) 88%, #000);
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: #0a121c;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent),
-    0 0 28px var(--frame-glow),
-    inset 0 1px 0 color-mix(in srgb, var(--accent) 12%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 0 20px var(--frame-glow);
   transition:
     border-color 220ms ease,
     box-shadow 280ms ease;
 }
 
-.ghost-frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    color-mix(in srgb, var(--accent) 3%, transparent) 3px,
-    color-mix(in srgb, var(--accent) 3%, transparent) 4px
-  );
-  opacity: 0.55;
-  z-index: 1;
+:root[data-theme="light"] .ghost-frame {
+  background: #f7fafc;
 }
 
+.ghost-frame::before,
 .ghost-frame::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -40%;
-  height: 40%;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    color-mix(in srgb, var(--accent) 10%, transparent),
-    transparent
-  );
-  animation: frame-scan 4.5s ease-in-out infinite;
-  z-index: 1;
+  content: none;
 }
 
 .ghost-frame:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  border-color: var(--accent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent),
-    0 0 36px color-mix(in srgb, var(--accent) 35%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 28px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .ghost-frame-script {
@@ -338,22 +281,21 @@ body::after {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  padding: 0.45rem 0.75rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--accent) 80%, var(--muted));
+  color: var(--accent);
 }
 
 .ghost-frame-dot {
-  width: 0.4rem;
-  height: 0.4rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent);
-  animation: ghost-breathe 1.8s ease-in-out infinite;
 }
 
 .ghost-frame-body {
@@ -365,14 +307,14 @@ body::after {
   margin-top: 0.5rem;
   text-align: right;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   letter-spacing: 0.04em;
   color: var(--muted);
 }
 
 .ghost-stats strong {
   color: var(--accent);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .fill-frame {
@@ -382,18 +324,19 @@ body::after {
   gap: 0.5rem;
   padding: 0.85rem 1rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  color: var(--text);
 }
 
 .fill-blank {
   width: 6.5rem;
   border-radius: 0.4rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
   background: color-mix(in srgb, var(--bg) 70%, transparent);
-  padding: 0.3rem 0.5rem;
+  padding: 0.35rem 0.5rem;
   color: var(--text);
+  font-size: 1rem;
   outline: none;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 12%, transparent);
   transition:
     border-color 180ms ease,
     box-shadow 220ms ease;
@@ -401,26 +344,11 @@ body::after {
 
 .fill-blank:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .fill-blank:disabled {
-  opacity: 0.6;
-}
-
-@keyframes frame-scan {
-  0%,
-  100% {
-    top: -40%;
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.7;
-  }
-  55% {
-    top: 110%;
-    opacity: 0;
-  }
+  opacity: 0.7;
 }
 
 /* CodeMirror layout lives here so the app style policy can stay style-src 'self'. */
@@ -435,8 +363,8 @@ body::after {
   align-items: flex-start;
   overflow-x: auto;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.98rem;
-  line-height: 1.65;
+  font-size: 1.05rem;
+  line-height: 1.7;
 }
 
 .cm-content {
@@ -444,7 +372,7 @@ body::after {
   white-space: pre;
   caret-color: transparent;
   padding: 0.85rem 0;
-  min-height: 1.65em;
+  min-height: 1.7em;
   outline: none;
 }
 
@@ -452,32 +380,21 @@ body::after {
   padding: 0 0.9rem;
 }
 
-/* Accent caret with a soft pulse — still solid, not browser blink. */
+/* Accent caret — solid, high contrast. */
 .cm-editor .cm-cursor {
-  border-left: 2px solid var(--accent);
+  border-left: 3px solid var(--accent);
   margin-left: -1px;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .cm-focused > .cm-scroller > .cm-cursorLayer {
-  animation: caret-pulse 1.05s ease-in-out infinite;
-}
-
-@keyframes caret-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
+  animation: none;
 }
 
 .ghost-wrong {
   color: var(--error);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-shadow: 0 0 10px color-mix(in srgb, var(--error) 45%, transparent);
+  font-weight: 600;
 }
 
 .ghost-shake {
@@ -507,18 +424,9 @@ body::after {
   .ghost-shake {
     animation: none;
   }
-
-  .ghost-frame::after,
-  .ghost-frame-dot,
-  .cm-focused > .cm-scroller > .cm-cursorLayer {
-    animation: none;
-  }
 }
 
-:root[data-reduce-motion="true"] .ghost-shake,
-:root[data-reduce-motion="true"] .ghost-frame::after,
-:root[data-reduce-motion="true"] .ghost-frame-dot,
-:root[data-reduce-motion="true"] .cm-focused > .cm-scroller > .cm-cursorLayer {
+:root[data-reduce-motion="true"] .ghost-shake {
   animation: none;
 }
 
