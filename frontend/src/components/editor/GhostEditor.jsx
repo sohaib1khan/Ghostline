@@ -53,9 +53,23 @@ function indentFromGhost(target, current) {
   return match ? match[0] : "";
 }
 
-/** Enter: one newline, then auto-indent spaces/tabs on the next line (stop before another blank). */
+function lastLineIndent(text) {
+  const lineStart = text.lastIndexOf("\n") + 1;
+  const match = /^[ \t]*/.exec(text.slice(lineStart));
+  return match ? match[0] : "";
+}
+
+/** Free typing: newline, then keep the current line's indent. */
+function freeEnterInsert(current) {
+  return `\n${lastLineIndent(current)}`;
+}
+
+/** Enter (locked): one newline, then auto-indent from the ghost (stop before another blank). */
 function enterInsert(target, current) {
-  if (!target || !target.startsWith(current)) {
+  if (!target) {
+    return freeEnterInsert(current);
+  }
+  if (!target.startsWith(current)) {
     return "";
   }
   const rest = target.slice(current.length);
@@ -82,6 +96,13 @@ function whitespaceInsert(target, current) {
     index += 1;
   }
   return rest.slice(0, index);
+}
+
+function tabInsert(target, current) {
+  if (target) {
+    return indentFromGhost(target, current) || whitespaceInsert(target, current);
+  }
+  return "  ";
 }
 
 function dispatchInsert(view, insert) {
@@ -297,10 +318,13 @@ export default function GhostEditor({
   const script = isScript(target) || isScript(value);
   const locked = Boolean(target);
   const guide = useMemo(() => (locked ? lineGuide(target, value) : null), [locked, target, value]);
-  const nextIsEnter = locked && guide?.nextChar === "\n";
-  const nextIsIndent =
-    locked && (guide?.nextChar === " " || guide?.nextChar === "\t" || Boolean(indentFromGhost(target, value)));
+  const nextIsEnter = locked ? guide?.nextChar === "\n" : true;
+  const nextIsIndent = locked
+    ? guide?.nextChar === " " || guide?.nextChar === "\t" || Boolean(indentFromGhost(target, value))
+    : true;
   const canFillWhitespace = locked && Boolean(whitespaceInsert(target, value));
+  // Every practice typing box gets Enter/Tab helpers — locked fills from the ghost; free keeps indent.
+  const showTypeActions = !disabled;
 
   function runEditorInsert(builder) {
     const view = viewRef.current;
@@ -354,13 +378,14 @@ export default function GhostEditor({
           {
             key: "Enter",
             run(view) {
-              if (!locked) {
-                return false;
-              }
               const current = view.state.doc.toString();
               const insert = enterInsert(target, current);
-              // Always consume Enter in locked mode so a wrong newline never slips in.
-              dispatchInsert(view, insert);
+              if (locked) {
+                // Always consume Enter in locked mode so a wrong newline never slips in.
+                dispatchInsert(view, insert);
+                return true;
+              }
+              dispatchInsert(view, insert || freeEnterInsert(current));
               return true;
             },
           },
@@ -368,22 +393,8 @@ export default function GhostEditor({
             key: "Tab",
             run(view) {
               const current = view.state.doc.toString();
-              if (!locked) {
-                const from = current.length;
-                view.dispatch({
-                  changes: { from, insert: "  " },
-                  selection: { anchor: from + 2 },
-                });
-                return true;
-              }
-              const indent = indentFromGhost(target, current);
-              if (indent) {
-                dispatchInsert(view, indent);
-                return true;
-              }
-              // If the next keys are newlines/spaces (blank lines), Tab advances whitespace.
-              const ws = whitespaceInsert(target, current);
-              dispatchInsert(view, ws);
+              const insert = tabInsert(target, current);
+              dispatchInsert(view, insert);
               return true;
             },
           },
@@ -481,41 +492,43 @@ export default function GhostEditor({
             live
           </span>
         </div>
-        {locked ? (
+        {showTypeActions ? (
           <div className="ghost-type-actions">
             <button
               type="button"
-              className={`ghost-type-action ${nextIsEnter ? "ghost-type-action-hot" : ""}`}
-              disabled={disabled || !nextIsEnter}
+              className={`ghost-type-action ${locked && nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              disabled={disabled || (locked && !nextIsEnter)}
               onClick={() => runEditorInsert(enterInsert)}
             >
               Enter ↵
             </button>
             <button
               type="button"
-              className={`ghost-type-action ${nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""}`}
-              disabled={disabled || (!nextIsIndent && !canFillWhitespace)}
-              onClick={() =>
-                runEditorInsert((tgt, cur) => indentFromGhost(tgt, cur) || whitespaceInsert(tgt, cur))
-              }
+              className={`ghost-type-action ${locked && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              disabled={disabled || (locked && !nextIsIndent && !canFillWhitespace)}
+              onClick={() => runEditorInsert(tabInsert)}
             >
               Tab indent
             </button>
-            <button
-              type="button"
-              className="ghost-type-action"
-              disabled={disabled || !canFillWhitespace}
-              onClick={() => runEditorInsert(whitespaceInsert)}
-              title="Insert spaces, tabs, and blank lines until the next character"
-            >
-              Fill spaces
-            </button>
+            {locked ? (
+              <button
+                type="button"
+                className="ghost-type-action"
+                disabled={disabled || !canFillWhitespace}
+                onClick={() => runEditorInsert(whitespaceInsert)}
+                title="Insert spaces, tabs, and blank lines until the next character"
+              >
+                Fill spaces
+              </button>
+            ) : null}
             <span className="ghost-type-action-hint">
-              {nextIsEnter
-                ? "Press Enter — blank lines and indent are included when needed"
-                : nextIsIndent
-                  ? "Press Tab or Space for indentation"
-                  : "Type the highlighted key from the guide"}
+              {locked
+                ? nextIsEnter
+                  ? "Press Enter — blank lines and indent are included when needed"
+                  : nextIsIndent
+                    ? "Press Tab or Space for indentation"
+                    : "Type the highlighted key from the guide"
+                : "Enter keeps indent · Tab inserts two spaces"}
             </span>
           </div>
         ) : null}
