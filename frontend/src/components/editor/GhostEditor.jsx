@@ -53,6 +53,49 @@ function indentFromGhost(target, current) {
   return match ? match[0] : "";
 }
 
+/** Enter: one newline, then auto-indent spaces/tabs on the next line (stop before another blank). */
+function enterInsert(target, current) {
+  if (!target || !target.startsWith(current)) {
+    return "";
+  }
+  const rest = target.slice(current.length);
+  if (!rest.startsWith("\n")) {
+    return "";
+  }
+  let insert = "\n";
+  let index = 1;
+  while (index < rest.length && (rest[index] === " " || rest[index] === "\t")) {
+    insert += rest[index];
+    index += 1;
+  }
+  return insert;
+}
+
+/** Insert the next run of spaces/tabs/newlines until the next visible character. */
+function whitespaceInsert(target, current) {
+  if (!target || !target.startsWith(current)) {
+    return "";
+  }
+  const rest = target.slice(current.length);
+  let index = 0;
+  while (index < rest.length && (rest[index] === " " || rest[index] === "\t" || rest[index] === "\n")) {
+    index += 1;
+  }
+  return rest.slice(0, index);
+}
+
+function dispatchInsert(view, insert) {
+  if (!insert) {
+    return false;
+  }
+  const from = view.state.doc.length;
+  view.dispatch({
+    changes: { from, insert },
+    selection: { anchor: from + insert.length },
+  });
+  return true;
+}
+
 function tokenAt(code, tokens, typedLength) {
   let from = 0;
   for (const token of tokens || []) {
@@ -215,9 +258,14 @@ function LineHelper({ guide }) {
                       <span className="line-helper-next line-helper-return">↵</span>
                     ) : null}
                     <span className="line-helper-rest">{guide.rest}</span>
+                    {!guide.line && guide.nextChar === "\n" ? (
+                      <span className="line-helper-blank"> (blank line — press Enter)</span>
+                    ) : null}
                   </>
+                ) : line ? (
+                  line
                 ) : (
-                  line || " "
+                  <span className="line-helper-blank">(blank line)</span>
                 )}
               </code>
             </p>
@@ -243,11 +291,26 @@ export default function GhostEditor({
   const finished = useRef(false);
   const previous = useRef("");
   const [stats, setStats] = useState({ wpm: 0, accuracy: 100 });
+  const viewRef = useRef(null);
   notify.current = onChange;
   complete.current = onComplete;
   const script = isScript(target) || isScript(value);
   const locked = Boolean(target);
   const guide = useMemo(() => (locked ? lineGuide(target, value) : null), [locked, target, value]);
+  const nextIsEnter = locked && guide?.nextChar === "\n";
+  const nextIsIndent =
+    locked && (guide?.nextChar === " " || guide?.nextChar === "\t" || Boolean(indentFromGhost(target, value)));
+  const canFillWhitespace = locked && Boolean(whitespaceInsert(target, value));
+
+  function runEditorInsert(builder) {
+    const view = viewRef.current;
+    if (!view || disabled) {
+      return;
+    }
+    const current = view.state.doc.toString();
+    dispatchInsert(view, builder(target, current));
+    view.focus();
+  }
 
   const extensions = useMemo(() => {
     return [
@@ -289,18 +352,38 @@ export default function GhostEditor({
       Prec.highest(
         keymap.of([
           {
+            key: "Enter",
+            run(view) {
+              if (!locked) {
+                return false;
+              }
+              const current = view.state.doc.toString();
+              const insert = enterInsert(target, current);
+              // Always consume Enter in locked mode so a wrong newline never slips in.
+              dispatchInsert(view, insert);
+              return true;
+            },
+          },
+          {
             key: "Tab",
             run(view) {
               const current = view.state.doc.toString();
-              const insert = indentFromGhost(target, current);
-              if (!insert) {
+              if (!locked) {
+                const from = current.length;
+                view.dispatch({
+                  changes: { from, insert: "  " },
+                  selection: { anchor: from + 2 },
+                });
                 return true;
               }
-              const from = current.length;
-              view.dispatch({
-                changes: { from, insert },
-                selection: { anchor: from + insert.length },
-              });
+              const indent = indentFromGhost(target, current);
+              if (indent) {
+                dispatchInsert(view, indent);
+                return true;
+              }
+              // If the next keys are newlines/spaces (blank lines), Tab advances whitespace.
+              const ws = whitespaceInsert(target, current);
+              dispatchInsert(view, ws);
               return true;
             },
           },
@@ -387,15 +470,55 @@ export default function GhostEditor({
       ) : null}
       {guide ? <LineHelper guide={guide} /> : null}
       <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
-        <div className="ghost-frame-chrome" aria-hidden="true">
-          <span className="ghost-frame-traffic">
+        <div className="ghost-frame-chrome">
+          <span className="ghost-frame-traffic" aria-hidden="true">
             <span className="ghost-frame-dot" />
             <span className="ghost-frame-dot" />
             <span className="ghost-frame-dot" />
           </span>
           <span className="ghost-frame-title">Your typing</span>
-          <span className="ghost-frame-badge">live</span>
+          <span className="ghost-frame-badge" aria-hidden="true">
+            live
+          </span>
         </div>
+        {locked ? (
+          <div className="ghost-type-actions">
+            <button
+              type="button"
+              className={`ghost-type-action ${nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              disabled={disabled || !nextIsEnter}
+              onClick={() => runEditorInsert(enterInsert)}
+            >
+              Enter ↵
+            </button>
+            <button
+              type="button"
+              className={`ghost-type-action ${nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              disabled={disabled || (!nextIsIndent && !canFillWhitespace)}
+              onClick={() =>
+                runEditorInsert((tgt, cur) => indentFromGhost(tgt, cur) || whitespaceInsert(tgt, cur))
+              }
+            >
+              Tab indent
+            </button>
+            <button
+              type="button"
+              className="ghost-type-action"
+              disabled={disabled || !canFillWhitespace}
+              onClick={() => runEditorInsert(whitespaceInsert)}
+              title="Insert spaces, tabs, and blank lines until the next character"
+            >
+              Fill spaces
+            </button>
+            <span className="ghost-type-action-hint">
+              {nextIsEnter
+                ? "Press Enter — blank lines and indent are included when needed"
+                : nextIsIndent
+                  ? "Press Tab or Space for indentation"
+                  : "Type the highlighted key from the guide"}
+            </span>
+          </div>
+        ) : null}
         <div className="ghost-frame-body">
           <CodeMirror
             value={value}
@@ -403,6 +526,9 @@ export default function GhostEditor({
             extensions={extensions}
             editable={!disabled}
             indentWithTab={false}
+            onCreateEditor={(view) => {
+              viewRef.current = view;
+            }}
             onChange={() => {}}
             theme="none"
           />

@@ -551,6 +551,60 @@ body::after {
   animation: ghost-breathe 2.8s ease-in-out infinite;
 }
 
+.ghost-type-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  padding: 0.45rem 0.75rem;
+}
+
+.ghost-type-action {
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  background: var(--bg);
+  padding: 0.3rem 0.65rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.ghost-type-action:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.ghost-type-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.ghost-type-action-hot {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  animation: type-marker-pulse 1.2s ease-in-out infinite;
+}
+
+.ghost-type-action-hint {
+  flex: 1 1 10rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.line-helper-blank {
+  color: var(--guide-dim);
+  font-style: italic;
+  font-weight: 500;
+}
+
 .ghost-frame-body {
   position: relative;
 }
@@ -709,6 +763,7 @@ body::after {
   .ghost-frame-badge,
   .ghost-type-marker,
   .ghost-type-hint,
+  .ghost-type-action-hot,
   .line-helper,
   .line-helper-key kbd,
   .line-helper-current .line-helper-mark,
@@ -723,6 +778,7 @@ body::after {
 :root[data-reduce-motion="true"] .ghost-frame-badge,
 :root[data-reduce-motion="true"] .ghost-type-marker,
 :root[data-reduce-motion="true"] .ghost-type-hint,
+:root[data-reduce-motion="true"] .ghost-type-action-hot,
 :root[data-reduce-motion="true"] .line-helper,
 :root[data-reduce-motion="true"] .line-helper-key kbd,
 :root[data-reduce-motion="true"] .line-helper-current .line-helper-mark,
