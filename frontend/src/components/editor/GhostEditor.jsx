@@ -437,7 +437,9 @@ export default function GhostEditor({
         }
         if (!finished.current) {
           finished.current = true;
-          complete.current?.(nextStats);
+          if (!disabled) {
+            complete.current?.(nextStats);
+          }
         }
       }),
       ...(locked

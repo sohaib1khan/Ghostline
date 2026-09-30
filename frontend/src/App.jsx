@@ -26,6 +26,7 @@ import AppNav from "./components/layout/AppNav.jsx";
 import SettingsLayout from "./components/layout/SettingsLayout.jsx";
 import InstallPrompt from "./components/pwa/InstallPrompt.jsx";
 import OfflineNotice from "./components/pwa/OfflineNotice.jsx";
+import { clearPracticeSession } from "./practiceSession.js";
 import { applyStoredPrefs } from "./prefs.js";
 import { applyTheme, readTheme } from "./theme/theme.js";
 
@@ -96,6 +97,7 @@ function Shell() {
     try {
       await api("/api/auth/logout", { method: "POST" });
     } finally {
+      clearPracticeSession();
       setUser(null);
       setSigningOut(false);
     }

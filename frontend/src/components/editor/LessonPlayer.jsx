@@ -2,6 +2,14 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
+import {
+  clearPracticeSession,
+  readExerciseState,
+  sessionForLesson,
+  sessionHasWork,
+  setSessionIndex,
+  upsertExerciseState,
+} from "../../practiceSession.js";
 import MarkdownView from "../content/MarkdownView.jsx";
 import WorkedExample from "../content/WorkedExample.jsx";
 import { readPrefs } from "../../prefs.js";
@@ -25,6 +33,39 @@ function needsStudy(exercise) {
   );
 }
 
+function freshExerciseState(exercise) {
+  return {
+    draft: "",
+    blanks: {},
+    hintsShown: 0,
+    result: null,
+    message: "",
+    burst: 0,
+    remaining: exercise?.time_limit_seconds || 0,
+    studying: needsStudy(exercise),
+  };
+}
+
+function hydrateExerciseState(lessonId, exercise) {
+  const saved = readExerciseState(lessonId, exercise.id);
+  if (!saved) {
+    return freshExerciseState(exercise);
+  }
+  return {
+    draft: saved.draft || "",
+    blanks: saved.blanks && typeof saved.blanks === "object" ? saved.blanks : {},
+    hintsShown: Number(saved.hintsShown) || 0,
+    result: saved.result || null,
+    message: "",
+    burst: 0,
+    remaining:
+      saved.remaining !== undefined && saved.remaining !== null
+        ? Number(saved.remaining)
+        : exercise?.time_limit_seconds || 0,
+    studying: Boolean(saved.studying),
+  };
+}
+
 export default function LessonPlayer({
   lesson,
   backTo,
@@ -35,21 +76,46 @@ export default function LessonPlayer({
 }) {
   const systemReduce = useReducedMotion();
   const alive = useRef(true);
+  const startIndex = firstOpen(lesson.exercises);
+  const existing = sessionForLesson(lesson.id);
   const [prefs, setPrefs] = useState(readPrefs);
-  const [index, setIndex] = useState(() => firstOpen(lesson.exercises));
-  const [draft, setDraft] = useState("");
-  const [blanks, setBlanks] = useState({});
-  const [hintsShown, setHintsShown] = useState(0);
-  const [result, setResult] = useState(null);
+  const [phase, setPhase] = useState(() =>
+    sessionHasWork(existing, startIndex) ? "ask" : "ready",
+  );
+  const [index, setIndex] = useState(() =>
+    sessionHasWork(existing, startIndex) ? existing.index : startIndex,
+  );
+  const exercise = lesson.exercises[index];
+  const initial = hydrateExerciseState(lesson.id, lesson.exercises[index] || lesson.exercises[0]);
+  const [draft, setDraft] = useState(initial.draft);
+  const [blanks, setBlanks] = useState(initial.blanks);
+  const [hintsShown, setHintsShown] = useState(initial.hintsShown);
+  const [result, setResult] = useState(initial.result);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
-  const [remaining, setRemaining] = useState(0);
+  const [remaining, setRemaining] = useState(initial.remaining);
   const [attemptKey, setAttemptKey] = useState(0);
   const [burst, setBurst] = useState(0);
-  const [studying, setStudying] = useState(false);
-  const exercise = lesson.exercises[index];
+  const [studying, setStudying] = useState(initial.studying);
+  // DECISION: never auto-advance after a pass. Next stays disabled briefly so a
+  // fast Check click cannot land on the newly shown button.
+  const [nextReady, setNextReady] = useState(false);
   const nextLesson = lesson.next_lesson || null;
   const hasNextExercise = index < lesson.exercises.length - 1;
+
+  useEffect(() => {
+    if (!result?.passed || !hasNextExercise) {
+      setNextReady(false);
+      return undefined;
+    }
+    setNextReady(false);
+    const timer = window.setTimeout(() => {
+      if (alive.current) {
+        setNextReady(true);
+      }
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [result?.passed, hasNextExercise, exercise?.id]);
 
   useEffect(() => {
     alive.current = true;
@@ -64,31 +130,33 @@ export default function LessonPlayer({
   }, []);
 
   useEffect(() => {
-    setDraft("");
-    setBlanks({});
-    setHintsShown(0);
-    setResult(null);
-    setMessage("");
-    setBurst(0);
-    setRemaining(exercise?.time_limit_seconds || 0);
-    setStudying(needsStudy(exercise));
-  }, [exercise?.id, exercise?.time_limit_seconds, attemptKey]);
-
-  // After a pass mid-lesson, move on so practice keeps flowing.
-  useEffect(() => {
-    if (!result?.passed || !hasNextExercise) {
-      return undefined;
+    if (phase !== "ready" || !exercise) {
+      return;
     }
-    const timer = window.setTimeout(() => {
-      if (alive.current) {
-        setIndex((value) => value + 1);
-      }
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, [hasNextExercise, result?.passed, exercise?.id]);
+    upsertExerciseState(lesson.id, index, exercise.id, {
+      draft,
+      blanks,
+      hintsShown,
+      result,
+      studying,
+      remaining,
+    });
+  }, [
+    phase,
+    lesson.id,
+    index,
+    exercise?.id,
+    draft,
+    blanks,
+    hintsShown,
+    result,
+    studying,
+    remaining,
+  ]);
 
   useEffect(() => {
     if (
+      phase !== "ready" ||
       exercise?.type !== "challenge" ||
       !exercise.time_limit_seconds ||
       result?.passed ||
@@ -106,14 +174,100 @@ export default function LessonPlayer({
     exercise?.id,
     exercise?.time_limit_seconds,
     exercise?.type,
+    phase,
     remaining,
     result?.passed,
     studying,
   ]);
 
+  function applyState(next) {
+    setDraft(next.draft);
+    setBlanks(next.blanks);
+    setHintsShown(next.hintsShown);
+    setResult(next.result);
+    setMessage(next.message);
+    setBurst(next.burst);
+    setRemaining(next.remaining);
+    setStudying(next.studying);
+    setNextReady(Boolean(next.result?.passed));
+  }
+
+  function goTo(nextIndex) {
+    if (!exercise) {
+      return;
+    }
+    upsertExerciseState(lesson.id, index, exercise.id, {
+      draft,
+      blanks,
+      hintsShown,
+      result,
+      studying,
+      remaining,
+    });
+    const nextExercise = lesson.exercises[nextIndex];
+    setIndex(nextIndex);
+    setSessionIndex(lesson.id, nextIndex);
+    setAttemptKey(0);
+    applyState(hydrateExerciseState(lesson.id, nextExercise));
+  }
+
+  function resumeSession() {
+    const session = sessionForLesson(lesson.id);
+    const nextIndex = session ? Math.min(session.index, lesson.exercises.length - 1) : startIndex;
+    setIndex(nextIndex);
+    applyState(hydrateExerciseState(lesson.id, lesson.exercises[nextIndex]));
+    setAttemptKey(0);
+    setPhase("ready");
+  }
+
+  function startFresh() {
+    clearPracticeSession();
+    setIndex(startIndex);
+    applyState(freshExerciseState(lesson.exercises[startIndex]));
+    setAttemptKey(0);
+    setPhase("ready");
+  }
+
+  function endSession() {
+    clearPracticeSession();
+  }
+
   const reduce = Boolean(systemReduce) || prefs.reduceMotion;
   if (!exercise) {
     return <p className="text-sm text-muted">This lesson has no exercises yet.</p>;
+  }
+
+  if (phase === "ask") {
+    return (
+      <article className="min-w-0 rounded-2xl bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
+        {backTo ? (
+          <Link to={backTo} className="text-sm text-accent">
+            {lesson.track_name}
+          </Link>
+        ) : (
+          <p className="text-sm text-muted">{lesson.track_name}</p>
+        )}
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{lesson.title}</h1>
+        <div className="mt-6 rounded-xl border border-accent/25 bg-bg/80 p-4">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">Open session</p>
+          <p className="mt-2 text-sm text-muted">
+            You left mid-practice on this lesson. Pick up where you left off, or start clean.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
+              onClick={resumeSession}
+            >
+              Continue where I left off
+            </button>
+            <button type="button" className="text-sm text-muted" onClick={startFresh}>
+              Start over
+            </button>
+          </div>
+        </div>
+      </article>
+    );
   }
 
   const expired =
@@ -157,6 +311,14 @@ export default function LessonPlayer({
         return;
       }
       setResult(data);
+      upsertExerciseState(lesson.id, index, exercise.id, {
+        draft: attempt,
+        blanks,
+        hintsShown,
+        result: data,
+        studying: false,
+        remaining,
+      });
       if (data.passed && onPassed) {
         onPassed(exercise.id);
       }
@@ -190,7 +352,7 @@ export default function LessonPlayer({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted">
           {index + 1} of {lesson.exercises.length} · {exercise.type}
-          {exercise.progress?.status === "completed" ? " · done" : ""}
+          {exercise.progress?.status === "completed" || result?.passed ? " · done" : ""}
         </p>
         <span className="type-chip font-mono text-xs uppercase tracking-wider text-accent">
           {exercise.type}
@@ -320,17 +482,24 @@ export default function LessonPlayer({
               <button
                 type="button"
                 className="text-sm text-accent"
-                onClick={() => setAttemptKey((value) => value + 1)}
+                onClick={() => {
+                  applyState(freshExerciseState(exercise));
+                  setAttemptKey((value) => value + 1);
+                  upsertExerciseState(lesson.id, index, exercise.id, {
+                    draft: "",
+                    blanks: {},
+                    hintsShown: 0,
+                    result: null,
+                    studying: needsStudy(exercise),
+                    remaining: exercise.time_limit_seconds || 0,
+                  });
+                }}
               >
                 Try again
               </button>
             ) : null}
             {index > 0 ? (
-              <button
-                type="button"
-                className="text-sm text-muted"
-                onClick={() => setIndex((value) => value - 1)}
-              >
+              <button type="button" className="text-sm text-muted" onClick={() => goTo(index - 1)}>
                 Back
               </button>
             ) : null}
@@ -367,23 +536,27 @@ export default function LessonPlayer({
           {hasNextExercise ? (
             <button
               type="button"
-              className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
-              onClick={() => setIndex((value) => value + 1)}
+              className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
+              disabled={!nextReady}
+              onClick={() => goTo(index + 1)}
             >
-              Continue
+              Next
             </button>
           ) : finish ? (
-            <div className="mt-3 text-sm text-muted">{finish}</div>
+            <div className="mt-3 text-sm text-muted" onClickCapture={endSession}>
+              {finish}
+            </div>
           ) : nextLesson ? (
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Link
                 to={`/learn/lessons/${nextLesson.id}`}
                 className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
+                onClick={endSession}
               >
                 Continue{nextLesson.title ? `: ${nextLesson.title}` : ""}
               </Link>
               {backTo ? (
-                <Link to={backTo} className="text-sm text-muted">
+                <Link to={backTo} className="text-sm text-muted" onClick={endSession}>
                   Back to path
                 </Link>
               ) : null}
@@ -394,7 +567,7 @@ export default function LessonPlayer({
               {backTo ? (
                 <>
                   {" "}
-                  <Link to={backTo} className="text-accent">
+                  <Link to={backTo} className="text-accent" onClick={endSession}>
                     Back to path
                   </Link>
                 </>
@@ -410,7 +583,7 @@ export default function LessonPlayer({
               {backTo ? (
                 <>
                   {" "}
-                  <Link to={backTo} className="text-accent">
+                  <Link to={backTo} className="text-accent" onClick={endSession}>
                     Back to path
                   </Link>
                 </>
