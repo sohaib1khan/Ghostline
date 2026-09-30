@@ -126,7 +126,7 @@ function Shell() {
     <main className="min-h-screen overflow-x-clip bg-bg px-4 py-8 text-text sm:px-6 sm:py-16">
       <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-6 sm:gap-8">
         <header className="practice-rise">
-          <p className="brand-mark font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
+          <p className="font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
             Ghostline
           </p>
           <p className="mt-2 max-w-xl text-muted">

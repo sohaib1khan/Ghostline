@@ -5,8 +5,13 @@ export default function FillGap({ code, blanks, values, onChange, disabled }) {
   return (
     <div className="ghost-frame">
       <div className="ghost-frame-chrome" aria-hidden="true">
-        <span className="ghost-frame-dot" />
-        <span>fill // blanks</span>
+        <span className="ghost-frame-traffic">
+          <span className="ghost-frame-dot" />
+          <span className="ghost-frame-dot" />
+          <span className="ghost-frame-dot" />
+        </span>
+        <span className="ghost-frame-title">Ghostline · Fill</span>
+        <span className="ghost-frame-badge">blanks</span>
       </div>
       <div className="ghost-frame-body fill-frame">
         {words.map((word, index) => {

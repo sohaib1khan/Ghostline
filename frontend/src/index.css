@@ -42,40 +42,36 @@
   font-display: swap;
 }
 
-/* Dark — cyber accents kept, contrast tuned for low vision. */
+/* Dark is the default. Light is one attribute switch. */
 :root {
   color-scheme: dark;
-  --bg: #0b1018;
-  --surface: #141b26;
-  --text: #f2f7fb;
-  --muted: #b0c0d0;
-  --accent: #5affd7;
-  --accent-2: #ff7ae0;
-  --success: #6dffb0;
-  --error: #ff8aa3;
-  --on-accent: #041018;
-  /* Ghost guide text must stay clearly readable — solid mid-bright, not faint. */
-  --ghost: #9eb8cc;
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --frame-glow: color-mix(in srgb, var(--accent) 18%, transparent);
-  --scanline: transparent;
+  --bg: #1b1f23;
+  --surface: #232a2f;
+  --text: #e8eef3;
+  --muted: #9aa6b2;
+  --accent: #8fb9a8;
+  --accent-2: #a3b8d4;
+  --success: #9ccc9c;
+  --error: #e39a9a;
+  --on-accent: #1b1f23;
+  /* Guide text: solid and readable, clearly secondary to typed text. */
+  --ghost: #a8b4c0;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #eef3f7;
+  --bg: #f6f4ef;
   --surface: #ffffff;
-  --text: #12202c;
-  --muted: #3d5163;
-  --accent: #0a8a78;
-  --accent-2: #b01f90;
-  --success: #1a8a50;
-  --error: #b8324a;
+  --text: #2b3137;
+  --muted: #5c6872;
+  --accent: #5f8f7e;
+  --accent-2: #6c87ab;
+  --success: #4f8f4f;
+  --error: #b85c5c;
   --on-accent: #ffffff;
-  --ghost: #4a6478;
-  --shadow: 0 16px 40px rgba(21, 32, 43, 0.1);
-  --frame-glow: color-mix(in srgb, var(--accent) 16%, transparent);
-  --scanline: transparent;
+  --ghost: #6a7682;
+  --shadow: 0 16px 40px rgba(43, 49, 55, 0.08);
 }
 
 body {
@@ -85,19 +81,14 @@ body {
     env(safe-area-inset-left);
   background:
     radial-gradient(
-      ellipse 80% 50% at 8% -5%,
-      color-mix(in srgb, var(--accent) 18%, transparent),
-      transparent 55%
+      ellipse 90% 55% at 12% -8%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 58%
     ),
     radial-gradient(
-      ellipse 60% 40% at 100% 0%,
-      color-mix(in srgb, var(--accent-2) 14%, transparent),
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse 50% 35% at 50% 100%,
-      color-mix(in srgb, var(--accent) 8%, transparent),
-      transparent 60%
+      ellipse 70% 45% at 100% 0%,
+      color-mix(in srgb, var(--accent-2) 12%, transparent),
+      transparent 52%
     ),
     var(--bg);
   color: var(--text);
@@ -110,12 +101,11 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: 0;
-  opacity: 0.03;
-  background-image:
-    linear-gradient(var(--accent) 1px, transparent 1px),
-    linear-gradient(90deg, var(--accent) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse 75% 55% at 50% 15%, #000 15%, transparent 78%);
+  opacity: 0.035;
+  background-image: linear-gradient(var(--text) 1px, transparent 1px),
+    linear-gradient(90deg, var(--text) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 20%, transparent 75%);
 }
 
 body::after {
@@ -126,11 +116,6 @@ body::after {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-}
-
-.brand-mark {
-  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 45%, transparent);
-  letter-spacing: 0.02em;
 }
 
 /* iOS zooms the page when a focused field is under 16px. The attribute
@@ -150,65 +135,35 @@ body::after {
 }
 
 .practice-rise {
-  animation: practice-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: practice-rise 700ms ease-out both;
 }
 
 .practice-rise-delay {
-  animation: practice-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+  animation: practice-rise 700ms ease-out 120ms both;
 }
 
 .ghost-breathe {
-  animation: ghost-breathe 2.6s ease-in-out infinite;
+  animation: ghost-breathe 3.2s ease-in-out infinite;
 }
 
 @keyframes practice-rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
-    filter: blur(2px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
 @keyframes ghost-breathe {
   0%,
   100% {
-    opacity: 0.5;
+    opacity: 0.55;
   }
   50% {
     opacity: 1;
-  }
-}
-
-@keyframes ghost-shimmer {
-  0%,
-  100% {
-    opacity: 0.32;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-
-@keyframes grid-drift {
-  from {
-    background-position: 0 0, 0 0;
-  }
-  to {
-    background-position: 40px 40px, 40px 40px;
-  }
-}
-
-@keyframes scan-drift {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 48px;
   }
 }
 
@@ -242,35 +197,29 @@ body::after {
   background: var(--success);
 }
 
-/* Typing frame — clear terminal chrome; no overlays on the code. */
+/* IDE-style typing frame — calm chrome, readable ghost guide. */
 .ghost-frame {
   position: relative;
   overflow: hidden;
-  border-radius: 0.75rem;
-  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  background: #0a121c;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
-    0 0 20px var(--frame-glow);
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  background: color-mix(in srgb, var(--bg) 92%, #000);
+  box-shadow: var(--shadow);
+  animation: ide-in 480ms ease-out both;
   transition:
-    border-color 220ms ease,
-    box-shadow 280ms ease;
+    border-color 200ms ease,
+    box-shadow 240ms ease;
 }
 
 :root[data-theme="light"] .ghost-frame {
-  background: #f7fafc;
-}
-
-.ghost-frame::before,
-.ghost-frame::after {
-  content: none;
+  background: #fbfaf7;
 }
 
 .ghost-frame:focus-within {
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
-    0 0 28px color-mix(in srgb, var(--accent) 25%, transparent);
+    var(--shadow),
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .ghost-frame-script {
@@ -280,35 +229,73 @@ body::after {
 .ghost-frame-chrome {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
-  padding: 0.45rem 0.75rem;
+  gap: 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  padding: 0.5rem 0.85rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.ghost-frame-traffic {
+  display: inline-flex;
+  gap: 0.35rem;
 }
 
 .ghost-frame-dot {
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+
+.ghost-frame-dot:nth-child(1) {
+  background: color-mix(in srgb, var(--error) 70%, var(--muted));
+}
+
+.ghost-frame-dot:nth-child(2) {
+  background: color-mix(in srgb, var(--accent-2) 55%, var(--muted));
+}
+
+.ghost-frame-dot:nth-child(3) {
+  background: color-mix(in srgb, var(--success) 65%, var(--muted));
+}
+
+.ghost-frame-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.ghost-frame-badge {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  animation: ghost-breathe 2.8s ease-in-out infinite;
 }
 
 .ghost-frame-body {
   position: relative;
-  z-index: 2;
 }
 
 .ghost-stats {
-  margin-top: 0.5rem;
+  margin-top: 0.55rem;
   text-align: right;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
   color: var(--muted);
 }
 
@@ -322,7 +309,7 @@ body::after {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 1rem;
   color: var(--text);
@@ -330,25 +317,36 @@ body::after {
 
 .fill-blank {
   width: 6.5rem;
-  border-radius: 0.4rem;
-  border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 40%, transparent);
+  background: var(--bg);
   padding: 0.35rem 0.5rem;
   color: var(--text);
   font-size: 1rem;
   outline: none;
   transition:
     border-color 180ms ease,
-    box-shadow 220ms ease;
+    box-shadow 200ms ease;
 }
 
 .fill-blank:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .fill-blank:disabled {
   opacity: 0.7;
+}
+
+@keyframes ide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* CodeMirror layout lives here so the app style policy can stay style-src 'self'. */
@@ -363,7 +361,7 @@ body::after {
   align-items: flex-start;
   overflow-x: auto;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: 1.7;
 }
 
@@ -380,14 +378,34 @@ body::after {
   padding: 0 0.9rem;
 }
 
-/* Accent caret — solid, high contrast. */
+.cm-gutters {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  color: var(--muted);
+}
+
+.cm-activeLineGutter {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
 .cm-editor .cm-cursor {
-  border-left: 3px solid var(--accent);
+  border-left: 2px solid var(--accent);
   margin-left: -1px;
 }
 
 .cm-focused > .cm-scroller > .cm-cursorLayer {
-  animation: none;
+  animation: caret-soft 1.2s ease-in-out infinite;
+}
+
+@keyframes caret-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .ghost-wrong {
@@ -421,12 +439,18 @@ body::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ghost-shake {
+  .ghost-shake,
+  .ghost-frame,
+  .ghost-frame-badge,
+  .cm-focused > .cm-scroller > .cm-cursorLayer {
     animation: none;
   }
 }
 
-:root[data-reduce-motion="true"] .ghost-shake {
+:root[data-reduce-motion="true"] .ghost-shake,
+:root[data-reduce-motion="true"] .ghost-frame,
+:root[data-reduce-motion="true"] .ghost-frame-badge,
+:root[data-reduce-motion="true"] .cm-focused > .cm-scroller > .cm-cursorLayer {
   animation: none;
 }
 

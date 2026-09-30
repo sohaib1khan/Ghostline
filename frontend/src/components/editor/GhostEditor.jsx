@@ -258,8 +258,13 @@ export default function GhostEditor({
       ) : null}
       <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
         <div className="ghost-frame-chrome" aria-hidden="true">
-          <span className="ghost-frame-dot" />
-          <span>trace // live</span>
+          <span className="ghost-frame-traffic">
+            <span className="ghost-frame-dot" />
+            <span className="ghost-frame-dot" />
+            <span className="ghost-frame-dot" />
+          </span>
+          <span className="ghost-frame-title">Ghostline · Trace</span>
+          <span className="ghost-frame-badge">live</span>
         </div>
         <div className="ghost-frame-body">
           <CodeMirror
