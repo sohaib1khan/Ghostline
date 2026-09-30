@@ -22,6 +22,57 @@ class GhostWidget extends WidgetType {
   }
 }
 
+class TypeMarkerWidget extends WidgetType {
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = "ghost-type-marker";
+    span.setAttribute("aria-hidden", "true");
+    span.title = "Type here";
+    return span;
+  }
+
+  ignoreEvent() {
+    return true;
+  }
+
+  eq() {
+    return true;
+  }
+}
+
+class NextCharWidget extends WidgetType {
+  constructor(char) {
+    super();
+    this.char = char;
+  }
+
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = "ghost-next-char";
+    span.setAttribute("aria-hidden", "true");
+    if (this.char === "\n") {
+      span.classList.add("ghost-next-char-nl");
+      span.textContent = "↵";
+    } else if (this.char === " ") {
+      span.classList.add("ghost-next-char-space");
+      span.textContent = "·";
+    } else if (this.char === "\t") {
+      span.textContent = "⇥";
+    } else {
+      span.textContent = this.char;
+    }
+    return span;
+  }
+
+  ignoreEvent() {
+    return true;
+  }
+
+  eq(other) {
+    return other instanceof NextCharWidget && other.char === this.char;
+  }
+}
+
 function sharedPrefix(target, typed) {
   const limit = Math.min(target.length, typed.length);
   let index = 0;
@@ -228,9 +279,24 @@ export default function GhostEditor({
               }
               const rest = target.slice(correct);
               if (rest) {
+                // Always show where to type — block caret + next character callout.
                 marks.push(
-                  Decoration.widget({ widget: new GhostWidget(rest), side: 1 }).range(typed.length),
+                  Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(typed.length),
                 );
+                marks.push(
+                  Decoration.widget({
+                    widget: new NextCharWidget(rest[0]),
+                    side: 1,
+                  }).range(typed.length),
+                );
+                const after = rest.slice(1);
+                if (after) {
+                  marks.push(
+                    Decoration.widget({ widget: new GhostWidget(after), side: 1 }).range(
+                      typed.length,
+                    ),
+                  );
+                }
               }
               return Decoration.set(marks, true);
             }),
@@ -249,6 +315,8 @@ export default function GhostEditor({
     [script],
   );
 
+  const waiting = Boolean(target) && value.length === 0;
+
   return (
     <div className={wrong ? "ghost-shake" : undefined}>
       {activeToken ? (
@@ -266,6 +334,12 @@ export default function GhostEditor({
           <span className="ghost-frame-title">Ghostline · Trace</span>
           <span className="ghost-frame-badge">live</span>
         </div>
+        {waiting ? (
+          <p className="ghost-type-hint" role="status">
+            <span className="ghost-type-marker ghost-type-marker-inline" aria-hidden="true" />
+            Click in the box and type — follow the guide. The bright mark is your next key.
+          </p>
+        ) : null}
         <div className="ghost-frame-body">
           <CodeMirror
             value={value}

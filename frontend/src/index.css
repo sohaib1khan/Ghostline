@@ -54,8 +54,8 @@
   --success: #9ccc9c;
   --error: #e39a9a;
   --on-accent: #1b1f23;
-  /* Guide text: solid and readable, clearly secondary to typed text. */
-  --ghost: #a8b4c0;
+  /* Guide text: softer than typed text, still readable. */
+  --ghost: #7d8a96;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
 }
 
@@ -70,7 +70,7 @@
   --success: #4f8f4f;
   --error: #b85c5c;
   --on-accent: #ffffff;
-  --ghost: #6a7682;
+  --ghost: #8a96a0;
   --shadow: 0 16px 40px rgba(43, 49, 55, 0.08);
 }
 
@@ -131,7 +131,68 @@ body::after {
 .ghost-text {
   color: var(--ghost);
   opacity: 1;
-  font-weight: 500;
+  font-weight: 400;
+}
+
+.ghost-type-marker {
+  display: inline-block;
+  width: 0.55rem;
+  height: 1.15em;
+  margin-right: 0.12rem;
+  vertical-align: text-bottom;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+  animation: type-marker-pulse 1s ease-in-out infinite;
+}
+
+.ghost-type-marker-inline {
+  margin-right: 0.4rem;
+  vertical-align: -0.15em;
+  height: 0.95em;
+}
+
+.ghost-next-char {
+  display: inline;
+  color: var(--text);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 3px;
+  padding: 0 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  outline: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.ghost-next-char-space,
+.ghost-next-char-nl {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.ghost-type-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+  animation: practice-rise 500ms ease-out both;
+}
+
+@keyframes type-marker-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scaleY(0.92);
+  }
 }
 
 .practice-rise {
@@ -442,6 +503,8 @@ body::after {
   .ghost-shake,
   .ghost-frame,
   .ghost-frame-badge,
+  .ghost-type-marker,
+  .ghost-type-hint,
   .cm-focused > .cm-scroller > .cm-cursorLayer {
     animation: none;
   }
@@ -450,6 +513,8 @@ body::after {
 :root[data-reduce-motion="true"] .ghost-shake,
 :root[data-reduce-motion="true"] .ghost-frame,
 :root[data-reduce-motion="true"] .ghost-frame-badge,
+:root[data-reduce-motion="true"] .ghost-type-marker,
+:root[data-reduce-motion="true"] .ghost-type-hint,
 :root[data-reduce-motion="true"] .cm-focused > .cm-scroller > .cm-cursorLayer {
   animation: none;
 }
