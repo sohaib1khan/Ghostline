@@ -9,6 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from app.config import get_settings
 from app.routers.admin.ai import router as admin_ai_router
 from app.routers.admin.content import router as admin_content_router
+from app.routers.admin.insights import router as admin_insights_router
 from app.routers.admin.notifications import router as admin_notifications_router
 from app.routers.admin.settings import router as admin_settings_router
 from app.routers.admin.users import router as admin_users_router
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(playground_router, prefix="/api")
     app.include_router(admin_ai_router, prefix="/api")
     app.include_router(admin_users_router, prefix="/api")
+    app.include_router(admin_insights_router, prefix="/api")
     app.include_router(admin_notifications_router, prefix="/api")
     app.include_router(admin_content_router, prefix="/api")
     app.include_router(admin_settings_router, prefix="/api")

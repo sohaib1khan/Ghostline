@@ -74,22 +74,14 @@ test("the demo lesson opens without an account", async ({ browser }) => {
   await context.close();
 });
 
-test("signup, approval, and a typed lesson", async ({ page }) => {
+test("signup and a typed lesson", async ({ page }) => {
   await page.goto("/signup");
   await page.getByLabel("First name").fill(learner.first);
   await page.getByLabel("Last name").fill(learner.last);
   await page.getByLabel("Email").fill(learner.email);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Request access" }).click();
-  await expect(page.getByText("An admin will reach out to you for access approval.")).toBeVisible();
-
-  await signIn(page, admin.email);
-  await page.getByRole("link", { name: "Users", exact: true }).click();
-  await expect(page.getByText(learner.email)).toBeVisible();
-  await page.getByRole("checkbox", { name: "Bash" }).check();
-  await page.getByRole("button", { name: "Approve" }).click();
-  await expect(page.getByText("No pending accounts.")).toBeVisible();
-  await signOut(page);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByText("Account created. You can sign in and start practicing.")).toBeVisible();
 
   await signIn(page, learner.email);
   await page.getByRole("link", { name: "Continue: List the files" }).click();

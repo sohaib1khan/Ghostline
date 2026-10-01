@@ -97,6 +97,9 @@ export default function PlayPage() {
       if (stats) {
         body.wpm = stats.wpm;
         body.accuracy = stats.accuracy;
+        if (stats.duration_seconds) {
+          body.duration_seconds = stats.duration_seconds;
+        }
       }
       const data = await api(`/api/games/score/${round.exercise_id}`, { method: "POST", body });
       setResult(data);
@@ -142,11 +145,11 @@ export default function PlayPage() {
           {passedCount} of {count} passed · pool had {round.pool_size} published exercises.
         </p>
         <div className="mt-6 flex flex-wrap gap-4 text-sm">
-          <Link to="/stats" className="text-accent">
-            See your stats
-          </Link>
-          <Link to="/games" className="text-muted">
+          <Link to="/games" className="text-accent">
             Play again
+          </Link>
+          <Link to="/" className="text-muted">
+            Home
           </Link>
         </div>
       </section>

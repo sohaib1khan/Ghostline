@@ -29,4 +29,5 @@ class PracticeEvent(IdMixin, TimestampMixin, Base):
     passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     wpm: Mapped[int | None] = mapped_column(Integer)
     accuracy: Mapped[int | None] = mapped_column(Integer)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
     xp_awarded: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

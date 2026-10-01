@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { Field, SubmitButton } from "../../components/layout/Field.jsx";
 import StrengthMeter from "../../components/layout/StrengthMeter.jsx";
 import { passwordIsAcceptable } from "../../utils/password.js";
-
-const TABS = ["pending", "approved", "rejected", "disabled"];
 
 const emptyCreate = {
   firstName: "",
@@ -28,7 +26,6 @@ function listsFrom(rows) {
 
 export default function UsersPage() {
   const { user: actor } = useOutletContext();
-  const [status, setStatus] = useState("pending");
   const [users, setUsers] = useState([]);
   const [tracks, setTracks] = useState([]);
   const [selection, setSelection] = useState({});
@@ -36,12 +33,13 @@ export default function UsersPage() {
   const [passwords, setPasswords] = useState({});
   const [createForm, setCreateForm] = useState(emptyCreate);
   const [showCreate, setShowCreate] = useState(false);
+  const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [pending, setPending] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  async function loadUsers(nextStatus = status) {
-    const rows = await api(`/api/admin/users?status=${nextStatus}`);
+  async function loadUsers() {
+    const rows = await api("/api/admin/users");
     const lists = listsFrom(rows);
     setUsers(rows);
     setSelection(lists.selection);
@@ -54,7 +52,7 @@ export default function UsersPage() {
       try {
         const [trackRows, userRows] = await Promise.all([
           api("/api/learn/tracks"),
-          api("/api/admin/users?status=pending"),
+          api("/api/admin/users"),
         ]);
         if (!cancelled) {
           const lists = listsFrom(userRows);
@@ -62,6 +60,10 @@ export default function UsersPage() {
           setUsers(userRows);
           setSelection(lists.selection);
           setRoles(lists.roles);
+          setCreateForm((current) => ({
+            ...current,
+            tracks: trackRows.map((track) => track.slug),
+          }));
           setError("");
         }
       } catch (err) {
@@ -76,17 +78,16 @@ export default function UsersPage() {
     };
   }, []);
 
-  async function refresh(nextStatus = status) {
-    setPending(true);
-    setError("");
-    try {
-      await loadUsers(nextStatus);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setPending(false);
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) {
+      return users;
     }
-  }
+    return users.filter((row) => {
+      const hay = `${row.first_name} ${row.last_name} ${row.email} ${row.role} ${row.status}`.toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [query, users]);
 
   function toggleTrack(userId, slug) {
     setSelection((current) => {
@@ -100,23 +101,22 @@ export default function UsersPage() {
     });
   }
 
-  async function run(action, nextStatus = status) {
-    setPending(true);
+  async function run(action) {
+    setBusy(true);
     setError("");
     setNotice("");
     try {
       await action();
-      await loadUsers(nextStatus);
+      await loadUsers();
     } catch (err) {
       setError(err.message);
     } finally {
-      setPending(false);
+      setBusy(false);
     }
   }
 
   async function onCreate(event) {
     event.preventDefault();
-    setStatus("approved");
     await run(async () => {
       await api("/api/admin/users", {
         method: "POST",
@@ -129,10 +129,13 @@ export default function UsersPage() {
           track_slugs: createForm.tracks,
         },
       });
-      setCreateForm(emptyCreate);
+      setCreateForm({
+        ...emptyCreate,
+        tracks: tracks.map((track) => track.slug),
+      });
       setShowCreate(false);
-      setNotice("User created and approved.");
-    }, "approved");
+      setNotice("User created.");
+    });
   }
 
   const createReady =
@@ -147,8 +150,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
           <p className="mt-2 text-sm text-muted">
-            Approve access, assign tracks, and create or remove accounts. Only the super admin can
-            manage users.
+            Create accounts, assign tracks, and remove access. Only the super admin manages users.
           </p>
         </div>
         <button
@@ -227,93 +229,74 @@ export default function UsersPage() {
               })
             }
           />
-          <SubmitButton disabled={!createReady || pending}>Create approved user</SubmitButton>
+          <SubmitButton disabled={!createReady || busy}>Create user</SubmitButton>
         </form>
       ) : null}
 
-      <div className="mt-6 flex flex-wrap gap-2" role="tablist">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={status === tab}
-            className={`rounded-full px-3 py-1 text-sm capitalize ${
-              status === tab ? "bg-accent text-on-accent" : "text-muted"
-            }`}
-            onClick={() => {
-              setStatus(tab);
-              refresh(tab);
-            }}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="mt-6 flex flex-wrap items-end gap-3">
+        <label className="text-sm text-muted" htmlFor="users-search">
+          Search
+          <input
+            id="users-search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Name or email"
+            className="mt-1 block min-w-56 rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
+          />
+        </label>
+        <p className="pb-2 text-sm text-muted">
+          {visible.length} of {users.length} {users.length === 1 ? "account" : "accounts"}
+        </p>
       </div>
 
       {notice ? <p className="mt-4 text-sm text-success">{notice}</p> : null}
       {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
 
       <ul className="mt-6 flex flex-col gap-4">
-        {users.length === 0 ? <li className="text-sm text-muted">No {status} accounts.</li> : null}
-        {users.map((row) => {
+        {visible.length === 0 ? <li className="text-sm text-muted">No accounts match.</li> : null}
+        {visible.map((row) => {
           const mine = row.id === actor?.id;
+          const active = row.status === "approved";
           return (
             <li key={row.id} className="rounded-xl border border-muted/20 p-4">
-              <p className="font-medium">
-                {row.first_name} {row.last_name}
-              </p>
-              <p className="mt-1 break-all text-sm text-muted">
-                {row.email} · {row.role}
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium">
+                    {row.first_name} {row.last_name}
+                  </p>
+                  <p className="mt-1 break-all text-sm text-muted">
+                    {row.email} · {row.role}
+                    {active ? "" : ` · ${row.status}`}
+                  </p>
+                </div>
+                {!active ? (
+                  <span className="rounded-full border border-muted/30 px-2.5 py-0.5 text-xs uppercase tracking-[0.12em] text-muted">
+                    {row.status}
+                  </span>
+                ) : null}
+              </div>
               <TrackChecks
                 tracks={tracks}
                 selected={selection[row.id] || []}
                 onToggle={(slug) => toggleTrack(row.id, slug)}
               />
               <div className="mt-4 flex flex-wrap gap-2">
-                {status !== "approved" ? (
+                <Action
+                  disabled={busy}
+                  onClick={() =>
+                    run(() =>
+                      api(`/api/admin/users/${row.id}/tracks`, {
+                        method: "PUT",
+                        body: { track_slugs: selection[row.id] || [] },
+                      }),
+                    )
+                  }
+                >
+                  Save tracks
+                </Action>
+                {active ? (
                   <Action
-                    disabled={pending}
-                    onClick={() =>
-                      run(() =>
-                        api(`/api/admin/users/${row.id}/approve`, {
-                          method: "POST",
-                          body: { track_slugs: selection[row.id] || [] },
-                        }),
-                      )
-                    }
-                  >
-                    Approve
-                  </Action>
-                ) : (
-                  <Action
-                    disabled={pending}
-                    onClick={() =>
-                      run(() =>
-                        api(`/api/admin/users/${row.id}/tracks`, {
-                          method: "PUT",
-                          body: { track_slugs: selection[row.id] || [] },
-                        }),
-                      )
-                    }
-                  >
-                    Save tracks
-                  </Action>
-                )}
-                {status === "pending" || status === "approved" ? (
-                  <Action
-                    disabled={pending || mine}
-                    onClick={() =>
-                      run(() => api(`/api/admin/users/${row.id}/reject`, { method: "POST" }))
-                    }
-                  >
-                    Reject
-                  </Action>
-                ) : null}
-                {status === "approved" ? (
-                  <Action
-                    disabled={pending || mine}
+                    disabled={busy || mine}
                     onClick={() =>
                       run(() =>
                         api(`/api/admin/users/${row.id}`, {
@@ -325,10 +308,9 @@ export default function UsersPage() {
                   >
                     Disable
                   </Action>
-                ) : null}
-                {status === "disabled" ? (
+                ) : (
                   <Action
-                    disabled={pending}
+                    disabled={busy || mine}
                     onClick={() =>
                       run(() =>
                         api(`/api/admin/users/${row.id}`, {
@@ -340,9 +322,9 @@ export default function UsersPage() {
                   >
                     Enable
                   </Action>
-                ) : null}
+                )}
                 <Action
-                  disabled={pending}
+                  disabled={busy}
                   onClick={() =>
                     run(() => api(`/api/admin/users/${row.id}/revoke-sessions`, { method: "POST" }))
                   }
@@ -350,7 +332,7 @@ export default function UsersPage() {
                   Revoke sessions
                 </Action>
                 <Action
-                  disabled={pending || mine || row.role === "super_admin"}
+                  disabled={busy || mine || row.role === "super_admin"}
                   onClick={() => {
                     if (
                       !window.confirm(
@@ -368,7 +350,7 @@ export default function UsersPage() {
                   Delete
                 </Action>
               </div>
-              {status === "approved" && row.role !== "super_admin" ? (
+              {row.role !== "super_admin" ? (
                 <div className="mt-4 flex flex-wrap items-end gap-2">
                   <label className="text-sm text-muted" htmlFor={`role-${row.id}`}>
                     Role
@@ -386,7 +368,7 @@ export default function UsersPage() {
                     </select>
                   </label>
                   <Action
-                    disabled={pending || mine}
+                    disabled={busy || mine}
                     onClick={() =>
                       run(() =>
                         api(`/api/admin/users/${row.id}`, {
@@ -399,10 +381,9 @@ export default function UsersPage() {
                     Save role
                   </Action>
                 </div>
-              ) : null}
-              {status === "approved" && row.role === "super_admin" ? (
+              ) : (
                 <p className="mt-4 text-sm text-muted">Super admin role is fixed for this account.</p>
-              ) : null}
+              )}
               <form
                 className="mt-4 flex flex-wrap items-end gap-2"
                 onSubmit={(event) => {
@@ -429,7 +410,7 @@ export default function UsersPage() {
                     autoComplete="new-password"
                   />
                 </div>
-                <SubmitButton disabled={pending || !passwordIsAcceptable(passwords[row.id] || "")}>
+                <SubmitButton disabled={busy || !passwordIsAcceptable(passwords[row.id] || "")}>
                   Reset password
                 </SubmitButton>
               </form>

@@ -13,7 +13,7 @@ from app.models.session import UserSession
 from app.models.user import User
 from app.security.rate_limit import limiter
 from app.security.tokens import hash_token, new_token
-from app.services.auth import GENERIC_LOGIN_ERROR, PENDING_LOGIN_MESSAGE, REJECTED_LOGIN_MESSAGE
+from app.services.auth import GENERIC_LOGIN_ERROR, REJECTED_LOGIN_MESSAGE
 from app.services.setup import ensure_setup_token
 from app.services.signup import SIGNUP_MESSAGE
 from app.services.tracks import ensure_tracks
@@ -274,7 +274,7 @@ async def test_signup_before_setup_is_refused(database) -> None:
     assert await user_count(LEARNER_EMAIL) == 0
 
 
-async def test_signup_stays_pending_and_hides_duplicate_emails(database) -> None:
+async def test_signup_auto_approves_and_hides_duplicate_emails(database) -> None:
     async with api_client() as admin, api_client() as guest:
         await create_admin(admin)
         first = await signup(guest, "Grace@Example.com")
@@ -286,7 +286,7 @@ async def test_signup_stays_pending_and_hides_duplicate_emails(database) -> None
     async with get_sessionmaker()() as session:
         row = await session.scalar(select(User).where(User.email == LEARNER_EMAIL))
         assert row is not None
-        assert row.status == "pending"
+        assert row.status == "approved"
         assert row.role == "learner"
 
     async with api_client() as guest:
@@ -296,7 +296,7 @@ async def test_signup_stays_pending_and_hides_duplicate_emails(database) -> None
             "/api/auth/login",
             {"email": LEARNER_EMAIL, "password": "not-the-password"},
         )
-        waiting = await request(
+        signed_in = await request(
             guest,
             "POST",
             "/api/auth/login",
@@ -310,9 +310,8 @@ async def test_signup_stays_pending_and_hides_duplicate_emails(database) -> None
         )
     assert wrong.status_code == 401
     assert wrong.json()["detail"] == GENERIC_LOGIN_ERROR
-    assert waiting.status_code == 403
-    assert waiting.json()["detail"] == PENDING_LOGIN_MESSAGE
-    assert "ghostline_session" not in waiting.cookies
+    assert signed_in.status_code == 200
+    assert "ghostline_session" in signed_in.cookies
     assert replaced.status_code == 401
     assert replaced.json()["detail"] == GENERIC_LOGIN_ERROR
 

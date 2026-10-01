@@ -184,7 +184,7 @@ export default function HomePage() {
         ) : null}
       </div>
       <p className="mt-8 border-t border-muted/15 pt-6 text-sm text-muted">
-        Games are warm-ups for the same lines. Stats show whether the habit is holding.
+        Games are warm-ups for the same lines — keep the streak going.
       </p>
     </section>
   );

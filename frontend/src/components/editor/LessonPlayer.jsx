@@ -301,6 +301,9 @@ export default function LessonPlayer({
       if (stats) {
         body.wpm = stats.wpm;
         body.accuracy = stats.accuracy;
+        if (stats.duration_seconds) {
+          body.duration_seconds = stats.duration_seconds;
+        }
       }
       if (output !== undefined) {
         body.output = output;

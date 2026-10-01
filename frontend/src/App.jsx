@@ -3,12 +3,12 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { api } from "./api/client.js";
 import AiPage from "./pages/admin/AiPage.jsx";
 import ContentPage from "./pages/admin/ContentPage.jsx";
+import LeaderboardPage from "./pages/admin/LeaderboardPage.jsx";
 import LessonPreview from "./pages/admin/LessonPreview.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
 import UsersPage from "./pages/admin/UsersPage.jsx";
 import GamesPage from "./pages/games/GamesPage.jsx";
 import PlayPage from "./pages/games/PlayPage.jsx";
-import StatsPage from "./pages/stats/StatsPage.jsx";
 import LessonPage from "./pages/learn/LessonPage.jsx";
 import ProjectsPage from "./pages/learn/ProjectsPage.jsx";
 import TrackPage from "./pages/learn/TrackPage.jsx";
@@ -130,22 +130,27 @@ function Shell() {
   return (
     <main className="min-h-screen overflow-x-clip bg-bg px-4 py-8 text-text sm:px-6 sm:py-16">
       <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-6 sm:gap-8">
-        <header className="practice-rise">
-          <p className="font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
-            Ghostline
-          </p>
-          <p className="mt-2 max-w-xl text-muted">
-            Learn coding by typing. Keep the muscle memory.
-          </p>
+        <header className="practice-rise flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
+              Ghostline
+            </p>
+            <p className="mt-2 max-w-xl text-muted">
+              Learn coding by typing. Keep the muscle memory.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="theme-pin inline-flex shrink-0 items-center rounded-full border border-muted/25 bg-surface px-3.5 py-2 font-mono text-xs uppercase tracking-[0.16em] text-muted shadow-[var(--shadow)] hover:border-accent/35 hover:text-text"
+            onClick={() => setTheme(nextTheme)}
+            aria-label={`Switch to ${nextTheme} theme`}
+            title={`Switch to ${nextTheme} theme`}
+          >
+            {theme === "dark" ? "Light" : "Dark"}
+          </button>
         </header>
         {ready && !setupRequired ? (
-          <AppNav
-            user={user}
-            theme={theme}
-            onTheme={() => setTheme(nextTheme)}
-            onSignOut={logout}
-            signingOut={signingOut}
-          />
+          <AppNav user={user} onSignOut={logout} signingOut={signingOut} />
         ) : null}
         <InstallPrompt />
         <OfflineNotice />
@@ -180,10 +185,12 @@ export default function App() {
         </Route>
         <Route path="/admin/content" element={<ContentPage />} />
         <Route path="/admin/preview/lessons/:lessonId" element={<LessonPreview />} />
+        <Route path="/admin/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/admin/leadboard" element={<Navigate to="/admin/leaderboard" replace />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/games" element={<GamesPage />} />
         <Route path="/games/:game" element={<PlayPage />} />
-        <Route path="/stats" element={<StatsPage />} />
+        <Route path="/stats" element={<Navigate to="/" replace />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="/learn/tracks/:slug" element={<TrackPage />} />

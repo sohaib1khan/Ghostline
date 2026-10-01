@@ -21,6 +21,7 @@ class GameScore(BaseModel):
     output: str | None = Field(default=None, max_length=8000)
     wpm: int | None = Field(default=None, ge=0, le=400)
     accuracy: int | None = Field(default=None, ge=0, le=100)
+    duration_seconds: int | None = Field(default=None, ge=0, le=86_400)
     hints_used: int = Field(default=0, ge=0, le=16)
 
 
@@ -63,6 +64,7 @@ async def game_score(
             output=body.output,
             wpm=body.wpm,
             accuracy=body.accuracy,
+            duration_seconds=body.duration_seconds,
             hints_used=body.hints_used,
         )
     except ContentError as exc:

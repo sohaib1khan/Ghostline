@@ -1,16 +1,17 @@
-"""Public signup. The response does not reveal whether an email is taken."""
+"""Public signup. New accounts are ready to sign in right away."""
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.track import Track, UserTrackAccess
 from app.models.user import User
 from app.security.passwords import hash_password, validate_password
 from app.services.audit import write_audit
 from app.services.notifications.dispatcher import dispatch_event
 from app.services.setup import admin_exists
 
-SIGNUP_MESSAGE = "Thanks for signing up! An admin will reach out to you for access approval."
+SIGNUP_MESSAGE = "Account created. You can sign in and start practicing."
 
 
 class SignupError(Exception):
@@ -50,18 +51,23 @@ async def signup(
         last_name=last_name,
         password_hash=password_hash,
         role="learner",
-        status="pending",
+        status="approved",
         failed_login_count=0,
     )
     session.add(user)
     await session.flush()
+    tracks = list(
+        (await session.scalars(select(Track).where(Track.is_active.is_(True)))).all()
+    )
+    for track in tracks:
+        session.add(UserTrackAccess(user_id=user.id, track_id=track.id))
     await write_audit(
         session,
         actor_user_id=None,
         action="user.signup",
         target_type="user",
         target_id=str(user.id),
-        details={"email": normalized},
+        details={"email": normalized, "status": "approved", "tracks": len(tracks)},
         ip=ip,
     )
     try:

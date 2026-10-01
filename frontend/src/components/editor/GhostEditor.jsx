@@ -135,13 +135,15 @@ function tokenAt(code, tokens, typedLength) {
 
 function liveStats(startedAt, correctChars, mistakes) {
   if (!startedAt) {
-    return { wpm: 0, accuracy: 100 };
+    return { wpm: 0, accuracy: 100, duration_seconds: 0 };
   }
-  const minutes = Math.max((Date.now() - startedAt) / 60000, 1 / 60);
+  const elapsedMs = Date.now() - startedAt;
+  const minutes = Math.max(elapsedMs / 60000, 1 / 60);
   const wpm = Math.min(400, Math.round(correctChars / 5 / minutes));
   const total = correctChars + mistakes;
   const accuracy = total === 0 ? 100 : Math.round((correctChars / total) * 100);
-  return { wpm, accuracy };
+  const duration_seconds = Math.min(86_400, Math.max(1, Math.round(elapsedMs / 1000)));
+  return { wpm, accuracy, duration_seconds };
 }
 
 function displayChar(char) {
@@ -311,7 +313,7 @@ export default function GhostEditor({
   const mistakes = useRef(0);
   const finished = useRef(false);
   const previous = useRef("");
-  const [stats, setStats] = useState({ wpm: 0, accuracy: 100 });
+  const [stats, setStats] = useState({ wpm: 0, accuracy: 100, duration_seconds: 0 });
   const viewRef = useRef(null);
   notify.current = onChange;
   complete.current = onComplete;

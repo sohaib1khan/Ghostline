@@ -74,6 +74,7 @@ async def submit_check(
     hints_used: int,
     wpm: int | None,
     accuracy: int | None,
+    duration_seconds: int | None = None,
 ) -> dict:
     exercise = await _load_exercise(session, exercise_id)
     from app.security.roles import is_staff
@@ -133,6 +134,7 @@ async def submit_check(
                 passed=True,
                 wpm=wpm,
                 accuracy=accuracy,
+                duration_seconds=duration_seconds,
                 xp_awarded=awarded,
             )
         )

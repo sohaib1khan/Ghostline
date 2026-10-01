@@ -5,11 +5,13 @@ const LEARN = [
   { to: "/", label: "Home", end: true },
   { to: "/projects", label: "Projects" },
   { to: "/playground", label: "Playground" },
-  { to: "/games", label: "Games" },
-  { to: "/stats", label: "Stats", end: true },
+  { to: "/games", label: "Games", end: true },
 ];
 
-const STUDIO_CONTENT = [{ to: "/admin/content", label: "Content" }];
+const STUDIO_CONTENT = [
+  { to: "/admin/content", label: "Content" },
+  { to: "/admin/leaderboard", label: "Leaderboard" },
+];
 const STUDIO_USERS = [{ to: "/admin/users", label: "Users", end: true }];
 
 const GUEST = [
@@ -43,9 +45,8 @@ function Group({ label, children }) {
   );
 }
 
-export default function AppNav({ user, theme, onTheme, onSignOut, signingOut }) {
+export default function AppNav({ user, onSignOut, signingOut }) {
   const location = useLocation();
-  const nextTheme = theme === "dark" ? "light" : "dark";
   const staff = isStaff(user?.role);
   const superAdmin = isSuperAdmin(user?.role);
   const studio = [...STUDIO_CONTENT, ...(superAdmin ? STUDIO_USERS : [])];
@@ -92,14 +93,6 @@ export default function AppNav({ user, theme, onTheme, onSignOut, signingOut }) 
               Settings
             </NavLink>
           ) : null}
-          <button
-            type="button"
-            className="inline-flex min-h-10 items-center rounded-full px-3.5 text-sm text-muted hover:text-text"
-            onClick={onTheme}
-            aria-label={`Switch to ${nextTheme} theme`}
-          >
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
           {user ? (
             <button
               type="button"

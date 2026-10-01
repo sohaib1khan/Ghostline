@@ -284,6 +284,7 @@ async def score_round(
     wpm: int | None,
     accuracy: int | None,
     hints_used: int = 0,
+    duration_seconds: int | None = None,
 ) -> dict:
     if game not in GAMES:
         raise ContentError(400, "Unknown game")
@@ -332,6 +333,7 @@ async def score_round(
             passed=outcome.passed,
             wpm=wpm if outcome.passed else None,
             accuracy=accuracy if outcome.passed else None,
+            duration_seconds=duration_seconds if outcome.passed else None,
             xp_awarded=awarded,
         )
     )

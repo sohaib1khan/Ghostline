@@ -9,3 +9,4 @@ class CheckSubmit(BaseModel):
     hints_used: int = Field(default=0, ge=0, le=16)
     wpm: int | None = Field(default=None, ge=0, le=400)
     accuracy: int | None = Field(default=None, ge=0, le=100)
+    duration_seconds: int | None = Field(default=None, ge=0, le=86_400)

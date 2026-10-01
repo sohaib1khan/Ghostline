@@ -32,6 +32,7 @@ async def check_exercise(
             hints_used=body.hints_used,
             wpm=body.wpm,
             accuracy=body.accuracy,
+            duration_seconds=body.duration_seconds,
         )
     except ContentError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

@@ -213,7 +213,7 @@ async def test_failing_channel_does_not_break_signup(database, encryption_key, m
         assert SECRET not in json.dumps(audit.details)
         user = await session.scalar(select(User).where(User.email == LEARNER_EMAIL))
         assert user is not None
-        assert user.status == "pending"
+        assert user.status == "approved"
 
 
 async def test_approval_email_goes_to_the_learner(database, encryption_key, monkeypatch) -> None:

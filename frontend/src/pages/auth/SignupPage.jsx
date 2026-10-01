@@ -45,10 +45,10 @@ export default function SignupPage() {
   if (message) {
     return (
       <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
-        <h1 className="text-2xl font-semibold tracking-tight">Request received</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">You are in</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{message}</p>
         <Link to="/login" className="mt-6 inline-block text-sm text-accent">
-          Back to sign in
+          Sign in
         </Link>
       </section>
     );
@@ -64,8 +64,7 @@ export default function SignupPage() {
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
       <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Start a streak you can keep. An admin approves access and chooses which tracks you
-        practice.
+        Sign up and start practicing right away. Tracks are ready when you sign in.
       </p>
       <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -103,7 +102,7 @@ export default function SignupPage() {
         <StrengthMeter password={form.password} />
         {error ? <p className="text-sm text-error">{error}</p> : null}
         <SubmitButton disabled={!ready || pending}>
-          {pending ? "Sending…" : "Request access"}
+          {pending ? "Creating…" : "Create account"}
         </SubmitButton>
       </form>
       <Link to="/login" className="mt-4 inline-block text-sm text-accent">
