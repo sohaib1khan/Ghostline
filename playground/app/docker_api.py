@@ -48,6 +48,8 @@ async def create_and_start(
         "Hostname": "playground",
         "User": "1000:1000",
         "WorkingDir": WORKSPACE,
+        # DECISION: workers stay fully air-gapped. No Compose network, no host
+        # ports, no egress — preview and packages go through the manager only.
         "NetworkDisabled": True,
         "HostConfig": {
             "Memory": memory_mb * 1024 * 1024,
@@ -62,6 +64,7 @@ async def create_and_start(
                 "/tmp": "rw,nosuid,size=16m,uid=1000,gid=1000",
             },
             "AutoRemove": False,
+            "PublishAllPorts": False,
         },
         "Labels": labels,
         "Cmd": ["sleep", "infinity"],
@@ -88,6 +91,33 @@ async def destroy(container_id: str) -> None:
         await client.delete(f"/containers/{container_id}", params={"force": "true", "v": "true"})
 
 
+async def reap_stray_processes(container_id: str) -> None:
+    """Kill leftover learner processes (e.g. app.run) that survive a timed-out exec."""
+    # PID 1 is `sleep infinity`. Avoid depending on procps/pkill in the slim image.
+    script = (
+        "import os,signal\n"
+        "for name in os.listdir('/proc'):\n"
+        "  if not name.isdigit():\n"
+        "    continue\n"
+        "  pid=int(name)\n"
+        "  if pid<=1:\n"
+        "    continue\n"
+        "  try:\n"
+        "    with open(f'/proc/{pid}/status','r',encoding='utf-8',errors='ignore') as fh:\n"
+        "      text=fh.read()\n"
+        "    uid=None\n"
+        "    for line in text.splitlines():\n"
+        "      if line.startswith('Uid:'):\n"
+        "        uid=int(line.split()[1]); break\n"
+        "    if uid!=1000:\n"
+        "      continue\n"
+        "    os.kill(pid, signal.SIGKILL)\n"
+        "  except (OSError, ValueError, PermissionError):\n"
+        "    pass\n"
+    )
+    await exec_run(container_id, ["python3", "-c", script], timeout_seconds=5)
+
+
 async def inspect_running(container_id: str) -> bool:
     async with _client() as client:
         response = await client.get(f"/containers/{container_id}/json")
@@ -102,17 +132,22 @@ async def exec_run(
     *,
     timeout_seconds: int,
     workdir: str = WORKSPACE,
+    env: list[str] | None = None,
+    max_output: int = 50_000,
 ) -> dict:
+    payload = {
+        "AttachStdout": True,
+        "AttachStderr": True,
+        "Cmd": cmd,
+        "WorkingDir": workdir,
+        "User": "1000:1000",
+    }
+    if env:
+        payload["Env"] = env
     async with _client() as client:
         created = await client.post(
             f"/containers/{container_id}/exec",
-            json={
-                "AttachStdout": True,
-                "AttachStderr": True,
-                "Cmd": cmd,
-                "WorkingDir": workdir,
-                "User": "1000:1000",
-            },
+            json=payload,
         )
         if created.status_code not in {200, 201}:
             raise DockerError(created.status_code, _message(created) or "Could not start command")
@@ -137,7 +172,7 @@ async def exec_run(
                 exit_code = int(body.get("ExitCode") if body.get("ExitCode") is not None else 1)
                 break
             await asyncio.sleep(0.05)
-        return {"exit_code": exit_code, "output": output[:50_000]}
+        return {"exit_code": exit_code, "output": output[:max_output]}
 
 
 async def write_file(container_id: str, rel_path: str, content: str) -> None:
@@ -148,48 +183,117 @@ async def write_file(container_id: str, rel_path: str, content: str) -> None:
     parent = "/".join(safe.split("/")[:-1])
     if parent:
         await mkdir(container_id, parent)
-    encoded = base64.b64encode(data).decode("ascii")
-    # DECISION: put_archive fails when the container rootfs is read-only, even
-    # with a writable tmpfs workspace. Write through exec instead.
-    script = (
-        "import base64,sys\n"
-        f"path={WORKSPACE!r}+'/'+{safe!r}\n"
-        f"open(path,'wb').write(base64.b64decode({encoded!r}))\n"
+    await write_bytes(container_id, f"{WORKSPACE}/{safe}", data)
+
+
+async def write_bytes(container_id: str, abs_path: str, data: bytes) -> None:
+    """Write bytes to an absolute path under /workspace or /tmp only."""
+    if not (abs_path.startswith(f"{WORKSPACE}/") or abs_path.startswith("/tmp/")):
+        raise DockerError(400, "Write path is not allowed")
+    if ".." in abs_path:
+        raise DockerError(400, "Write path is not allowed")
+    if len(data) > 25_000_000:
+        raise DockerError(400, "File is too large for the playground")
+    chunk_size = 48_000
+    parent = abs_path.rsplit("/", 1)[0]
+    mkdir_result = await exec_run(
+        container_id, ["mkdir", "-p", parent], timeout_seconds=5
     )
-    result = await exec_run(container_id, ["python3", "-c", script], timeout_seconds=5)
-    if result["exit_code"] != 0:
-        raise DockerError(400, result["output"] or "Could not write file")
+    if mkdir_result["exit_code"] != 0:
+        raise DockerError(400, mkdir_result["output"] or "Could not create parent folder")
+    clear = await exec_run(
+        container_id,
+        ["python3", "-c", f"open({abs_path!r},'wb').close()"],
+        timeout_seconds=5,
+    )
+    if clear["exit_code"] != 0:
+        raise DockerError(400, clear["output"] or "Could not create file")
+    offset = 0
+    while offset < len(data):
+        chunk = data[offset : offset + chunk_size]
+        encoded = base64.b64encode(chunk).decode("ascii")
+        script = (
+            "import base64\n"
+            f"open({abs_path!r},'ab').write(base64.b64decode({encoded!r}))\n"
+        )
+        result = await exec_run(container_id, ["python3", "-c", script], timeout_seconds=15)
+        if result["exit_code"] != 0:
+            raise DockerError(400, result["output"] or "Could not write file")
+        offset += chunk_size
 
 
 async def read_file(container_id: str, rel_path: str) -> str:
+    raw = await read_bytes(container_id, rel_path)
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise DockerError(400, "File is not valid text") from exc
+
+
+async def read_bytes(container_id: str, rel_path: str) -> bytes:
     safe = _safe_rel(rel_path)
-    result = await exec_run(
+    size_result = await exec_run(
         container_id,
-        ["python3", "-c", _read_script(safe)],
+        [
+            "python3",
+            "-c",
+            f"import os; print(os.path.getsize({WORKSPACE!r}+'/'+{safe!r}))",
+        ],
         timeout_seconds=5,
     )
-    if result["exit_code"] != 0:
+    if size_result["exit_code"] != 0:
         raise DockerError(404, "File not found")
-    raw = result["output"].strip()
     try:
-        return base64.b64decode(raw).decode("utf-8")
-    except (ValueError, UnicodeDecodeError) as exc:
-        raise DockerError(400, "File is not valid text") from exc
+        size = int(size_result["output"].strip())
+    except ValueError as exc:
+        raise DockerError(400, "Could not read file") from exc
+    if size > 2_000_000:
+        raise DockerError(400, "File is too large to preview")
+    chunks: list[bytes] = []
+    offset = 0
+    step = 45_000
+    while offset < size:
+        script = (
+            "import base64,sys\n"
+            f"path={WORKSPACE!r}+'/'+{safe!r}\n"
+            f"fh=open(path,'rb'); fh.seek({offset}); data=fh.read({step}); fh.close()\n"
+            "sys.stdout.write(base64.b64encode(data).decode())\n"
+        )
+        result = await exec_run(
+            container_id,
+            ["python3", "-c", script],
+            timeout_seconds=10,
+            max_output=80_000,
+        )
+        if result["exit_code"] != 0:
+            raise DockerError(404, "File not found")
+        try:
+            chunks.append(base64.b64decode(result["output"].strip()))
+        except ValueError as exc:
+            raise DockerError(400, "Could not read file") from exc
+        offset += step
+    return b"".join(chunks)
 
 
 async def list_tree(container_id: str) -> list[dict]:
     script = (
         "import json,os\n"
         "root='/workspace'\n"
+        "skip_roots={'vendor','node_modules'}\n"
         "out=[]\n"
         "for dirpath,_,files in os.walk(root):\n"
         "  rel=os.path.relpath(dirpath, root)\n"
         "  if rel=='.': rel=''\n"
+        "  parts=rel.split(os.sep) if rel else []\n"
+        "  if any(part in skip_roots or part.startswith('.') for part in parts):\n"
+        "    continue\n"
         "  if rel and not rel.startswith('.'):\n"
         "    out.append({'path':rel.replace(chr(92),'/'),'type':'dir'})\n"
         "  for name in files:\n"
         "    if name.startswith('.'): continue\n"
         "    path=(rel+'/'+name if rel else name).replace(chr(92),'/')\n"
+        "    top=path.split('/',1)[0]\n"
+        "    if top in skip_roots: continue\n"
         "    out.append({'path':path,'type':'file'})\n"
         "print(json.dumps(out))\n"
     )

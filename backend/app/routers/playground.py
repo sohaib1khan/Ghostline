@@ -1,6 +1,7 @@
 """Signed-in playground: ephemeral worker IDE (no persisted files)."""
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -13,11 +14,13 @@ router = APIRouter(prefix="/playground", tags=["playground"])
 
 
 class StartIn(BaseModel):
-    ttl_minutes: int | None = Field(default=None, ge=1, le=120)
+    # Optional; server default is 12 hours. Kept for API compatibility.
+    ttl_minutes: int | None = Field(default=None, ge=1, le=720)
 
 
 class TtlIn(BaseModel):
-    ttl_minutes: int = Field(ge=1, le=120)
+    # Extend resets another full window (default 12 hours).
+    ttl_minutes: int | None = Field(default=None, ge=1, le=720)
 
 
 class WriteIn(BaseModel):
@@ -33,6 +36,11 @@ class RunIn(BaseModel):
     path: str | None = Field(default=None, max_length=200)
     argv: list[str] | None = Field(default=None, max_length=8)
     shell: str | None = Field(default=None, max_length=500)
+
+
+class PackagesIn(BaseModel):
+    ecosystem: str = Field(min_length=3, max_length=8)
+    packages: list[str] = Field(min_length=1, max_length=8)
 
 
 @router.get("/status")
@@ -75,8 +83,14 @@ async def update_ttl(
     user: User = Depends(current_user),
 ) -> dict:
     del request
+    settings = get_settings()
+    minutes = (
+        body.ttl_minutes
+        if body.ttl_minutes is not None
+        else settings.playground_ttl_default_minutes
+    )
     try:
-        return await pg.set_ttl_for_user(user.id, body.ttl_minutes)
+        return await pg.set_ttl_for_user(user.id, minutes)
     except pg.PlaygroundError as exc:
         pg.raise_http(exc)
 
@@ -148,6 +162,55 @@ async def delete_path(
     del request
     try:
         return await pg.delete_path(user.id, path)
+    except pg.PlaygroundError as exc:
+        pg.raise_http(exc)
+
+
+@router.get("/preview/{path:path}")
+@limiter.limit("120/minute")
+async def preview(
+    request: Request,
+    path: str,
+    user: User = Depends(current_user),
+) -> Response:
+    del request
+    try:
+        data, ctype = await pg.preview_bytes(user.id, path)
+    except pg.PlaygroundError as exc:
+        pg.raise_http(exc)
+    headers = {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if ctype.startswith("text/html"):
+        headers["Content-Security-Policy"] = (
+            "default-src 'none'; "
+            "img-src 'self' data: blob:; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "font-src 'self' data:; "
+            "connect-src 'none'; "
+            "form-action 'none'; "
+            "frame-src 'none'; "
+            "object-src 'none'; "
+            "base-uri 'none'; "
+            "frame-ancestors 'self'"
+        )
+    return Response(content=data, media_type=ctype, headers=headers)
+
+
+@router.post("/packages")
+@limiter.limit("10/minute")
+async def packages(
+    request: Request,
+    body: PackagesIn,
+    user: User = Depends(current_user),
+) -> dict:
+    del request
+    try:
+        return await pg.install_packages(
+            user.id, ecosystem=body.ecosystem, packages=body.packages
+        )
     except pg.PlaygroundError as exc:
         pg.raise_http(exc)
 

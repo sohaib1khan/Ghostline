@@ -2,106 +2,138 @@ import { NavLink, useLocation } from "react-router-dom";
 import { isStaff, isSuperAdmin } from "../../roles.js";
 
 const LEARN = [
-  { to: "/", label: "Home", end: true },
-  { to: "/projects", label: "Projects" },
-  { to: "/playground", label: "Playground" },
-  { to: "/games", label: "Games", end: true },
+  { to: "/", label: "Home", end: true, match: (path) => path === "/" },
+  {
+    to: "/projects",
+    label: "Projects",
+    match: (path) =>
+      path === "/projects" || path.startsWith("/learn/tracks") || path.startsWith("/learn/lessons"),
+  },
+  {
+    to: "/playground",
+    label: "Playground",
+    match: (path) => path.startsWith("/playground"),
+  },
+  {
+    to: "/games",
+    label: "Games",
+    match: (path) => path === "/games" || path.startsWith("/games/"),
+  },
 ];
 
-const STUDIO_CONTENT = [
-  { to: "/admin/content", label: "Content" },
-  { to: "/admin/leaderboard", label: "Leaderboard" },
+const STUDIO = [
+  {
+    to: "/admin/content",
+    label: "Content",
+    match: (path) => path.startsWith("/admin/content") || path.startsWith("/admin/preview"),
+  },
+  {
+    to: "/admin/leaderboard",
+    label: "Leaderboard",
+    match: (path) => path.startsWith("/admin/leaderboard") || path.startsWith("/admin/leadboard"),
+  },
 ];
-const STUDIO_USERS = [{ to: "/admin/users", label: "Users", end: true }];
+
+const STUDIO_USERS = [
+  {
+    to: "/admin/users",
+    label: "Users",
+    end: true,
+    match: (path) => path.startsWith("/admin/users"),
+  },
+];
 
 const GUEST = [
-  { to: "/demo", label: "Demo" },
-  { to: "/login", label: "Login", end: true },
-  { to: "/signup", label: "Sign up", end: true },
+  { to: "/demo", label: "Demo", match: (path) => path === "/demo" || path.startsWith("/demo/") },
+  { to: "/login", label: "Login", end: true, match: (path) => path === "/login" },
+  { to: "/signup", label: "Sign up", end: true, match: (path) => path === "/signup" },
 ];
 
-function keyClass(active) {
-  return `inline-flex min-h-10 items-center rounded-full px-3.5 text-sm transition-colors duration-200 ${
-    active ? "bg-bg text-text shadow-[var(--shadow)]" : "text-muted hover:text-text"
-  }`;
-}
-
-function Key({ to, end, children }) {
+function Key({ to, end, active, children }) {
   return (
-    <NavLink to={to} end={end} className={({ isActive }) => keyClass(isActive)}>
+    <NavLink
+      to={to}
+      end={end}
+      className={`app-nav-key ${active ? "is-active" : ""}`}
+      aria-current={active ? "page" : undefined}
+    >
       {children}
     </NavLink>
   );
 }
 
-function Group({ label, children }) {
+function Segment({ label, tone = "learn", children }) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="px-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-        {label}
-      </span>
-      {children}
+    <div className={`app-nav-segment app-nav-segment--${tone}`}>
+      <p className="app-nav-segment-label">{label}</p>
+      <div className="app-nav-keys" role="list">
+        {children}
+      </div>
     </div>
   );
 }
 
 export default function AppNav({ user, onSignOut, signingOut }) {
   const location = useLocation();
+  const path = location.pathname;
   const staff = isStaff(user?.role);
   const superAdmin = isSuperAdmin(user?.role);
-  const studio = [...STUDIO_CONTENT, ...(superAdmin ? STUDIO_USERS : [])];
+  const studioItems = [...STUDIO, ...(superAdmin ? STUDIO_USERS : [])];
   const settingsActive =
-    location.pathname.startsWith("/settings") ||
-    location.pathname === "/admin/settings" ||
-    location.pathname.startsWith("/admin/ai");
+    path.startsWith("/settings") || path === "/admin/settings" || path.startsWith("/admin/ai");
 
   return (
-    <nav aria-label="Main" className="max-w-full overflow-x-auto">
-      <div className="flex w-max min-w-full items-center gap-1 rounded-2xl border border-muted/15 bg-surface p-1.5 shadow-[var(--shadow)]">
+    <nav aria-label="Main" className="app-nav">
+      <div className="app-nav-rail">
         {user ? (
-          <Group label="Learn">
+          <Segment label="Learn" tone="learn">
             {LEARN.map((item) => (
-              <Key key={item.to} to={item.to} end={item.end}>
-                {item.label}
-              </Key>
-            ))}
-          </Group>
-        ) : (
-          <Group label="Start">
-            {GUEST.map((item) => (
-              <Key key={item.to} to={item.to} end={item.end}>
-                {item.label}
-              </Key>
-            ))}
-          </Group>
-        )}
-        {staff ? (
-          <>
-            <span className="mx-1 h-6 w-px shrink-0 bg-muted/25" aria-hidden="true" />
-            <Group label="Studio">
-              {studio.map((item) => (
-                <Key key={item.to} to={item.to} end={item.end}>
+              <span key={item.to} role="listitem">
+                <Key to={item.to} end={item.end} active={item.match(path)}>
                   {item.label}
                 </Key>
-              ))}
-            </Group>
-          </>
+              </span>
+            ))}
+          </Segment>
+        ) : (
+          <Segment label="Start" tone="learn">
+            {GUEST.map((item) => (
+              <span key={item.to} role="listitem">
+                <Key to={item.to} end={item.end} active={item.match(path)}>
+                  {item.label}
+                </Key>
+              </span>
+            ))}
+          </Segment>
+        )}
+
+        {staff ? (
+          <Segment label="Studio" tone="studio">
+            {studioItems.map((item) => (
+              <span key={item.to} role="listitem">
+                <Key to={item.to} end={item.end} active={item.match(path)}>
+                  {item.label}
+                </Key>
+              </span>
+            ))}
+          </Segment>
         ) : null}
-        <div className="ml-auto flex items-center gap-1 pl-2">
+
+        <div className="app-nav-account">
           {user ? (
-            <NavLink to="/settings/profile" className={() => keyClass(settingsActive)}>
-              Settings
-            </NavLink>
-          ) : null}
-          {user ? (
-            <button
-              type="button"
-              onClick={onSignOut}
-              disabled={signingOut}
-              className="inline-flex min-h-10 items-center rounded-full px-3.5 text-sm text-muted hover:text-text disabled:opacity-50"
-            >
-              {signingOut ? "Signing out…" : "Sign out"}
-            </button>
+            <>
+              <Key to="/settings/profile" active={settingsActive}>
+                Settings
+              </Key>
+              <button
+                type="button"
+                onClick={onSignOut}
+                disabled={signingOut}
+                className="app-nav-signout"
+              >
+                {signingOut ? "Signing out…" : "Sign out"}
+              </button>
+            </>
           ) : null}
         </div>
       </div>

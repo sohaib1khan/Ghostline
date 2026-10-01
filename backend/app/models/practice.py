@@ -7,14 +7,36 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, IdMixin, TimestampMixin
 
-SOURCES = ("lesson", "speed_drill", "bug_hunt", "command_roulette", "fill_frenzy")
+SOURCES = (
+    "lesson",
+    "speed_drill",
+    "bug_hunt",
+    "command_roulette",
+    "fill_frenzy",
+    "ghost_race",
+    "code_hangman",
+    "codele",
+    "memory_match",
+    "code_crossword",
+    "tic_tac_toe",
+    "syntax_snake",
+    "predict_output",
+    "code_scramble",
+    "query_detective",
+    "boss_battle",
+)
 
 
 class PracticeEvent(IdMixin, TimestampMixin, Base):
     __tablename__ = "practice_events"
     __table_args__ = (
         CheckConstraint(
-            "source in ('lesson', 'speed_drill', 'bug_hunt', 'command_roulette', 'fill_frenzy')",
+            "source in ("
+            "'lesson', 'speed_drill', 'bug_hunt', 'command_roulette', 'fill_frenzy', "
+            "'ghost_race', 'code_hangman', 'codele', 'memory_match', 'code_crossword', "
+            "'tic_tac_toe', 'syntax_snake', 'predict_output', 'code_scramble', "
+            "'query_detective', 'boss_battle'"
+            ")",
             name="ck_practice_events_source",
         ),
     )

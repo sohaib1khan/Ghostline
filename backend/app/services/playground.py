@@ -31,6 +31,8 @@ def playground_limits() -> dict[str, Any]:
         "memory_mb": settings.playground_memory_mb,
         "run_timeout_seconds": settings.playground_run_timeout_seconds,
         "one_session_per_user": True,
+        "preview": True,
+        "packages": True,
     }
 
 
@@ -48,6 +50,7 @@ async def _request(
     *,
     json: dict | None = None,
     params: dict | None = None,
+    timeout: float = 30.0,
 ) -> Any:
     settings = get_settings()
     if not settings.playground_enabled:
@@ -57,7 +60,7 @@ async def _request(
     headers = {"Authorization": f"Bearer {settings.playground_token}"}
     url = f"{settings.playground_url.rstrip('/')}{path}"
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.request(
                 method, url, headers=headers, json=json, params=params
             )
@@ -191,6 +194,45 @@ async def delete_path(user_id: uuid.UUID, path: str) -> dict:
         "DELETE",
         f"/v1/sessions/{session_id}/fs/path",
         params={"path": path},
+    )
+
+
+async def preview_bytes(user_id: uuid.UUID, path: str) -> tuple[bytes, str]:
+    settings = get_settings()
+    if not settings.playground_enabled:
+        raise PlaygroundError(503, "Playground is turned off")
+    if not settings.playground_token:
+        raise PlaygroundError(503, "Playground is not configured")
+    session_id = require_session_id(user_id)
+    headers = {"Authorization": f"Bearer {settings.playground_token}"}
+    url = f"{settings.playground_url.rstrip('/')}/v1/sessions/{session_id}/preview/{path}"
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, headers=headers)
+    except httpx.HTTPError as exc:
+        raise PlaygroundError(503, "Playground manager is unreachable") from exc
+    if response.status_code >= 400:
+        detail = "Playground request failed"
+        try:
+            payload = response.json()
+            if isinstance(payload, dict) and payload.get("detail"):
+                detail = str(payload["detail"])
+        except ValueError:
+            detail = response.text[:200] or detail
+        raise PlaygroundError(response.status_code, detail)
+    ctype = response.headers.get("content-type") or "application/octet-stream"
+    return response.content, ctype
+
+
+async def install_packages(
+    user_id: uuid.UUID, *, ecosystem: str, packages: list[str]
+) -> dict:
+    session_id = require_session_id(user_id)
+    return await _request(
+        "POST",
+        f"/v1/sessions/{session_id}/packages",
+        json={"ecosystem": ecosystem, "packages": packages},
+        timeout=120.0,
     )
 
 

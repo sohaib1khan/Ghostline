@@ -90,7 +90,7 @@ export default function LeaderboardPage() {
     const needle = query.trim().toLowerCase();
     const filtered = needle
       ? data.leaderboard.filter((row) => {
-          const hay = `${row.first_name} ${row.last_name} ${row.email} ${row.role}`.toLowerCase();
+          const hay = `${row.first_name} ${row.last_name} ${row.role}`.toLowerCase();
           return hay.includes(needle);
         })
       : data.leaderboard;
@@ -207,7 +207,7 @@ export default function LeaderboardPage() {
                 id="leaderboard-search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Name or email"
+                placeholder="Name"
                 className="mt-1 block min-w-48 rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
               />
             </label>
@@ -256,10 +256,9 @@ export default function LeaderboardPage() {
                       <p className="font-medium text-text">
                         {row.first_name} {row.last_name}
                       </p>
-                      <p className="break-all text-xs text-muted">
-                        {row.email}
-                        {row.role !== "learner" ? ` · ${row.role}` : ""}
-                      </p>
+                      {row.role !== "learner" ? (
+                        <p className="text-xs text-muted">{row.role}</p>
+                      ) : null}
                     </td>
                     <td className="font-mono">{row.xp.toLocaleString()}</td>
                     <td>

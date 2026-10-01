@@ -62,7 +62,7 @@ modules:
 - `extend` matches a module or lesson by its title and an exercise by its `order`. Matching rows are updated and keep their ids, so learner progress stays. A title that is not already there is added. An exercise with no `order` is added at the end. Nothing is deleted.
 - `replace` rebuilds each track in the file. Lessons left out of the file are deleted, and progress on them is cleared.
 
-A dry run checks the file and reports how many lessons would be added or updated. It does not save. Games are not a separate file. Speed Drill, Bug Hunt, Fill Frenzy, and Command Roulette use **published** exercises from these lessons — the full published pool on the track you pick, not a tiny random sample.
+A dry run checks the file and reports how many lessons would be added or updated. It does not save. Games are not a separate file. Practice games (Speed Drill, Bug Hunt, Code Hangman, Codele, Memory Match, Predict the Output, and the rest) use **published** exercises from these lessons — tokens, fills, simulated outputs, and traces — via the same check engine as lessons.
 
 Set `publish: true` on `POST /api/admin/import` (or check **Publish for practice** in Content) so every module, lesson, and exercise in the file is stored as published. Draft lessons stay invisible to Learn and Games until you publish them.
 

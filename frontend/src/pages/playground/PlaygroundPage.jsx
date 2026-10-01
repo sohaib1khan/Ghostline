@@ -2,16 +2,28 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
 import { readPrefs } from "../../prefs.js";
+import { PYTHON_FLASK_STARTER } from "./flaskStarter.js";
 
 function formatRemaining(seconds) {
   const total = Math.max(0, Math.floor(seconds || 0));
-  const minutes = Math.floor(total / 60);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
   const secs = total % 60;
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
   return `${minutes}:${String(secs).padStart(2, "0")}`;
 }
 
+const DEFAULT_TTL_MINUTES = 720;
+const DEFAULT_FILE = "templates/python-hello/main.py";
+const WEB_PREVIEW = "templates/web-hello/index.html";
+
 function langFromPath(filePath) {
   const lower = (filePath || "").toLowerCase();
+  if (lower.includes("/python-flask/")) {
+    return "flask";
+  }
   if (lower.endsWith(".py")) {
     return "python";
   }
@@ -21,6 +33,9 @@ function langFromPath(filePath) {
   if (lower.endsWith(".sh") || lower.endsWith(".bash")) {
     return "bash";
   }
+  if (lower.endsWith(".html") || lower.endsWith(".htm") || lower.endsWith(".css")) {
+    return "web";
+  }
   return "file";
 }
 
@@ -28,9 +43,10 @@ const LANGS = [
   {
     id: "python",
     label: "Python",
-    tip: "Open main.py",
-    file: "main.py",
+    tip: "templates/python-hello",
+    file: "templates/python-hello/main.py",
     starter: 'print("hello from the playground")\n',
+    view: "editor",
     color: "#3776ab",
     mark: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -47,11 +63,30 @@ const LANGS = [
     ),
   },
   {
+    id: "flask",
+    label: "Flask",
+    tip: "templates/python-flask — install flask first",
+    file: "templates/python-flask/app.py",
+    starter: PYTHON_FLASK_STARTER,
+    view: "editor",
+    color: "#0f766e",
+    mark: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="currentColor" opacity="0.16" />
+        <path
+          fill="currentColor"
+          d="M7 4h10v2H7V4zm1 4h8l-1 12H9L8 8zm2 2v8h1v-8H10zm3 0v8h1v-8h-1z"
+        />
+      </svg>
+    ),
+  },
+  {
     id: "javascript",
     label: "JavaScript",
-    tip: "Open main.js",
-    file: "main.js",
+    tip: "templates/javascript-hello",
+    file: "templates/javascript-hello/main.js",
     starter: 'console.log("hello from the playground");\n',
+    view: "editor",
     color: "#c4a035",
     mark: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -66,9 +101,10 @@ const LANGS = [
   {
     id: "bash",
     label: "Bash",
-    tip: "Open main.sh or type commands below",
-    file: "main.sh",
+    tip: "templates/bash-hello",
+    file: "templates/bash-hello/main.sh",
     starter: '#!/usr/bin/env bash\necho "hello from the playground"\n',
+    view: "editor",
     color: "#5f8f7e",
     mark: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -80,12 +116,45 @@ const LANGS = [
       </svg>
     ),
   },
+  {
+    id: "web",
+    label: "Web",
+    tip: "templates/web-hello — preview in Browser",
+    file: WEB_PREVIEW,
+    starter: "",
+    view: "browser",
+    color: "#c2410c",
+    mark: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="currentColor" opacity="0.16" />
+        <path
+          fill="currentColor"
+          d="M4.5 4.5h15l-1.4 15.2L12 21.5l-6.1-1.8L4.5 4.5zm3.2 4.2.4 4.4h5.6l-.2 2.1-2.5.7-2.5-.7-.2-1.7H6.7l.3 3.2L12 18l5-1.4.7-7.9H7.7z"
+        />
+      </svg>
+    ),
+  },
 ];
 
 function canRunPath(filePath) {
   const lower = (filePath || "").toLowerCase();
   return lower.endsWith(".py") || lower.endsWith(".js") || lower.endsWith(".mjs") || lower.endsWith(".sh") || lower.endsWith(".bash");
 }
+
+function isHtmlPath(filePath) {
+  const lower = (filePath || "").toLowerCase();
+  return lower.endsWith(".html") || lower.endsWith(".htm");
+}
+
+/** Show the last 1–2 path segments; full path goes on title/aria-label. */
+function displayPath(filePath) {
+  const parts = (filePath || "").split("/").filter(Boolean);
+  if (parts.length <= 2) {
+    return parts.join("/") || filePath;
+  }
+  return parts.slice(-2).join("/");
+}
+
 function FileMark({ kind }) {
   const lang = LANGS.find((item) => item.id === kind);
   if (!lang) {
@@ -137,9 +206,8 @@ export default function PlaygroundPage() {
   const reduce = Boolean(systemReduce) || prefs.reduceMotion;
   const [limits, setLimits] = useState(null);
   const [session, setSession] = useState(null);
-  const [ttlMinutes, setTtlMinutes] = useState(20);
   const [entries, setEntries] = useState([]);
-  const [path, setPath] = useState("main.py");
+  const [path, setPath] = useState(DEFAULT_FILE);
   const [content, setContent] = useState("");
   const [dirty, setDirty] = useState(false);
   const [output, setOutput] = useState("");
@@ -151,6 +219,13 @@ export default function PlaygroundPage() {
   const [newFolder, setNewFolder] = useState("");
   const [burstKey, setBurstKey] = useState(0);
   const [command, setCommand] = useState("");
+  const [deskView, setDeskView] = useState("editor");
+  const [previewPath, setPreviewPath] = useState(WEB_PREVIEW);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [pkgEco, setPkgEco] = useState("pip");
+  const [pkgNames, setPkgNames] = useState("");
+  const [pkgLog, setPkgLog] = useState("");
+  const [installing, setInstalling] = useState(false);
 
   const files = useMemo(
     () => entries.filter((item) => item.type === "file").map((item) => item.path).sort(),
@@ -161,8 +236,11 @@ export default function PlaygroundPage() {
     [entries],
   );
   const activeLang = langFromPath(path);
+  const lifetimeMinutes = limits?.ttl_default_minutes || DEFAULT_TTL_MINUTES;
+  const lifetimeHours = Math.round(lifetimeMinutes / 60);
+  const lifetimeSeconds = lifetimeMinutes * 60;
   const timerPct = session
-    ? Math.min(100, Math.round((remaining / Math.max(1, session.ttl_seconds || ttlMinutes * 60)) * 100))
+    ? Math.min(100, Math.round((remaining / Math.max(1, session.ttl_seconds || lifetimeSeconds)) * 100))
     : 0;
 
   useEffect(() => {
@@ -174,7 +252,6 @@ export default function PlaygroundPage() {
           return;
         }
         setLimits(status);
-        setTtlMinutes(status.ttl_default_minutes || 20);
         if (!status.enabled) {
           setMessage("Playground is turned off on this server.");
           return;
@@ -186,9 +263,8 @@ export default function PlaygroundPage() {
         if (body.session) {
           setSession(body.session);
           setRemaining(body.session.remaining_seconds || 0);
-          setTtlMinutes(Math.round((body.session.ttl_seconds || 1200) / 60));
           await refreshTree();
-          await openFile("main.py");
+          await openFile(DEFAULT_FILE);
         }
       } catch (error) {
         if (!cancelled) {
@@ -214,7 +290,9 @@ export default function PlaygroundPage() {
 
   useEffect(() => {
     if (session && remaining === 0) {
-      setMessage("Session ended. Start again to get a fresh workspace.");
+      setMessage(
+        "Session ended — the container was destroyed. Start again for a fresh workspace.",
+      );
       setSession(null);
       setEntries([]);
       setContent("");
@@ -231,6 +309,9 @@ export default function PlaygroundPage() {
     setPath(nextPath);
     setContent(body.content || "");
     setDirty(false);
+    if (isHtmlPath(nextPath)) {
+      setPreviewPath(nextPath);
+    }
   }
 
   async function openLang(langId) {
@@ -244,7 +325,23 @@ export default function PlaygroundPage() {
     setPending(true);
     setMessage("");
     try {
-      if (!files.includes(lang.file)) {
+      let writeStarter = Boolean(lang.starter) && !files.includes(lang.file);
+      if (langId === "flask" && files.includes(lang.file)) {
+        try {
+          const existing = await api(
+            `/api/playground/fs/file?path=${encodeURIComponent(lang.file)}`,
+          );
+          if (/\bapp\.run\s*\(/.test(existing.content || "")) {
+            writeStarter = true;
+            setMessage(
+              "Reset flask template — app.run() is not supported (use test_client).",
+            );
+          }
+        } catch {
+          writeStarter = true;
+        }
+      }
+      if (writeStarter && lang.starter) {
         await api("/api/playground/fs/file", {
           method: "PUT",
           body: { path: lang.file, content: lang.starter },
@@ -252,6 +349,13 @@ export default function PlaygroundPage() {
         await refreshTree();
       }
       await openFile(lang.file);
+      if (lang.view === "browser" || isHtmlPath(lang.file)) {
+        setPreviewPath(lang.file);
+        setPreviewKey((value) => value + 1);
+        setDeskView("browser");
+      } else {
+        setDeskView("editor");
+      }
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -265,17 +369,17 @@ export default function PlaygroundPage() {
     try {
       const body = await api("/api/playground/start", {
         method: "POST",
-        body: { ttl_minutes: ttlMinutes },
+        body: {},
       });
       setSession(body);
-      setRemaining(body.ttl_seconds || ttlMinutes * 60);
+      setRemaining(body.remaining_seconds || body.ttl_seconds || lifetimeSeconds);
       setBurstKey((value) => value + 1);
       await refreshTree();
-      await openFile("main.py");
+      await openFile(DEFAULT_FILE);
       setMessage(
         body.resumed
-          ? "Resumed your open session."
-          : "Session started. Files vanish when it ends.",
+          ? `Resumed your open session. Container still destroys in ${formatRemaining(body.remaining_seconds || body.ttl_seconds)} unless you extend.`
+          : `Session started. This container will be destroyed in ${lifetimeHours} hours unless you extend it.`,
       );
     } catch (error) {
       setMessage(error.message);
@@ -284,17 +388,19 @@ export default function PlaygroundPage() {
     }
   }
 
-  async function applyTtl() {
+  async function extendSession() {
     setPending(true);
     setMessage("");
     try {
       const body = await api("/api/playground/session/ttl", {
         method: "PATCH",
-        body: { ttl_minutes: ttlMinutes },
+        body: {},
       });
       setSession((current) => ({ ...(current || {}), ...body }));
-      setRemaining(body.remaining_seconds || ttlMinutes * 60);
-      setMessage(`Session timer set to ${ttlMinutes} minutes from now.`);
+      setRemaining(body.remaining_seconds || lifetimeSeconds);
+      setMessage(
+        `Extended — container will now be destroyed in ${lifetimeHours} hours from now.`,
+      );
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -312,10 +418,80 @@ export default function PlaygroundPage() {
       setContent("");
       setOutput("");
       setRemaining(0);
+      setDeskView("editor");
+      setPkgLog("");
       setMessage("Session stopped. Worker and files are gone.");
     } catch (error) {
       setMessage(error.message);
     } finally {
+      setPending(false);
+    }
+  }
+
+  async function refreshPreview() {
+    if (dirty && isHtmlPath(path)) {
+      setPending(true);
+      try {
+        await api("/api/playground/fs/file", {
+          method: "PUT",
+          body: { path, content },
+        });
+        setDirty(false);
+        await refreshTree();
+      } catch (error) {
+        setMessage(error.message);
+        setPending(false);
+        return;
+      }
+      setPending(false);
+    }
+    const next = isHtmlPath(path)
+      ? path
+      : files.includes(WEB_PREVIEW)
+        ? WEB_PREVIEW
+        : previewPath || WEB_PREVIEW;
+    setPreviewPath(next);
+    setPreviewKey((value) => value + 1);
+    setDeskView("browser");
+    if (isHtmlPath(next) && path !== next && files.includes(next)) {
+      try {
+        await openFile(next);
+      } catch {
+        // Preview can still load via iframe even if editor sync fails.
+      }
+    }
+  }
+
+  async function installPackages() {
+    const names = pkgNames
+      .split(/[,\s]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (!names.length) {
+      setMessage("Enter at least one package name.");
+      return;
+    }
+    setInstalling(true);
+    setPending(true);
+    setMessage("");
+    setPkgLog("Downloading on the server, then installing offline inside your box…");
+    try {
+      const body = await api("/api/playground/packages", {
+        method: "POST",
+        body: { ecosystem: pkgEco, packages: names },
+      });
+      setPkgLog(body.output || `Installed into ${body.target}`);
+      setMessage(
+        body.hint ||
+          `Installed ${names.join(", ")}. The worker still has no network — nothing can leave the box.`,
+      );
+      setBurstKey((value) => value + 1);
+      await refreshTree();
+    } catch (error) {
+      setPkgLog(error.message);
+      setMessage(error.message);
+    } finally {
+      setInstalling(false);
       setPending(false);
     }
   }
@@ -447,7 +623,7 @@ export default function PlaygroundPage() {
         method: "DELETE",
       });
       if (path === target) {
-        setPath("main.py");
+        setPath(DEFAULT_FILE);
         setContent("");
       }
       await refreshTree();
@@ -490,8 +666,9 @@ export default function PlaygroundPage() {
           {...rise}
           transition={{ ...(rise.transition || {}), delay: reduce ? 0 : 0.12 }}
         >
-          A worker starts for you alone. No network out. Files live only until the timer ends —
-          then the box is gone.
+          A worker starts for you alone. The box itself has no network out — packages are
+          fetched by the server and installed offline. Your container and files are destroyed
+          after {lifetimeHours} hours unless you extend the session.
         </motion.p>
 
         <ul className="mt-5 flex flex-wrap gap-2">
@@ -520,18 +697,6 @@ export default function PlaygroundPage() {
         </ul>
 
         <div className="mt-6 flex flex-wrap items-end gap-3">
-          <label className="text-sm">
-            Session minutes
-            <input
-              type="number"
-              min={limits?.ttl_min_minutes || 5}
-              max={limits?.ttl_max_minutes || 60}
-              value={ttlMinutes}
-              disabled={disabled || pending}
-              onChange={(event) => setTtlMinutes(Number(event.target.value) || 5)}
-              className="mt-1 block w-28 rounded-xl border border-muted/30 bg-bg px-3 py-2 font-mono"
-            />
-          </label>
           {!session ? (
             <button
               type="button"
@@ -546,10 +711,10 @@ export default function PlaygroundPage() {
               <button
                 type="button"
                 disabled={pending}
-                onClick={applyTtl}
+                onClick={extendSession}
                 className="rounded-xl border border-muted/30 px-4 py-2 text-sm disabled:opacity-50"
               >
-                Apply timer
+                Extend {lifetimeHours}h
               </button>
               <button
                 type="button"
@@ -559,9 +724,9 @@ export default function PlaygroundPage() {
               >
                 End session
               </button>
-              <div className="min-w-[9rem]">
+              <div className="min-w-[11rem]">
                 <p className="font-mono text-sm text-muted">
-                  Left {formatRemaining(remaining)}
+                  Destroys in {formatRemaining(remaining)}
                   {limits?.memory_mb ? ` · ${limits.memory_mb}MB` : ""}
                 </p>
                 <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted/20">
@@ -576,8 +741,8 @@ export default function PlaygroundPage() {
         </div>
         {limits ? (
           <p className="mt-2 text-xs text-muted">
-            Allowed range {limits.ttl_min_minutes}–{limits.ttl_max_minutes} minutes. One session per
-            account.
+            Sessions last {lifetimeHours} hours. Extend anytime to reset the clock. One session
+            per account.
           </p>
         ) : null}
         {message ? (
@@ -596,7 +761,7 @@ export default function PlaygroundPage() {
       {session ? (
         <motion.div
           key={`desk-${session.session_id || "active"}`}
-          className="relative mt-6 grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]"
+          className="relative mt-6 grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)]"
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -612,12 +777,13 @@ export default function PlaygroundPage() {
                 <motion.li
                   key={`d-${folder}`}
                   className="flex items-center justify-between gap-2 text-muted"
+                  title={folder}
                   initial={reduce ? false : { opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: reduce ? 0 : index * 0.03 }}
                 >
-                  <span className="flex min-w-0 items-center gap-2 truncate font-mono">
-                    <span className="inline-flex h-5 w-5 items-center justify-center text-muted" aria-hidden="true">
+                  <span className="flex min-w-0 items-center gap-2 font-mono">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-muted" aria-hidden="true">
                       <svg viewBox="0 0 24 24" className="h-4 w-4">
                         <path
                           fill="currentColor"
@@ -626,11 +792,14 @@ export default function PlaygroundPage() {
                         />
                       </svg>
                     </span>
-                    <span className="truncate">{folder}/</span>
+                    <span className="truncate" title={`${folder}/`}>
+                      {displayPath(folder)}/
+                    </span>
                   </span>
                   <button
                     type="button"
-                    className="text-xs text-error"
+                    className="shrink-0 text-xs text-error"
+                    title={`Delete ${folder}`}
                     onClick={() => removePath(folder)}
                   >
                     Del
@@ -641,23 +810,30 @@ export default function PlaygroundPage() {
                 <motion.li
                   key={file}
                   className="flex items-center justify-between gap-2"
+                  title={file}
                   initial={reduce ? false : { opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: reduce ? 0 : 0.05 + index * 0.03 }}
                 >
                   <button
                     type="button"
-                    className={`flex min-w-0 items-center gap-2 truncate text-left font-mono ${
+                    className={`flex min-w-0 items-center gap-2 text-left font-mono ${
                       file === path ? "text-accent" : "text-text"
                     }`}
-                    onClick={() => openFile(file)}
+                    title={file}
+                    aria-label={file}
+                    onClick={() => {
+                      setDeskView("editor");
+                      openFile(file);
+                    }}
                   >
                     <FileMark kind={langFromPath(file)} />
-                    <span className="truncate">{file}</span>
+                    <span className="truncate">{displayPath(file)}</span>
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-error"
+                    className="shrink-0 text-xs text-error"
+                    title={`Delete ${file}`}
                     onClick={() => removePath(file)}
                   >
                     Del
@@ -685,40 +861,130 @@ export default function PlaygroundPage() {
                 Add folder
               </button>
             </div>
+            <div className="mt-4 border-t border-muted/15 pt-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted">Packages</p>
+              <p className="mt-1 text-[11px] leading-snug text-muted">
+                Server downloads; worker installs offline. The box never gets network.
+              </p>
+              <select
+                value={pkgEco}
+                onChange={(event) => setPkgEco(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-muted/30 bg-bg px-2 py-1 text-xs"
+              >
+                <option value="pip">pip (Python)</option>
+                <option value="npm">npm (Node)</option>
+              </select>
+              <input
+                value={pkgNames}
+                onChange={(event) => setPkgNames(event.target.value)}
+                placeholder={pkgEco === "pip" ? "requests flask" : "lodash chalk"}
+                className="mt-2 w-full rounded-lg border border-muted/30 bg-bg px-2 py-1 font-mono text-xs"
+              />
+              <button
+                type="button"
+                disabled={pending || installing}
+                onClick={installPackages}
+                className="mt-2 text-left text-xs text-accent disabled:opacity-50"
+              >
+                {installing ? "Installing…" : "Install"}
+              </button>
+              {pkgLog ? (
+                <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap font-mono text-[10px] text-muted">
+                  {pkgLog}
+                </pre>
+              ) : null}
+            </div>
           </aside>
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
+              <div className="flex gap-1 rounded-xl border border-muted/20 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setDeskView("editor")}
+                  className={`rounded-lg px-3 py-1 text-sm ${
+                    deskView === "editor" ? "bg-accent text-on-accent" : "text-muted"
+                  }`}
+                >
+                  Editor
+                </button>
+                <button
+                  type="button"
+                  onClick={refreshPreview}
+                  className={`rounded-lg px-3 py-1 text-sm ${
+                    deskView === "browser" ? "bg-accent text-on-accent" : "text-muted"
+                  }`}
+                >
+                  Browser
+                </button>
+              </div>
               <div className="flex min-w-0 items-center gap-2">
                 <FileMark kind={activeLang} />
-                <p className="truncate font-mono text-sm text-muted">{path}</p>
+                <p className="truncate font-mono text-sm text-muted">
+                  {deskView === "browser" ? previewPath : path}
+                </p>
               </div>
-              {dirty ? (
+              {dirty && deskView === "editor" ? (
                 <span className="rounded-full bg-muted/15 px-2 py-0.5 text-xs text-muted">
                   unsaved
                 </span>
               ) : null}
               <div className="ml-auto flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={saveFile}
-                  className="rounded-xl border border-muted/30 px-3 py-1.5 text-sm disabled:opacity-50"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  disabled={pending || !canRunPath(path)}
-                  onClick={runFile}
-                  className={`rounded-xl bg-accent px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50 ${
-                    running && !reduce ? "playground-run-pulse" : ""
-                  }`}
-                >
-                  {running ? "Running…" : "Run"}
-                </button>
+                {deskView === "editor" ? (
+                  <>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={saveFile}
+                      className="rounded-xl border border-muted/30 px-3 py-1.5 text-sm disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pending || !canRunPath(path)}
+                      onClick={runFile}
+                      className={`rounded-xl bg-accent px-3 py-1.5 text-sm font-medium text-on-accent disabled:opacity-50 ${
+                        running && !reduce ? "playground-run-pulse" : ""
+                      }`}
+                    >
+                      {running ? "Running…" : "Run"}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={refreshPreview}
+                    className="rounded-xl border border-muted/30 px-3 py-1.5 text-sm disabled:opacity-50"
+                  >
+                    Refresh
+                  </button>
+                )}
               </div>
             </div>
+
+            {deskView === "browser" ? (
+              <div className="playground-browser mt-3 overflow-hidden rounded-xl border border-muted/20 bg-bg">
+                <div className="flex items-center gap-2 border-b border-muted/20 px-3 py-2">
+                  <span className="h-2 w-2 rounded-full bg-muted/40" aria-hidden="true" />
+                  <span className="h-2 w-2 rounded-full bg-muted/40" aria-hidden="true" />
+                  <span className="h-2 w-2 rounded-full bg-muted/40" aria-hidden="true" />
+                  <p className="truncate font-mono text-xs text-muted">
+                    preview://{previewPath}
+                  </p>
+                </div>
+                <iframe
+                  key={`${previewPath}-${previewKey}`}
+                  title="Playground browser"
+                  src={`/api/playground/preview/${previewPath}?v=${previewKey}`}
+                  sandbox="allow-scripts"
+                  className="h-[28rem] w-full bg-white"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            ) : (
+              <>
             <textarea
               value={content}
               onChange={(event) => {
@@ -785,6 +1051,8 @@ export default function PlaygroundPage() {
                 </button>
               </form>
             </div>
+              </>
+            )}
           </div>
         </motion.div>
       ) : null}

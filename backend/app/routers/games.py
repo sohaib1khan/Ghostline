@@ -23,6 +23,8 @@ class GameScore(BaseModel):
     accuracy: int | None = Field(default=None, ge=0, le=100)
     duration_seconds: int | None = Field(default=None, ge=0, le=86_400)
     hints_used: int = Field(default=0, ge=0, le=16)
+    letters: list[str] = Field(default_factory=list, max_length=64)
+    phase: str = Field(default="submit", max_length=16)
 
 
 @router.get("/catalog")
@@ -66,6 +68,8 @@ async def game_score(
             accuracy=body.accuracy,
             duration_seconds=body.duration_seconds,
             hints_used=body.hints_used,
+            letters=body.letters,
+            phase=body.phase,
         )
     except ContentError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

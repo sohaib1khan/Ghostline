@@ -83,7 +83,7 @@ services:
       PLAYGROUND_WORKER_IMAGE: ghostline-playground-worker:local
       PLAYGROUND_MEMORY_MB: ${PLAYGROUND_MEMORY_MB:-256}
       PLAYGROUND_CPUS: ${PLAYGROUND_CPUS:-0.5}
-      PLAYGROUND_WORKSPACE_MB: ${PLAYGROUND_WORKSPACE_MB:-64}
+      PLAYGROUND_WORKSPACE_MB: ${PLAYGROUND_WORKSPACE_MB:-128}
       PLAYGROUND_RUN_TIMEOUT: ${PLAYGROUND_RUN_TIMEOUT:-8}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

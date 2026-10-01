@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import secrets
 from contextlib import asynccontextmanager
@@ -9,9 +10,13 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app import docker_api
+from app.mime_types import content_type_for
+from app.packages import PackageError, install_packages
+from app.templates import SEED_FILES
 
 TOKEN = os.environ.get("PLAYGROUND_TOKEN", "").strip()
 WORKER_IMAGE = os.environ.get("PLAYGROUND_WORKER_IMAGE", "ghostline-playground-worker:local")
@@ -19,6 +24,17 @@ MEMORY_MB = int(os.environ.get("PLAYGROUND_MEMORY_MB", "256"))
 CPUS = float(os.environ.get("PLAYGROUND_CPUS", "0.5"))
 WORKSPACE_MB = int(os.environ.get("PLAYGROUND_WORKSPACE_MB", "64"))
 RUN_TIMEOUT = int(os.environ.get("PLAYGROUND_RUN_TIMEOUT", "8"))
+# 12-hour session lifetime (extend resets another full window from now).
+MAX_TTL_SECONDS = 12 * 60 * 60
+SWEEP_INTERVAL_SECONDS = 60
+RUN_ENV = [
+    # Packages install under /tmp so they never clutter the workspace tree.
+    "PYTHONPATH=/tmp/pg-vendor",
+    "NODE_PATH=/tmp/pg-node_modules",
+    # Discourage Flask/Werkzeug from starting a reloader server if someone calls app.run().
+    "FLASK_DEBUG=0",
+    "WERKZEUG_RUN_MAIN=true",
+]
 
 ALLOWED_BINARIES = {
     "python3": ["python3"],
@@ -33,7 +49,7 @@ SESSIONS: dict[str, dict] = {}
 
 class StartIn(BaseModel):
     user_id: str = Field(min_length=1, max_length=80)
-    ttl_seconds: int = Field(ge=60, le=3600)
+    ttl_seconds: int = Field(ge=60, le=MAX_TTL_SECONDS)
 
 
 class PathIn(BaseModel):
@@ -53,7 +69,12 @@ class RunIn(BaseModel):
 
 
 class TtlIn(BaseModel):
-    ttl_seconds: int = Field(ge=60, le=3600)
+    ttl_seconds: int = Field(ge=60, le=MAX_TTL_SECONDS)
+
+
+class PackagesIn(BaseModel):
+    ecosystem: str = Field(min_length=3, max_length=8)
+    packages: list[str] = Field(min_length=1, max_length=8)
 
 
 def _auth(authorization: str | None) -> None:
@@ -82,15 +103,33 @@ async def _sweep() -> None:
             await docker_api.destroy(row["container_id"])
 
 
-@asynccontextmanager
-async def lifespan(_app: FastAPI):
-    yield
-    for key in list(SESSIONS):
-        row = SESSIONS.pop(key)
+async def _sweep_loop() -> None:
+    """Destroy expired workers even when nobody hits the API."""
+    while True:
         try:
-            await docker_api.destroy(row["container_id"])
+            await _sweep()
         except Exception:
             pass
+        await asyncio.sleep(SWEEP_INTERVAL_SECONDS)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    sweeper = asyncio.create_task(_sweep_loop())
+    try:
+        yield
+    finally:
+        sweeper.cancel()
+        try:
+            await sweeper
+        except asyncio.CancelledError:
+            pass
+        for key in list(SESSIONS):
+            row = SESSIONS.pop(key)
+            try:
+                await docker_api.destroy(row["container_id"])
+            except Exception:
+                pass
 
 
 app = FastAPI(title="Ghostline Playground Manager", docs_url=None, redoc_url=None, lifespan=lifespan)
@@ -132,31 +171,8 @@ async def start_session(
         raise HTTPException(status_code=502, detail=exc.detail) from exc
     expires = datetime.now(UTC) + timedelta(seconds=body.ttl_seconds)
     try:
-        await docker_api.write_file(
-            container_id,
-            "README.md",
-            (
-                "# Ghostline playground\n\n"
-                "This workspace is temporary. When the session ends, everything here is deleted.\n\n"
-                "Open `main.py`, `main.js`, or `main.sh` and press Run.\n"
-                "Or type a bash command in the terminal under the editor.\n"
-            ),
-        )
-        await docker_api.write_file(
-            container_id,
-            "main.py",
-            'print("hello from the playground")\n',
-        )
-        await docker_api.write_file(
-            container_id,
-            "main.js",
-            'console.log("hello from the playground");\n',
-        )
-        await docker_api.write_file(
-            container_id,
-            "main.sh",
-            '#!/usr/bin/env bash\necho "hello from the playground"\n',
-        )
+        for rel_path, content in SEED_FILES.items():
+            await docker_api.write_file(container_id, rel_path, content)
     except docker_api.DockerError:
         await docker_api.destroy(container_id)
         raise HTTPException(status_code=502, detail="Could not seed the workspace") from None
@@ -171,6 +187,7 @@ async def start_session(
         "session_id": session_id,
         "expires_at": expires.isoformat(),
         "ttl_seconds": body.ttl_seconds,
+        "remaining_seconds": body.ttl_seconds,
         "memory_mb": MEMORY_MB,
     }
 
@@ -302,6 +319,68 @@ async def remove_path(
     return {"path": path, "deleted": True}
 
 
+@app.get("/v1/sessions/{session_id}/preview/{path:path}")
+async def preview_file(
+    session_id: str,
+    path: str,
+    authorization: str | None = Header(default=None),
+) -> Response:
+    """Serve a workspace file for the in-app browser. No worker ports."""
+    _auth(authorization)
+    row = _session(session_id)
+    try:
+        data = await docker_api.read_bytes(row["container_id"], path)
+    except docker_api.DockerError as exc:
+        raise HTTPException(
+            status_code=exc.status if 400 <= exc.status < 500 else 502,
+            detail=exc.detail,
+        ) from exc
+    ctype = content_type_for(path)
+    headers = {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+    }
+    if ctype.startswith("text/html"):
+        # Block network from preview pages (connect-src none). Assets still load
+        # via this same preview path ('self'). frame-ancestors self allows the
+        # Ghostline Browser tab iframe.
+        headers["Content-Security-Policy"] = (
+            "default-src 'none'; "
+            "img-src 'self' data: blob:; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "font-src 'self' data:; "
+            "connect-src 'none'; "
+            "form-action 'none'; "
+            "frame-src 'none'; "
+            "object-src 'none'; "
+            "base-uri 'none'; "
+            "frame-ancestors 'self'"
+        )
+    return Response(content=data, media_type=ctype, headers=headers)
+
+
+@app.post("/v1/sessions/{session_id}/packages")
+async def packages(
+    session_id: str,
+    body: PackagesIn,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Download on the manager; install offline inside the air-gapped worker."""
+    _auth(authorization)
+    row = _session(session_id)
+    try:
+        return await install_packages(
+            row["container_id"],
+            ecosystem=body.ecosystem,
+            packages=body.packages,
+        )
+    except PackageError as exc:
+        raise HTTPException(status_code=exc.status, detail=exc.detail) from exc
+    except docker_api.DockerError as exc:
+        raise HTTPException(status_code=502, detail=exc.detail) from exc
+
+
 @app.post("/v1/sessions/{session_id}/run")
 async def run_cmd(
     session_id: str,
@@ -311,20 +390,33 @@ async def run_cmd(
     _auth(authorization)
     row = _session(session_id)
     argv = _resolve_argv(body)
+    # Hard wall: GNU timeout kills servers (app.run, etc.) so ports are freed.
+    timed = ["timeout", "--kill-after=2s", f"{RUN_TIMEOUT}s", *argv]
     try:
+        # Reap leftovers from earlier timed-out runs that still hold ports.
+        await docker_api.reap_stray_processes(row["container_id"])
         result = await docker_api.exec_run(
             row["container_id"],
-            argv,
-            timeout_seconds=RUN_TIMEOUT,
+            timed,
+            timeout_seconds=RUN_TIMEOUT + 4,
+            env=RUN_ENV,
         )
     except docker_api.DockerError as exc:
         raise HTTPException(status_code=502, detail=exc.detail) from exc
     except httpx.TimeoutException:
+        await docker_api.reap_stray_processes(row["container_id"])
         raise HTTPException(status_code=408, detail="Run timed out") from None
+    output = result["output"]
+    if result["exit_code"] == 124:
+        output = (
+            (output or "")
+            + "\n(run timed out — long-running servers like app.run() are not supported; "
+            "use Flask's test_client() instead)"
+        ).lstrip()
     return {
         "argv": argv,
         "exit_code": result["exit_code"],
-        "output": result["output"],
+        "output": output,
         "timeout_seconds": RUN_TIMEOUT,
     }
 

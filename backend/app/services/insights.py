@@ -175,7 +175,6 @@ async def _leaderboard_rows(session: AsyncSession) -> list[dict]:
                 "id": str(user.id),
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "email": user.email,
                 "role": user.role,
                 "xp": int(stats.xp) if stats else 0,
                 "current_streak_days": int(stats.current_streak_days) if stats else 0,

@@ -1,15 +1,16 @@
 # Ephemeral learner workspace. No network. Read-only root + tmpfs /workspace.
-FROM alpine:3.21.3
+# DECISION: Debian/glibc base so manager-side `pip download` wheels install cleanly
+# (Alpine/musl rejected manylinux wheels like markupsafe).
+FROM python:3.12.14-slim-bookworm
 
-RUN apk add --no-cache \
-      python3 \
-      py3-pip \
-      nodejs \
-      npm \
-      bash \
-      coreutils \
-      findutils \
-    && adduser -D -u 1000 -h /home/learner learner
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+         nodejs \
+         npm \
+         bash \
+         ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 1000 --shell /bin/bash learner
 
 WORKDIR /workspace
 USER learner

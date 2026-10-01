@@ -34,9 +34,10 @@ class Settings(BaseSettings):
     playground_enabled: bool = False
     playground_url: str = "http://playground:8100"
     playground_token: str = ""
-    playground_ttl_min_minutes: int = Field(default=5, ge=1, le=120)
-    playground_ttl_max_minutes: int = Field(default=60, ge=1, le=120)
-    playground_ttl_default_minutes: int = Field(default=20, ge=1, le=120)
+    # Fixed 12-hour playground lifetime; extend resets another full window.
+    playground_ttl_min_minutes: int = Field(default=720, ge=1, le=720)
+    playground_ttl_max_minutes: int = Field(default=720, ge=1, le=720)
+    playground_ttl_default_minutes: int = Field(default=720, ge=1, le=720)
     playground_memory_mb: int = Field(default=256, ge=64, le=1024)
     playground_run_timeout_seconds: int = Field(default=8, ge=1, le=60)
     # One-shot first admin. Ignored once any admin exists.
