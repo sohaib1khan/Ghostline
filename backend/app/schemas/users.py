@@ -9,6 +9,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 from app.schemas.auth import _clean_name
 
 Role = Literal["admin", "learner"]
+AssignableRole = Role
 Status = Literal["pending", "approved", "rejected", "disabled"]
 
 

@@ -82,8 +82,10 @@ async def ensure_tracks(session: AsyncSession) -> None:
 
 
 async def list_visible_tracks(session: AsyncSession, user: User) -> list[Track]:
+    from app.security.roles import is_staff
+
     stmt = select(Track).where(Track.is_active.is_(True)).order_by(Track.position, Track.slug)
-    if user.role != "admin":
+    if not is_staff(user.role):
         stmt = stmt.join(UserTrackAccess, UserTrackAccess.track_id == Track.id).where(
             UserTrackAccess.user_id == user.id
         )

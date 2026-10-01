@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { api } from "../api/client.js";
 import StreakFlame from "../components/feedback/StreakFlame.jsx";
+import { isStaff, isSuperAdmin } from "../roles.js";
 
 const DOT = {
   bash: "bg-accent",
@@ -119,16 +120,21 @@ export default function HomePage() {
       ) : null}
       <div className="mt-8">
         <h2 className="text-lg font-semibold tracking-tight">Practice tracks</h2>
-        {user.role === "admin" ? (
+        {isStaff(user.role) ? (
           <p className="mt-2 text-sm text-muted">
             Each track is a path: beginner basics → intermediate practice → advanced projects.{" "}
             <Link to="/projects" className="text-accent">
               Projects
-            </Link>{" "}
-            ·{" "}
-            <Link to="/admin/users" className="text-accent">
-              Manage users
             </Link>
+            {isSuperAdmin(user.role) ? (
+              <>
+                {" "}
+                ·{" "}
+                <Link to="/admin/users" className="text-accent">
+                  Manage users
+                </Link>
+              </>
+            ) : null}
           </p>
         ) : (
           <p className="mt-2 text-sm text-muted">

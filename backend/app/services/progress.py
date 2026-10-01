@@ -76,9 +76,11 @@ async def submit_check(
     accuracy: int | None,
 ) -> dict:
     exercise = await _load_exercise(session, exercise_id)
-    if user.role != "admin" and not _visible(exercise):
+    from app.security.roles import is_staff
+
+    if not is_staff(user.role) and not _visible(exercise):
         raise ContentError(404, "Exercise not found")
-    if user.role != "admin":
+    if not is_staff(user.role):
         access = await session.scalar(
             select(UserTrackAccess.id).where(
                 UserTrackAccess.user_id == user.id,

@@ -60,6 +60,7 @@ PROTECTED = [
         {"password": OTHER_PASSWORD},
     ),
     ("POST", f"/api/admin/users/{SAMPLE_ID}/revoke-sessions", None),
+    ("DELETE", f"/api/admin/users/{SAMPLE_ID}", None),
     ("GET", "/api/admin/notifications/channels", None),
     (
         "POST",
@@ -501,7 +502,7 @@ async def test_direct_create_reset_reject_and_last_admin(database) -> None:
                     ip=None,
                 )
         assert caught.value.status_code == 409
-        assert caught.value.detail == "The last admin cannot be removed"
+        assert caught.value.detail == "The last super admin cannot be removed"
 
 
 async def test_profile_keeps_this_session_and_revokes_others(database) -> None:

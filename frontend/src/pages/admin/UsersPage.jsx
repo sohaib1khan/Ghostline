@@ -147,7 +147,8 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
           <p className="mt-2 text-sm text-muted">
-            Approve access and choose a track for each person.
+            Approve access, assign tracks, and create or remove accounts. Only the super admin can
+            manage users.
           </p>
         </div>
         <button
@@ -348,8 +349,26 @@ export default function UsersPage() {
                 >
                   Revoke sessions
                 </Action>
+                <Action
+                  disabled={pending || mine || row.role === "super_admin"}
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `Delete ${row.first_name} ${row.last_name}? This cannot be undone.`,
+                      )
+                    ) {
+                      return;
+                    }
+                    run(async () => {
+                      await api(`/api/admin/users/${row.id}`, { method: "DELETE" });
+                      setNotice("User deleted.");
+                    });
+                  }}
+                >
+                  Delete
+                </Action>
               </div>
-              {status === "approved" ? (
+              {status === "approved" && row.role !== "super_admin" ? (
                 <div className="mt-4 flex flex-wrap items-end gap-2">
                   <label className="text-sm text-muted" htmlFor={`role-${row.id}`}>
                     Role
@@ -380,6 +399,9 @@ export default function UsersPage() {
                     Save role
                   </Action>
                 </div>
+              ) : null}
+              {status === "approved" && row.role === "super_admin" ? (
+                <p className="mt-4 text-sm text-muted">Super admin role is fixed for this account.</p>
               ) : null}
               <form
                 className="mt-4 flex flex-wrap items-end gap-2"

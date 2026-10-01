@@ -15,6 +15,7 @@ from app.security.tokens import hash_token
 
 UNAUTHORIZED = HTTPException(status_code=401, detail="Not signed in")
 FORBIDDEN = HTTPException(status_code=403, detail="Admin access is required")
+SUPER_FORBIDDEN = HTTPException(status_code=403, detail="Super admin access is required")
 
 
 async def current_user(
@@ -35,8 +36,18 @@ async def current_user(
 
 
 async def require_admin(user: User = Depends(current_user)) -> User:
-    if user.role != "admin":
+    from app.security.roles import is_staff
+
+    if not is_staff(user.role):
         raise FORBIDDEN
+    return user
+
+
+async def require_super_admin(user: User = Depends(current_user)) -> User:
+    from app.security.roles import is_super_admin
+
+    if not is_super_admin(user.role):
+        raise SUPER_FORBIDDEN
     return user
 
 
@@ -45,10 +56,12 @@ async def require_track_access(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Track:
+    from app.security.roles import is_staff
+
     track = await db.scalar(select(Track).where(Track.slug == slug, Track.is_active.is_(True)))
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found")
-    if user.role == "admin":
+    if is_staff(user.role):
         return track
     access = await db.scalar(
         select(UserTrackAccess.id).where(

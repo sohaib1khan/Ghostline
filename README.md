@@ -53,7 +53,7 @@ BOOTSTRAP_ADMIN_FIRST_NAME=Ada
 BOOTSTRAP_ADMIN_LAST_NAME=Lovelace
 ```
 
-Then `docker compose up --build`. Logs show `GHOSTLINE BOOTSTRAP: admin ready for …`. Sign in with that email and password. After it works, set `BOOTSTRAP_ALLOW=false` and remove the bootstrap password from `.env`.
+Then `docker compose up --build`. Logs show `GHOSTLINE BOOTSTRAP: super admin ready for …`. Sign in with that email and password. After it works, set `BOOTSTRAP_ALLOW=false` and remove the bootstrap password from `.env`.
 
 ### Interactive
 

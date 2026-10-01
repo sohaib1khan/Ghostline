@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { isStaff, isSuperAdmin } from "../../roles.js";
 
 const LEARN = [
   { to: "/", label: "Home", end: true },
@@ -8,10 +9,8 @@ const LEARN = [
   { to: "/stats", label: "Stats", end: true },
 ];
 
-const STUDIO = [
-  { to: "/admin/content", label: "Content" },
-  { to: "/admin/users", label: "Users", end: true },
-];
+const STUDIO_CONTENT = [{ to: "/admin/content", label: "Content" }];
+const STUDIO_USERS = [{ to: "/admin/users", label: "Users", end: true }];
 
 const GUEST = [
   { to: "/demo", label: "Demo" },
@@ -47,6 +46,9 @@ function Group({ label, children }) {
 export default function AppNav({ user, theme, onTheme, onSignOut, signingOut }) {
   const location = useLocation();
   const nextTheme = theme === "dark" ? "light" : "dark";
+  const staff = isStaff(user?.role);
+  const superAdmin = isSuperAdmin(user?.role);
+  const studio = [...STUDIO_CONTENT, ...(superAdmin ? STUDIO_USERS : [])];
   const settingsActive =
     location.pathname.startsWith("/settings") ||
     location.pathname === "/admin/settings" ||
@@ -72,11 +74,11 @@ export default function AppNav({ user, theme, onTheme, onSignOut, signingOut }) 
             ))}
           </Group>
         )}
-        {user?.role === "admin" ? (
+        {staff ? (
           <>
             <span className="mx-1 h-6 w-px shrink-0 bg-muted/25" aria-hidden="true" />
             <Group label="Studio">
-              {STUDIO.map((item) => (
+              {studio.map((item) => (
                 <Key key={item.to} to={item.to} end={item.end}>
                   {item.label}
                 </Key>

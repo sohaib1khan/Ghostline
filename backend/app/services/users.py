@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.track import Track, UserTrackAccess
 from app.models.user import User
 from app.security.passwords import hash_password, validate_password
+from app.security.roles import ASSIGNABLE_ROLES, SUPER_ADMIN_ROLE, is_super_admin
 from app.services.audit import write_audit
 from app.services.auth import revoke_user_sessions
 from app.services.notifications.dispatcher import dispatch_event
@@ -105,17 +106,23 @@ async def _lock_admin_changes(session: AsyncSession) -> None:
     )
 
 
-async def _keep_an_admin(session: AsyncSession, user: User, *, role: str, status: str) -> None:
-    remains = role == "admin" and status == "approved"
-    if user.role != "admin" or user.status != "approved" or remains:
+async def _keep_a_super_admin(
+    session: AsyncSession, user: User, *, role: str, status: str
+) -> None:
+    remains = role == SUPER_ADMIN_ROLE and status == "approved"
+    if not is_super_admin(user.role) or user.status != "approved" or remains:
         return
     others = await session.scalar(
         select(func.count())
         .select_from(User)
-        .where(User.role == "admin", User.status == "approved", User.id != user.id)
+        .where(
+            User.role == SUPER_ADMIN_ROLE,
+            User.status == "approved",
+            User.id != user.id,
+        )
     )
     if not others:
-        raise UserAdminError(409, "The last admin cannot be removed")
+        raise UserAdminError(409, "The last super admin cannot be removed")
 
 
 async def create_user(
@@ -130,6 +137,8 @@ async def create_user(
     track_slugs: list[str],
     ip: str | None,
 ) -> dict:
+    if role not in ASSIGNABLE_ROLES:
+        raise UserAdminError(400, "Role must be admin or learner")
     normalized = email.strip().lower()
     try:
         validate_password(password, normalized)
@@ -183,7 +192,11 @@ async def update_user(
     user = await _load_user(session, user_id)
     next_role = role or user.role
     next_status = status or user.status
-    await _keep_an_admin(session, user, role=next_role, status=next_status)
+    if role is not None and role not in ASSIGNABLE_ROLES:
+        raise UserAdminError(400, "Role must be admin or learner")
+    if next_role == SUPER_ADMIN_ROLE and not is_super_admin(user.role):
+        raise UserAdminError(400, "Super admin cannot be assigned here")
+    await _keep_a_super_admin(session, user, role=next_role, status=next_status)
     user.role = next_role
     user.status = next_status
     if next_status != "approved":
@@ -246,7 +259,7 @@ async def reject_user(
         raise UserAdminError(409, "You cannot change your own access")
     await _lock_admin_changes(session)
     user = await _load_user(session, user_id)
-    await _keep_an_admin(session, user, role=user.role, status="rejected")
+    await _keep_a_super_admin(session, user, role=user.role, status="rejected")
     user.status = "rejected"
     await session.execute(delete(UserTrackAccess).where(UserTrackAccess.user_id == user.id))
     await revoke_user_sessions(session, user.id)
@@ -319,6 +332,33 @@ async def reset_password(
         details={},
         ip=ip,
     )
+    await session.commit()
+
+
+async def delete_user(
+    session: AsyncSession,
+    *,
+    actor: User,
+    user_id: uuid.UUID,
+    ip: str | None,
+) -> None:
+    if actor.id == user_id:
+        raise UserAdminError(409, "You cannot delete your own account")
+    await _lock_admin_changes(session)
+    user = await _load_user(session, user_id)
+    await _keep_a_super_admin(session, user, role="learner", status="disabled")
+    email = user.email
+    await revoke_user_sessions(session, user.id)
+    await write_audit(
+        session,
+        actor_user_id=actor.id,
+        action="user.delete",
+        target_type="user",
+        target_id=str(user.id),
+        details={"email": email, "role": user.role},
+        ip=ip,
+    )
+    await session.delete(user)
     await session.commit()
 
 

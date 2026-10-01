@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useOutletContext } from "react-router-dom";
+import { isStaff } from "../../roles.js";
 
 const YOU = [
   { to: "/settings/profile", label: "Profile", hint: "Name and password" },
@@ -35,7 +36,7 @@ function Section({ title, items }) {
 
 export default function SettingsLayout() {
   const context = useOutletContext();
-  const admin = context.user?.role === "admin";
+  const admin = isStaff(context.user?.role);
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">

@@ -93,7 +93,7 @@ async def test_setup_then_second_attempt_conflicts(database, client: httpx.Async
     headers = await csrf_headers(client)
     created = await client.post("/api/setup", json=setup_body(token), headers=headers)
     assert created.status_code == 201
-    assert created.json()["role"] == "admin"
+    assert created.json()["role"] == "super_admin"
     assert created.json()["status"] == "approved"
     again = await client.post("/api/setup", json=setup_body(token), headers=headers)
     assert again.status_code == 409
@@ -145,7 +145,7 @@ async def test_concurrent_setup_allows_one_admin(database) -> None:
     codes = sorted([first.status_code, second.status_code])
     assert codes == [201, 409]
     async with get_sessionmaker()() as session:
-        admins = (await session.scalars(select(User).where(User.role == "admin"))).all()
+        admins = (await session.scalars(select(User).where(User.role == "super_admin"))).all()
     assert len(admins) == 1
 
 
@@ -162,7 +162,7 @@ async def test_bootstrap_creates_admin_once(database, monkeypatch) -> None:
     async with get_sessionmaker()() as session:
         assert await maybe_bootstrap_admin(session) is True
         assert await maybe_bootstrap_admin(session) is True
-        admins = (await session.scalars(select(User).where(User.role == "admin"))).all()
+        admins = (await session.scalars(select(User).where(User.role == "super_admin"))).all()
     assert len(admins) == 1
     assert admins[0].email == "boot@example.com"
     get_settings.cache_clear()

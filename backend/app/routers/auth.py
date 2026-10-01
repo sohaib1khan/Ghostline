@@ -59,7 +59,9 @@ async def login(
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
     response.set_cookie(SESSION_COOKIE, raw, **session_cookie_kwargs(get_settings()))
     response.headers["Cache-Control"] = "no-store"
-    if user.role == "admin":
+    from app.security.roles import is_staff
+
+    if is_staff(user.role):
         await dispatch_event("admin.login", {"email": user.email})
     return UserOut.model_validate(user)
 

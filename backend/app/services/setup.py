@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import INSECURE_SECRET_VALUES, get_settings
 from app.models.user import User
 from app.security.passwords import hash_password, validate_password
+from app.security.roles import STAFF_ROLES, SUPER_ADMIN_ROLE
 from app.security.tokens import hash_token, new_token, token_matches
 from app.services.audit import write_audit
 from app.services.seed import seed_starter_content
@@ -25,14 +26,14 @@ class SetupError(Exception):
 
 
 async def admin_exists(session: AsyncSession) -> bool:
-    admin_id = await session.scalar(select(User.id).where(User.role == "admin").limit(1))
+    admin_id = await session.scalar(select(User.id).where(User.role.in_(STAFF_ROLES)).limit(1))
     return admin_id is not None
 
 
 async def maybe_bootstrap_admin(session: AsyncSession) -> bool:
-    """Create the first admin from env when explicitly allowed.
+    """Create the first super admin from env when explicitly allowed.
 
-    Returns True when an admin now exists and the interactive setup token
+    Returns True when a staff account now exists and the interactive setup token
     should not be printed. Raises RuntimeError if bootstrap is enabled but
     misconfigured, so a bad deploy fails closed instead of falling back.
     """
@@ -70,7 +71,7 @@ async def maybe_bootstrap_admin(session: AsyncSession) -> bool:
             first_name=first_name[:80],
             last_name=last_name[:80],
             password_hash=hash_password(password),
-            role="admin",
+            role=SUPER_ADMIN_ROLE,
             status="approved",
             failed_login_count=0,
         )
@@ -84,12 +85,12 @@ async def maybe_bootstrap_admin(session: AsyncSession) -> bool:
             action="setup.bootstrap",
             target_type="user",
             target_id=str(user.id),
-            details={"email": email, "source": "env"},
+            details={"email": email, "source": "env", "role": SUPER_ADMIN_ROLE},
             ip=None,
         )
     await seed_starter_content(session)
     # Never log the password. Confirm email only so operators can verify.
-    print(f"GHOSTLINE BOOTSTRAP: admin ready for {email}", flush=True)
+    print(f"GHOSTLINE BOOTSTRAP: super admin ready for {email}", flush=True)
     print(
         "GHOSTLINE BOOTSTRAP: clear BOOTSTRAP_ALLOW and the bootstrap password from .env",
         flush=True,
@@ -138,7 +139,7 @@ async def create_initial_admin(
             first_name=first_name,
             last_name=last_name,
             password_hash=hash_password(password),
-            role="admin",
+            role=SUPER_ADMIN_ROLE,
             status="approved",
             failed_login_count=0,
         )

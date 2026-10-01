@@ -838,7 +838,9 @@ async def lesson_for_learner(session: AsyncSession, user: User, lesson_id: uuid.
         or not row.module.track.is_active
     ):
         raise ContentError(404, "Lesson not found")
-    if user.role != "admin":
+    from app.security.roles import is_staff
+
+    if not is_staff(user.role):
         access = await session.scalar(
             select(UserTrackAccess.id).where(
                 UserTrackAccess.user_id == user.id,

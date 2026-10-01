@@ -11,7 +11,10 @@ from app.models.base import Base, IdMixin, TimestampMixin
 class User(IdMixin, TimestampMixin, Base):
     __tablename__ = "users"
     __table_args__ = (
-        CheckConstraint("role in ('admin', 'learner')", name="ck_users_role"),
+        CheckConstraint(
+            "role in ('super_admin', 'admin', 'learner')",
+            name="ck_users_role",
+        ),
         CheckConstraint(
             "status in ('pending', 'approved', 'rejected', 'disabled')",
             name="ck_users_status",

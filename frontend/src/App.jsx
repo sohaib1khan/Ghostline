@@ -28,6 +28,7 @@ import InstallPrompt from "./components/pwa/InstallPrompt.jsx";
 import OfflineNotice from "./components/pwa/OfflineNotice.jsx";
 import { clearPracticeSession } from "./practiceSession.js";
 import { applyStoredPrefs } from "./prefs.js";
+import { isStaff, isSuperAdmin } from "./roles.js";
 import { applyTheme, readTheme } from "./theme/theme.js";
 
 const GUEST_ONLY = new Set(["/login", "/signup"]);
@@ -116,10 +117,12 @@ function Shell() {
       destination = "/";
     } else if (
       user &&
-      user.role !== "admin" &&
+      !isStaff(user.role) &&
       (location.pathname.startsWith("/admin") ||
         location.pathname.startsWith("/settings/notifications"))
     ) {
+      destination = "/";
+    } else if (user && !isSuperAdmin(user.role) && location.pathname.startsWith("/admin/users")) {
       destination = "/";
     }
   }

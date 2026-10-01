@@ -32,9 +32,9 @@ WEB_PORT=8080
 docker compose up -d --build
 ```
 
-### First admin
+### First super admin
 
-**Automated:** set `BOOTSTRAP_ALLOW=true` plus `BOOTSTRAP_ADMIN_EMAIL` and a strong `BOOTSTRAP_ADMIN_PASSWORD` in `.env` before the first start. Logs show `GHOSTLINE BOOTSTRAP: admin ready for …`. Clear `BOOTSTRAP_ALLOW` and the password after you can sign in.
+**Automated:** set `BOOTSTRAP_ALLOW=true` plus `BOOTSTRAP_ADMIN_EMAIL` and a strong `BOOTSTRAP_ADMIN_PASSWORD` in `.env` before the first start. Logs show `GHOSTLINE BOOTSTRAP: super admin ready for …`. Clear `BOOTSTRAP_ALLOW` and the password after you can sign in.
 
 **Interactive:** leave bootstrap off, then:
 
@@ -42,7 +42,9 @@ docker compose up -d --build
 docker compose logs backend | grep "GHOSTLINE SETUP TOKEN"
 ```
 
-Open the site, complete `/setup` with that token, and keep the token out of chat logs and tickets. After the admin exists, a restart does not print a new token.
+Open the site, complete `/setup` with that token, and keep the token out of chat logs and tickets. After the super admin exists, a restart does not print a new token.
+
+Only the super admin can open **Studio → Users** (create, approve, edit, delete). Regular admins keep Content and site settings.
 
 Health check: `https://learn.example.com/api/health` returns `{"status":"ok"}`.
 
