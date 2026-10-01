@@ -265,7 +265,10 @@ export default function PlaygroundPage() {
     [entries],
   );
   const activeLang = langFromPath(path);
-  const lifetimeMinutes = limits?.ttl_default_minutes || DEFAULT_TTL_MINUTES;
+  const lifetimeMinutes = Math.max(
+    DEFAULT_TTL_MINUTES,
+    Number(limits?.ttl_default_minutes) || DEFAULT_TTL_MINUTES,
+  );
   const lifetimeLabel = formatDurationMinutes(lifetimeMinutes);
   const lifetimeSeconds = lifetimeMinutes * 60;
   const timerPct = session

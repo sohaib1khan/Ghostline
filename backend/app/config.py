@@ -35,9 +35,11 @@ class Settings(BaseSettings):
     playground_url: str = "http://playground:8100"
     playground_token: str = ""
     # Fixed 12-hour playground lifetime; extend resets another full window.
-    playground_ttl_min_minutes: int = Field(default=720, ge=1, le=720)
-    playground_ttl_max_minutes: int = Field(default=720, ge=1, le=720)
-    playground_ttl_default_minutes: int = Field(default=720, ge=1, le=720)
+    # DECISION: keep min/max/default identical so mis-set env cannot reopen the
+    # old 20-minute window. Values below 720 are raised; above 720 are capped.
+    playground_ttl_min_minutes: int = Field(default=720, ge=1, le=24 * 60)
+    playground_ttl_max_minutes: int = Field(default=720, ge=1, le=24 * 60)
+    playground_ttl_default_minutes: int = Field(default=720, ge=1, le=24 * 60)
     playground_memory_mb: int = Field(default=256, ge=64, le=1024)
     playground_run_timeout_seconds: int = Field(default=8, ge=1, le=60)
     # One-shot first admin. Ignored once any admin exists.
@@ -46,6 +48,18 @@ class Settings(BaseSettings):
     bootstrap_admin_password: str = ""
     bootstrap_admin_first_name: str = "Admin"
     bootstrap_admin_last_name: str = "User"
+
+    @field_validator(
+        "playground_ttl_min_minutes",
+        "playground_ttl_max_minutes",
+        "playground_ttl_default_minutes",
+        mode="after",
+    )
+    @classmethod
+    def playground_ttl_is_twelve_hours(cls, value: int) -> int:
+        # Prod boxes that still have PLAYGROUND_TTL_*=20 in an old .env would
+        # otherwise keep advertising 20-minute sessions.
+        return 720
 
     @field_validator("app_env")
     @classmethod

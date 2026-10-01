@@ -10,6 +10,9 @@ from fastapi import HTTPException
 
 from app.config import get_settings
 
+# Fixed product lifetime — one full workday window, extend resets another.
+PLAYGROUND_SESSION_MINUTES = 720
+
 # user_id -> session_id (process-local; one backend replica)
 USER_SESSIONS: dict[str, str] = {}
 
@@ -25,9 +28,9 @@ def playground_limits() -> dict[str, Any]:
     settings = get_settings()
     return {
         "enabled": settings.playground_enabled,
-        "ttl_min_minutes": settings.playground_ttl_min_minutes,
-        "ttl_max_minutes": settings.playground_ttl_max_minutes,
-        "ttl_default_minutes": settings.playground_ttl_default_minutes,
+        "ttl_min_minutes": PLAYGROUND_SESSION_MINUTES,
+        "ttl_max_minutes": PLAYGROUND_SESSION_MINUTES,
+        "ttl_default_minutes": PLAYGROUND_SESSION_MINUTES,
         "memory_mb": settings.playground_memory_mb,
         "run_timeout_seconds": settings.playground_run_timeout_seconds,
         "one_session_per_user": True,
@@ -37,11 +40,8 @@ def playground_limits() -> dict[str, Any]:
 
 
 def clamp_ttl_minutes(minutes: int) -> int:
-    settings = get_settings()
-    return max(
-        settings.playground_ttl_min_minutes,
-        min(settings.playground_ttl_max_minutes, int(minutes)),
-    )
+    del minutes
+    return PLAYGROUND_SESSION_MINUTES
 
 
 async def _request(
@@ -85,7 +85,6 @@ def raise_http(exc: PlaygroundError) -> None:
 
 
 async def start_for_user(user_id: uuid.UUID, ttl_minutes: int) -> dict:
-    settings = get_settings()
     minutes = clamp_ttl_minutes(ttl_minutes)
     key = str(user_id)
     existing = USER_SESSIONS.get(key)
@@ -104,8 +103,8 @@ async def start_for_user(user_id: uuid.UUID, ttl_minutes: int) -> dict:
     return {
         **body,
         "resumed": False,
-        "ttl_min_minutes": settings.playground_ttl_min_minutes,
-        "ttl_max_minutes": settings.playground_ttl_max_minutes,
+        "ttl_min_minutes": PLAYGROUND_SESSION_MINUTES,
+        "ttl_max_minutes": PLAYGROUND_SESSION_MINUTES,
     }
 
 

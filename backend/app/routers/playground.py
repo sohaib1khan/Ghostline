@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.config import get_settings
 from app.models.user import User
 from app.security.deps import current_user
 from app.security.rate_limit import limiter
@@ -67,8 +66,9 @@ async def start(
     user: User = Depends(current_user),
 ) -> dict:
     del request
-    settings = get_settings()
-    minutes = body.ttl_minutes if body.ttl_minutes is not None else settings.playground_ttl_default_minutes
+    minutes = pg.PLAYGROUND_SESSION_MINUTES
+    if body.ttl_minutes is not None:
+        minutes = pg.clamp_ttl_minutes(body.ttl_minutes)
     try:
         return await pg.start_for_user(user.id, minutes)
     except pg.PlaygroundError as exc:
@@ -83,12 +83,9 @@ async def update_ttl(
     user: User = Depends(current_user),
 ) -> dict:
     del request
-    settings = get_settings()
-    minutes = (
-        body.ttl_minutes
-        if body.ttl_minutes is not None
-        else settings.playground_ttl_default_minutes
-    )
+    minutes = pg.PLAYGROUND_SESSION_MINUTES
+    if body.ttl_minutes is not None:
+        minutes = pg.clamp_ttl_minutes(body.ttl_minutes)
     try:
         return await pg.set_ttl_for_user(user.id, minutes)
     except pg.PlaygroundError as exc:
