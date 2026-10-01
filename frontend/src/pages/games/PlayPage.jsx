@@ -130,42 +130,63 @@ function RoundActions({
   locked,
   result,
   expired,
+  stuck,
   count,
   maxRounds,
   onCheck,
   onNext,
   onSkip,
   onEnd,
+  onTryAgain,
+  onSeeAnswer,
+  revealedAnswer,
   hideCheck,
 }) {
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      {!hideCheck && game !== "speed_drill" && game !== "ghost_race" ? (
+    <div className="mt-5 flex flex-wrap items-center gap-3">
+      {!hideCheck && game !== "speed_drill" && game !== "ghost_race" && !expired ? (
         <button
           type="button"
           disabled={locked}
           onClick={onCheck}
-          className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {pending ? "Checking…" : "Check"}
         </button>
       ) : null}
-      {result?.passed || expired ? (
-        <button type="button" className="text-sm text-accent" onClick={onNext}>
-          {count >= maxRounds ? "Finish" : "Next"}
+      {result?.passed ? (
+        <button type="button" className="btn-primary" onClick={onNext}>
+          {count >= maxRounds ? "Finish session" : "Next round"}
         </button>
-      ) : (
+      ) : null}
+      {stuck && !result?.passed ? (
         <>
-          {result && !result.passed ? (
-            <button type="button" className="text-sm text-muted" onClick={onSkip}>
-              Skip
+          <button type="button" className="btn-primary" onClick={onTryAgain} disabled={pending}>
+            Try again
+          </button>
+          {!revealedAnswer ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onSeeAnswer}
+              disabled={pending}
+            >
+              See answer
             </button>
           ) : null}
-          <button type="button" className="text-sm text-muted" onClick={onEnd}>
+          <button type="button" className="btn-secondary" onClick={onSkip}>
+            {count >= maxRounds ? "Finish session" : "Next round"}
+          </button>
+          <button type="button" className="btn-ghost" onClick={onEnd}>
             End session
           </button>
         </>
-      )}
+      ) : null}
+      {!result?.passed && !stuck ? (
+        <button type="button" className="btn-ghost" onClick={onEnd}>
+          End session
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -201,6 +222,8 @@ export default function PlayPage() {
   const [bossHp, setBossHp] = useState(8);
   const [bossHealth, setBossHealth] = useState(8);
   const [guideOpen, setGuideOpen] = useState(true);
+  const [revealedAnswer, setRevealedAnswer] = useState("");
+  const [assistOpen, setAssistOpen] = useState(false);
   const systemReduce = useReducedMotion();
   const reduce = Boolean(systemReduce) || readPrefs().reduceMotion;
 
@@ -209,7 +232,6 @@ export default function PlayPage() {
     setBlanks({});
     setResult(null);
     setMessage("");
-    // First soft guide/hint is free so rounds feel welcoming.
     setHintsShown(data.hints?.length ? 1 : 0);
     setRemaining(data.time_limit_seconds || 0);
     setStudying(Boolean(data.example));
@@ -223,6 +245,8 @@ export default function PlayPage() {
     setSnakePath([]);
     setCrossword({});
     setGuideOpen(true);
+    setRevealedAnswer("");
+    setAssistOpen(false);
     if (game === "boss_battle") {
       setBossHp(data.boss_hp || 8);
       setBossHealth(data.boss_hp || 8);
@@ -255,6 +279,7 @@ export default function PlayPage() {
 
   const expired =
     game === "command_roulette" && remaining <= 0 && !result?.passed && !studying;
+  const stuck = Boolean(expired || (result && !result.passed) || assistOpen);
 
   useEffect(() => {
     if (game !== "command_roulette" || !remaining || result?.passed || studying) {
@@ -288,6 +313,54 @@ export default function PlayPage() {
     }
   }
 
+  function tryAgain() {
+    if (!round) {
+      return;
+    }
+    setResult(null);
+    setAssistOpen(false);
+    setMessage(
+      revealedAnswer
+        ? "Try typing the answer yourself — no rush."
+        : "Timer reset. Give it another go.",
+    );
+    setRemaining(round.time_limit_seconds || 0);
+    setStudying(false);
+    setPending(false);
+  }
+
+  async function seeAnswer() {
+    if (!round || pending) {
+      return;
+    }
+    setPending(true);
+    setMessage("");
+    try {
+      const data = await api(`/api/games/score/${round.exercise_id}`, {
+        method: "POST",
+        body: {
+          game,
+          attempt: "",
+          phase: "reveal",
+          hints_used: Math.max(round.hints?.length || 1, hintsShown),
+        },
+      });
+      const answer = data.revealed_answer || "";
+      setRevealedAnswer(answer);
+      setAssistOpen(true);
+      if (round.hints?.length) {
+        setHintsShown(round.hints.length);
+      }
+      setResult(null);
+      setMessage(data.failed_rule_hint || "Answer shown — try again when you are ready.");
+      setRemaining(round.time_limit_seconds || 0);
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setPending(false);
+    }
+  }
+
   async function submit(attempt, stats, extra = {}) {
     if (!round || pending || result?.passed || expired) {
       return;
@@ -317,8 +390,9 @@ export default function PlayPage() {
           setPassedCount((value) => value + 1);
           playSound(count >= maxRounds ? "complete" : "correct");
         } else if (data.lives_left === 0) {
-          setMessage("The ghost faded — try again next round.");
+          setMessage("The ghost faded — try again, or see the answer.");
           playSound("wrong");
+          setAssistOpen(true);
           setResult({ ...data, passed: false });
         }
         return data;
@@ -347,6 +421,7 @@ export default function PlayPage() {
       } else {
         playSound("wrong");
         setMessage(data.failed_rule_hint || "Not quite — try again.");
+        setAssistOpen(true);
         if (round.hints?.length && hintsShown < round.hints.length) {
           setHintsShown((value) => Math.min(value + 1, round.hints.length));
         }
@@ -859,14 +934,38 @@ export default function PlayPage() {
             }
           />
 
+          {expired ? <p className="mt-3 text-sm text-muted">Time is up — try again, or peek at the answer.</p> : null}
+          {message ? <p className="mt-3 text-sm text-muted">{message}</p> : null}
+          {revealedAnswer ? (
+            <div className="mt-4 rounded-xl border border-accent/30 bg-bg/70 px-4 py-3">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
+                Answer
+              </p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap font-mono text-sm text-text">
+                {revealedAnswer}
+              </pre>
+              <p className="mt-2 text-xs text-muted">
+                Use Try again to type it yourself — XP is lower after a reveal.
+              </p>
+            </div>
+          ) : null}
+          {result?.passed ? (
+            <div className="mt-4" role="status">
+              <XpPop amount={result.xp_awarded} reduce={reduce} />
+              <p className="text-success">Passed. {result.xp_total} XP total</p>
+            </div>
+          ) : null}
+
           <RoundActions
             game={game}
             pending={pending}
             locked={locked}
             result={result}
             expired={expired}
+            stuck={stuck}
             count={count}
             maxRounds={maxRounds}
+            revealedAnswer={revealedAnswer}
             hideCheck={
               game === "code_hangman" ||
               game === "codele" ||
@@ -899,18 +998,12 @@ export default function PlayPage() {
             }}
             onNext={advanceOrFinish}
             onSkip={advanceOrFinish}
+            onTryAgain={tryAgain}
+            onSeeAnswer={seeAnswer}
             onEnd={() => setFinished(true)}
           />
         </>
       )}
-      {expired ? <p className="mt-3 text-sm text-muted">Time is up.</p> : null}
-      {message ? <p className="mt-3 text-sm text-muted">{message}</p> : null}
-      {result?.passed ? (
-        <div className="mt-3" role="status">
-          <XpPop amount={result.xp_awarded} reduce={reduce} />
-          <p className="text-success">Passed. {result.xp_total} XP total</p>
-        </div>
-      ) : null}
     </SessionChrome>
   );
 }

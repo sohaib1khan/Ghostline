@@ -15,6 +15,35 @@ function formatRemaining(seconds) {
   return `${minutes}:${String(secs).padStart(2, "0")}`;
 }
 
+function formatDurationMinutes(minutes) {
+  const total = Math.max(0, Math.round(Number(minutes) || 0));
+  if (total <= 0) {
+    return "a short while";
+  }
+  if (total < 60) {
+    return `${total} minute${total === 1 ? "" : "s"}`;
+  }
+  const hours = Math.floor(total / 60);
+  const rem = total % 60;
+  if (rem === 0) {
+    return `${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+  return `${hours}h ${rem}m`;
+}
+
+function formatExtendLabel(minutes) {
+  const total = Math.max(0, Math.round(Number(minutes) || 0));
+  if (total < 60) {
+    return `Extend ${total}m`;
+  }
+  const hours = Math.floor(total / 60);
+  const rem = total % 60;
+  if (rem === 0) {
+    return `Extend ${hours}h`;
+  }
+  return `Extend ${hours}h ${rem}m`;
+}
+
 const DEFAULT_TTL_MINUTES = 720;
 const DEFAULT_FILE = "templates/python-hello/main.py";
 const WEB_PREVIEW = "templates/web-hello/index.html";
@@ -237,7 +266,7 @@ export default function PlaygroundPage() {
   );
   const activeLang = langFromPath(path);
   const lifetimeMinutes = limits?.ttl_default_minutes || DEFAULT_TTL_MINUTES;
-  const lifetimeHours = Math.round(lifetimeMinutes / 60);
+  const lifetimeLabel = formatDurationMinutes(lifetimeMinutes);
   const lifetimeSeconds = lifetimeMinutes * 60;
   const timerPct = session
     ? Math.min(100, Math.round((remaining / Math.max(1, session.ttl_seconds || lifetimeSeconds)) * 100))
@@ -379,7 +408,7 @@ export default function PlaygroundPage() {
       setMessage(
         body.resumed
           ? `Resumed your open session. Container still destroys in ${formatRemaining(body.remaining_seconds || body.ttl_seconds)} unless you extend.`
-          : `Session started. This container will be destroyed in ${lifetimeHours} hours unless you extend it.`,
+          : `Session started. This container will be destroyed in ${lifetimeLabel} unless you extend it.`,
       );
     } catch (error) {
       setMessage(error.message);
@@ -399,7 +428,7 @@ export default function PlaygroundPage() {
       setSession((current) => ({ ...(current || {}), ...body }));
       setRemaining(body.remaining_seconds || lifetimeSeconds);
       setMessage(
-        `Extended — container will now be destroyed in ${lifetimeHours} hours from now.`,
+        `Extended — container will now be destroyed in ${lifetimeLabel} from now.`,
       );
     } catch (error) {
       setMessage(error.message);
@@ -668,7 +697,7 @@ export default function PlaygroundPage() {
         >
           A worker starts for you alone. The box itself has no network out — packages are
           fetched by the server and installed offline. Your container and files are destroyed
-          after {lifetimeHours} hours unless you extend the session.
+          after {lifetimeLabel} unless you extend the session.
         </motion.p>
 
         <ul className="mt-5 flex flex-wrap gap-2">
@@ -714,7 +743,7 @@ export default function PlaygroundPage() {
                 onClick={extendSession}
                 className="rounded-xl border border-muted/30 px-4 py-2 text-sm disabled:opacity-50"
               >
-                Extend {lifetimeHours}h
+                {formatExtendLabel(lifetimeMinutes)}
               </button>
               <button
                 type="button"
@@ -741,7 +770,7 @@ export default function PlaygroundPage() {
         </div>
         {limits ? (
           <p className="mt-2 text-xs text-muted">
-            Sessions last {lifetimeHours} hours. Extend anytime to reset the clock. One session
+            Sessions last {lifetimeLabel}. Extend anytime to reset the clock. One session
             per account.
           </p>
         ) : null}

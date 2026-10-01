@@ -842,6 +842,45 @@ def _codele_feedback(secret: str, guess: str) -> list[str]:
     return result
 
 
+def _reveal_answer(game: str, data: dict, exercise_id: uuid.UUID) -> str:
+    """Canonical answer for calm 'see answer' — never returned until the learner asks."""
+    code = str(data.get("code") or "").strip()
+    answers = [
+        str(item).strip()
+        for item in ((data.get("check") or {}).get("accepted_answers") or [])
+        if str(item).strip()
+    ]
+    if game in {"speed_drill", "ghost_race", "bug_hunt"}:
+        return answers[0] if answers else code
+    if game == "fill_frenzy":
+        return answers[0] if answers else code
+    if game in {"command_roulette", "query_detective", "tic_tac_toe", "boss_battle"}:
+        if answers:
+            return answers[0]
+        output = str(data.get("simulated_output") or "").strip()
+        return output or code
+    if game == "predict_output":
+        return str(data.get("simulated_output") or "").strip()
+    if game == "code_scramble":
+        usable = [line for line in str(data.get("code") or "").splitlines() if line.strip()]
+        return "\n".join(usable)
+    if game == "syntax_snake":
+        return " ".join(_split_code_tokens(code))
+    if game == "code_hangman":
+        token = _pick_token(data, exercise_id, hangman=True)
+        return (token or {}).get("match") or ""
+    if game == "codele":
+        token = _pick_token(data, exercise_id, five_letter=True)
+        return re.sub(r"[^A-Za-z]", "", (token or {}).get("match", "")).upper()[:5]
+    if game == "code_crossword":
+        tokens = sorted(crossword_tokens(_tokens(data)), key=lambda row: len(row["match"]), reverse=True)[:8]
+        return "\n".join(token["match"] for token in tokens)
+    if game == "memory_match":
+        tokens = _tokens(data)[:6]
+        return "\n".join(f"{token['match']} — {token['explain']}" for token in tokens)
+    return answers[0] if answers else code
+
+
 async def score_round(
     session: AsyncSession,
     user: User,
@@ -880,6 +919,19 @@ async def score_round(
         raise ContentError(403, "You do not have access to this track")
 
     data = exercise.data or {}
+    if phase == "reveal":
+        answer = _reveal_answer(game, data, exercise.id)
+        return {
+            "passed": False,
+            "revealed": True,
+            "revealed_answer": answer,
+            "failed_rule_hint": "Answer shown — try typing it yourself, or skip to the next round.",
+            "failed_kind": None,
+            "xp_awarded": 0,
+            "xp_total": (await _stats_for(session, user.id)).xp,
+            "hints_used": hints_used,
+        }
+
     passed = False
     hint = None
     failed_kind = None
