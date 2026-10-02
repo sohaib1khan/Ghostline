@@ -9,7 +9,7 @@ class TypeMarkerWidget extends WidgetType {
     const span = document.createElement("span");
     span.className = "ghost-type-marker";
     span.setAttribute("aria-hidden", "true");
-    span.title = "Type here";
+    span.title = "Your typing cursor";
     return span;
   }
 
@@ -444,25 +444,22 @@ export default function GhostEditor({
           }
         }
       }),
-      ...(locked
-        ? [
-            EditorView.decorations.compute(["doc"], (state) => {
-              const typed = state.doc.toString();
-              const correct = sharedPrefix(target, typed);
-              const marks = [];
-              if (typed.length === correct + 1) {
-                marks.push(Decoration.mark({ class: "ghost-wrong" }).range(correct, typed.length));
-              }
-              // Only a typing caret in the editor — no fading ghost overlay.
-              if (typed.length < target.length) {
-                marks.push(
-                  Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(typed.length),
-                );
-              }
-              return Decoration.set(marks, true);
-            }),
-          ]
-        : []),
+      // Thick typing marker at the caret — always on so low-vision users can find their place.
+      EditorView.decorations.compute(["doc", "selection"], (state) => {
+        const typed = state.doc.toString();
+        const marks = [];
+        if (locked && typed.length === sharedPrefix(target, typed) + 1) {
+          const correct = sharedPrefix(target, typed);
+          marks.push(Decoration.mark({ class: "ghost-wrong" }).range(correct, typed.length));
+        }
+        if (!disabled) {
+          const head = locked ? typed.length : state.selection.main.head;
+          marks.push(
+            Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(head),
+          );
+        }
+        return Decoration.set(marks, true);
+      }),
     ];
   }, [disabled, locked, target]);
 
@@ -537,6 +534,11 @@ export default function GhostEditor({
           </div>
         ) : null}
         <div className="ghost-frame-body">
+          {!value && !disabled ? (
+            <p className="ghost-caret-hint" aria-hidden="true">
+              Thick bar marks where you type
+            </p>
+          ) : null}
           <CodeMirror
             value={value}
             basicSetup={setup}
@@ -545,14 +547,23 @@ export default function GhostEditor({
             indentWithTab={false}
             onCreateEditor={(view) => {
               viewRef.current = view;
+              if (!disabled) {
+                queueMicrotask(() => view.focus());
+              }
             }}
             onChange={() => {}}
             theme="none"
           />
         </div>
       </div>
-      <p className="ghost-stats">
-        <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%
+      <p className="ghost-stats" aria-live="polite">
+        <span className="ghost-caret-legend">
+          <span className="ghost-type-marker ghost-type-marker-inline" aria-hidden="true" />
+          typing cursor
+        </span>
+        <span>
+          <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%
+        </span>
       </p>
     </div>
   );
