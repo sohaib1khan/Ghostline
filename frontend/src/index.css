@@ -942,6 +942,332 @@ body::after {
   right: 28%;
 }
 
+/* Guest landing + demo */
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.landing-hero,
+.landing-section,
+.landing-foot {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(
+      320deg,
+      color-mix(in srgb, var(--accent-2) 8%, transparent),
+      transparent 40%
+    ),
+    var(--surface);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .landing-hero,
+  .landing-section,
+  .landing-foot {
+    padding: 2rem;
+  }
+}
+
+.landing-hero {
+  animation: practice-rise 520ms ease-out both;
+}
+
+.landing-hero-compact .landing-title {
+  font-size: clamp(1.55rem, 3.5vw, 2.15rem);
+}
+
+.landing-kicker {
+  margin: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.landing-title {
+  margin: 0.65rem 0 0;
+  max-width: 18ch;
+  font-size: clamp(1.85rem, 4.6vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.landing-lead {
+  margin: 0.9rem 0 0;
+  max-width: 38rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.landing-sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 1.5rem 0 0;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 28%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  padding: 0.9rem 1rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  color: var(--text);
+}
+
+.landing-sample-prompt {
+  margin-right: 0.35rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.landing-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.landing-cta-note {
+  margin: 0.85rem 0 0;
+  max-width: 32rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.landing-section {
+  animation: practice-rise 620ms ease-out both;
+  animation-delay: 60ms;
+}
+
+.landing-section-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.landing-section-lead {
+  margin: 0.55rem 0 0;
+  max-width: 40rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.landing-steps {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 768px) {
+  .landing-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.landing-steps > li {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.landing-step-num {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.landing-step-title,
+.landing-mode-title,
+.landing-lang-name {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.landing-step-body,
+.landing-mode-body,
+.landing-lang-blurb {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.landing-modes {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .landing-modes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.landing-langs {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .landing-langs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .landing-langs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.landing-lang {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  padding: 0.85rem 1rem;
+}
+
+.landing-foot {
+  animation: practice-rise 700ms ease-out both;
+  animation-delay: 100ms;
+  text-align: center;
+}
+
+.landing-foot p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.landing-foot-sep {
+  margin: 0 0.45rem;
+}
+
+.landing-foot-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-foot-link:hover {
+  color: var(--text);
+}
+
+.landing-foot-note {
+  margin-top: 0.4rem !important;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.04em;
+}
+
+.landing-demo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+}
+
+.landing-demo-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.landing-demo-tab.is-active,
+.landing-demo-tab[aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.landing-demo-lessons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-demo-lessons > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  padding: 0.95rem 1rem;
+}
+
+:root[data-reduce-motion="true"] .landing-hero,
+:root[data-reduce-motion="true"] .landing-section,
+:root[data-reduce-motion="true"] .landing-foot {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero,
+  .landing-section,
+  .landing-foot {
+    animation: none;
+  }
+}
+
 /* Shared action buttons */
 .btn-primary,
 .btn-secondary,

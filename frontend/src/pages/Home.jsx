@@ -127,47 +127,157 @@ export default function HomePage() {
 
   if (!user) {
     return (
-      <section className="overflow-hidden rounded-2xl bg-surface p-6 shadow-[var(--shadow)] sm:p-8">
-        <p className="practice-rise font-mono text-xs uppercase tracking-[0.2em] text-accent">
-          Muscle memory for code
-        </p>
-        <h1 className="practice-rise mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-          Type the line until your hands know it.
-        </h1>
-        <p className="practice-rise-delay mt-3 max-w-xl text-sm text-muted sm:text-base">
-          Ghostline is a learning path: beginner basics, then intermediate programming, then
-          advanced projects — typed with guided hints so the ideas stick.
-        </p>
-        <p className="practice-rise-delay mt-8 font-mono text-lg sm:text-xl">
-          <span>echo </span>
-          <span className="ghost-text ghost-breathe">&quot;hello, ghostline&quot;</span>
-        </p>
-        <div className="practice-rise-delay mt-8 flex flex-wrap gap-3 text-sm">
-          <Link to="/demo" className="btn-primary">
-            Try a free lesson
-          </Link>
-          <Link to="/signup" className="btn-secondary">
-            Sign up to keep a streak
-          </Link>
-          <Link to="/login" className="btn-ghost">
-            Login
-          </Link>
-        </div>
-        <ul className="practice-rise-delay mt-10 grid gap-4 border-t border-muted/15 pt-8 text-sm text-muted sm:grid-cols-3">
-          <li>
-            <p className="font-medium text-text">Trace</p>
-            <p className="mt-1">Type over ghost text until the shape of the command sticks.</p>
-          </li>
-          <li>
-            <p className="font-medium text-text">Recall</p>
-            <p className="mt-1">Write it from memory. That is when the fingers take over.</p>
-          </li>
-          <li>
-            <p className="font-medium text-text">Return</p>
-            <p className="mt-1">Streaks and short games keep the skill from going cold.</p>
-          </li>
-        </ul>
-      </section>
+      <div className="landing">
+        <section className="landing-hero" aria-labelledby="landing-title">
+          <p className="landing-kicker">Ghostline</p>
+          <h1 id="landing-title" className="landing-title">
+            Type the line until your hands know it.
+          </h1>
+          <p className="landing-lead">
+            A calm learning path for Bash, Python, Go, JavaScript, and SQL — beginner basics,
+            intermediate practice, then advanced projects you type end to end.
+          </p>
+          <p className="landing-sample" aria-hidden="true">
+            <span className="landing-sample-prompt">$</span>
+            <span> echo </span>
+            <span className="ghost-text ghost-breathe">&quot;hello, ghostline&quot;</span>
+            <span className="ghost-type-marker ghost-type-marker-inline" />
+          </p>
+          <div className="landing-cta">
+            <Link to="/demo" className="btn-primary">
+              Try a free lesson
+            </Link>
+            <a
+              href="https://github.com/sohaib1khan/Ghostline"
+              className="btn-secondary"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on GitHub
+            </a>
+          </div>
+          <p className="landing-cta-note">
+            No account needed for the demo. Sign in from the nav when you want streaks and saved
+            progress.
+          </p>
+        </section>
+
+        <section className="landing-section" aria-labelledby="landing-path">
+          <h2 id="landing-path" className="landing-section-title">
+            How the path works
+          </h2>
+          <p className="landing-section-lead">
+            Lessons are short on purpose. You type real commands and code; the server checks what
+            you typed — it does not run your code on the server.
+          </p>
+          <ol className="landing-steps">
+            <li>
+              <span className="landing-step-num">1</span>
+              <div>
+                <p className="landing-step-title">Beginner</p>
+                <p className="landing-step-body">
+                  One-liners and core syntax until the shape of each command feels familiar.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className="landing-step-num">2</span>
+              <div>
+                <p className="landing-step-title">Intermediate</p>
+                <p className="landing-step-body">
+                  Longer guided scripts with progressive hints — daily practice that builds on the
+                  basics.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className="landing-step-num">3</span>
+              <div>
+                <p className="landing-step-title">Advanced</p>
+                <p className="landing-step-body">
+                  Mini-projects you type end to end so the pieces finally sit together.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section className="landing-section" aria-labelledby="landing-practice">
+          <h2 id="landing-practice" className="landing-section-title">
+            Ways you practice
+          </h2>
+          <ul className="landing-modes">
+            <li>
+              <p className="landing-mode-title">Trace</p>
+              <p className="landing-mode-body">
+                Type over a guided line until the keystrokes stick in your fingers.
+              </p>
+            </li>
+            <li>
+              <p className="landing-mode-title">Fill &amp; recall</p>
+              <p className="landing-mode-body">
+                Complete blanks, then write the line from memory when you are ready.
+              </p>
+            </li>
+            <li>
+              <p className="landing-mode-title">Games</p>
+              <p className="landing-mode-body">
+                Short drills reuse the same published lines — hangman, output prediction, and more.
+              </p>
+            </li>
+            <li>
+              <p className="landing-mode-title">Playground</p>
+              <p className="landing-mode-body">
+                After you sign in, try ideas in a throwaway box that resets on its own.
+              </p>
+            </li>
+          </ul>
+        </section>
+
+        <section className="landing-section" aria-labelledby="landing-langs">
+          <h2 id="landing-langs" className="landing-section-title">
+            Languages on the path
+          </h2>
+          <p className="landing-section-lead">
+            Pick a track in the free demo, or unlock the full ladder when you create an account.
+          </p>
+          <ul className="landing-langs">
+            {[
+              { slug: "bash", name: "Bash", blurb: "Shell, paths, pipes, and scripts." },
+              { slug: "python", name: "Python", blurb: "Syntax, lists, and first programs." },
+              { slug: "go", name: "Go", blurb: "Packages, loops, and typed flow." },
+              { slug: "javascript", name: "JavaScript", blurb: "Declarations and page scripting." },
+              { slug: "sql", name: "SQL", blurb: "SELECT, filters, and joins." },
+            ].map((lang) => (
+              <li key={lang.slug} className="landing-lang">
+                <TrackLogo slug={lang.slug} size="md" title={lang.name} />
+                <div>
+                  <p className="landing-lang-name">{lang.name}</p>
+                  <p className="landing-lang-blurb">{lang.blurb}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <footer className="landing-foot">
+          <p>
+            Made by <span className="text-text">Sohaib Khan</span>
+            <span className="landing-foot-sep" aria-hidden="true">
+              ·
+            </span>
+            <a
+              href="https://github.com/sohaib1khan/Ghostline"
+              target="_blank"
+              rel="noreferrer"
+              className="landing-foot-link"
+            >
+              Ghostline on GitHub
+            </a>
+          </p>
+          <p className="landing-foot-note">Self-hosted. Open source. Typing-first.</p>
+        </footer>
+      </div>
     );
   }
 

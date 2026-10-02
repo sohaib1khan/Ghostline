@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
-
-const DOT = {
-  bash: "bg-accent",
-  python: "bg-accent-2",
-  go: "bg-success",
-  javascript: "bg-muted",
-  sql: "bg-[#c4b4d4]",
-};
+import TrackLogo from "../../components/content/TrackLogo.jsx";
 
 export default function DemoPage() {
   const [catalog, setCatalog] = useState(null);
@@ -37,64 +30,103 @@ export default function DemoPage() {
   const selected = catalog?.find((track) => track.slug === slug) || null;
 
   return (
-    <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
-      <h1 className="text-2xl font-semibold tracking-tight">Try a lesson</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
-        Feel the ghost text, then type over it. Demos are short teasers — after you
-        sign in, Daily scripts add longer guided challenges with progressive hints.
-      </p>
-      {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
-      {catalog === null && !error ? <p className="mt-4 text-sm text-muted">Loading…</p> : null}
-      {catalog && catalog.length === 0 ? (
-        <p className="mt-4 text-sm text-muted">No demo lessons are published yet.</p>
-      ) : null}
-      {catalog && catalog.length > 0 ? (
-        <>
-          <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Tracks">
-            {catalog.map((track) => (
-              <button
-                key={track.slug}
-                type="button"
-                role="tab"
-                aria-selected={track.slug === slug}
-                onClick={() => setSlug(track.slug)}
-                className={`rounded-full border px-4 py-2 text-sm ${
-                  track.slug === slug
-                    ? "border-accent bg-accent text-on-accent"
-                    : "border-muted/30 text-muted"
-                }`}
-              >
-                {track.name}
-              </button>
-            ))}
-          </div>
-          {selected ? (
-            <div className="mt-6">
-              <p className="flex items-center gap-2 font-medium">
-                <span className={`h-2.5 w-2.5 rounded-full ${DOT[selected.slug] || "bg-accent"}`} />
-                {selected.name}
-              </p>
-              <p className="mt-1 text-sm text-muted">{selected.description}</p>
-              <ul className="mt-4 flex flex-col gap-3">
-                {selected.lessons.map((lesson) => (
-                  <li key={lesson.id} className="rounded-xl border border-muted/20 px-4 py-3">
-                    <p className="font-medium">{lesson.title}</p>
-                    {lesson.summary ? (
-                      <p className="mt-1 text-sm text-muted">{lesson.summary}</p>
-                    ) : null}
-                    <Link
-                      to={`/demo/lessons/${lesson.id}`}
-                      className="mt-2 inline-block text-sm text-accent"
-                    >
-                      Start
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+    <div className="landing">
+      <section className="landing-hero landing-hero-compact" aria-labelledby="demo-title">
+        <p className="landing-kicker">Free demo</p>
+        <h1 id="demo-title" className="landing-title">
+          Feel the keystrokes before you sign up.
+        </h1>
+        <p className="landing-lead">
+          Short published teasers — no account, no save. Sign in later from the nav if you want a
+          streak, full tracks, games, and the playground.
+        </p>
+        <div className="landing-cta">
+          <a
+            href="https://github.com/sohaib1khan/Ghostline"
+            className="btn-secondary"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </section>
+
+      <section className="landing-section" aria-labelledby="demo-pick">
+        <h2 id="demo-pick" className="landing-section-title">
+          Pick a language
+        </h2>
+        <p className="landing-section-lead">
+          Choose a track, then open a lesson. Trace over the guide, use hints if you stall, and
+          check your answer when you are ready.
+        </p>
+        {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
+        {catalog === null && !error ? <p className="mt-4 text-sm text-muted">Loading…</p> : null}
+        {catalog && catalog.length === 0 ? (
+          <p className="mt-4 text-sm text-muted">No demo lessons are published yet.</p>
+        ) : null}
+        {catalog && catalog.length > 0 ? (
+          <>
+            <div className="landing-demo-tabs" role="tablist" aria-label="Tracks">
+              {catalog.map((track) => (
+                <button
+                  key={track.slug}
+                  type="button"
+                  role="tab"
+                  aria-selected={track.slug === slug}
+                  onClick={() => setSlug(track.slug)}
+                  className={`landing-demo-tab ${track.slug === slug ? "is-active" : ""}`}
+                >
+                  <TrackLogo slug={track.slug} size="sm" title={track.name} />
+                  {track.name}
+                </button>
+              ))}
             </div>
-          ) : null}
-        </>
-      ) : null}
-    </section>
+            {selected ? (
+              <div className="mt-6">
+                <p className="flex flex-wrap items-center gap-2 font-medium text-text">
+                  <TrackLogo slug={selected.slug} size="sm" title={selected.name} />
+                  {selected.name}
+                </p>
+                <p className="mt-1 text-sm text-muted">{selected.description}</p>
+                <ul className="landing-demo-lessons">
+                  {selected.lessons.map((lesson) => (
+                    <li key={lesson.id}>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-text">{lesson.title}</p>
+                        {lesson.summary ? (
+                          <p className="mt-1 text-sm text-muted">{lesson.summary}</p>
+                        ) : null}
+                      </div>
+                      <Link to={`/demo/lessons/${lesson.id}`} className="btn-primary shrink-0">
+                        Start
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </section>
+
+      <footer className="landing-foot">
+        <p>
+          Made by <span className="text-text">Sohaib Khan</span>
+          <span className="landing-foot-sep" aria-hidden="true">
+            ·
+          </span>
+          <a
+            href="https://github.com/sohaib1khan/Ghostline"
+            target="_blank"
+            rel="noreferrer"
+            className="landing-foot-link"
+          >
+            Ghostline on GitHub
+          </a>
+        </p>
+        <p className="landing-foot-note">Self-hosted. Open source. Typing-first.</p>
+      </footer>
+    </div>
   );
 }

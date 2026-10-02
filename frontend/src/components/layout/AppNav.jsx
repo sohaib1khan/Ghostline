@@ -45,7 +45,7 @@ const STUDIO_USERS = [
 
 const GUEST = [
   { to: "/demo", label: "Demo", match: (path) => path === "/demo" || path.startsWith("/demo/") },
-  { to: "/login", label: "Login", end: true, match: (path) => path === "/login" },
+  { to: "/login", label: "Log in", end: true, match: (path) => path === "/login" },
   { to: "/signup", label: "Sign up", end: true, match: (path) => path === "/signup" },
 ];
 
