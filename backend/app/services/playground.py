@@ -27,7 +27,8 @@ class PlaygroundError(Exception):
 def playground_limits() -> dict[str, Any]:
     settings = get_settings()
     return {
-        "enabled": settings.playground_enabled,
+        # Always advertise available; start still needs PLAYGROUND_TOKEN + manager.
+        "enabled": True,
         "ttl_min_minutes": PLAYGROUND_SESSION_MINUTES,
         "ttl_max_minutes": PLAYGROUND_SESSION_MINUTES,
         "ttl_default_minutes": PLAYGROUND_SESSION_MINUTES,
@@ -53,8 +54,6 @@ async def _request(
     timeout: float = 30.0,
 ) -> Any:
     settings = get_settings()
-    if not settings.playground_enabled:
-        raise PlaygroundError(503, "Playground is turned off")
     if not settings.playground_token:
         raise PlaygroundError(503, "Playground is not configured")
     headers = {"Authorization": f"Bearer {settings.playground_token}"}
@@ -198,8 +197,6 @@ async def delete_path(user_id: uuid.UUID, path: str) -> dict:
 
 async def preview_bytes(user_id: uuid.UUID, path: str) -> tuple[bytes, str]:
     settings = get_settings()
-    if not settings.playground_enabled:
-        raise PlaygroundError(503, "Playground is turned off")
     if not settings.playground_token:
         raise PlaygroundError(503, "Playground is not configured")
     session_id = require_session_id(user_id)

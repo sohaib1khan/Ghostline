@@ -30,8 +30,10 @@ class Settings(BaseSettings):
     rate_limit_demo_check: int = Field(default=30, ge=1)
     # DECISION: AI calls can spend a provider quota, so they have their own cap.
     rate_limit_ai: int = Field(default=10, ge=1)
-    # Ephemeral playground workers (Docker). Off unless explicitly enabled.
-    playground_enabled: bool = False
+    # Ephemeral playground workers (Docker). Always on in Compose deployments.
+    # DECISION: ignore PLAYGROUND_ENABLED=false from stale prod .env files;
+    # availability is controlled by the playground service + token, not a flag.
+    playground_enabled: bool = True
     playground_url: str = "http://playground:8100"
     playground_token: str = ""
     # Fixed 12-hour playground lifetime; extend resets another full window.
@@ -48,6 +50,12 @@ class Settings(BaseSettings):
     bootstrap_admin_password: str = ""
     bootstrap_admin_first_name: str = "Admin"
     bootstrap_admin_last_name: str = "User"
+
+    @field_validator("playground_enabled", mode="after")
+    @classmethod
+    def playground_always_enabled(cls, value: bool) -> bool:
+        del value
+        return True
 
     @field_validator(
         "playground_ttl_min_minutes",

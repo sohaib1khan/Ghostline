@@ -36,7 +36,9 @@ Workers stay `NetworkDisabled`. **Install** downloads on the **manager** (pip/np
 
 ## Enable
 
-1. Set `PLAYGROUND_ENABLED=true` and a strong `PLAYGROUND_TOKEN` in `.env`.
+Playground is on by default. Compose also forces `PLAYGROUND_ENABLED=true`.
+
+1. Set a strong `PLAYGROUND_TOKEN` in `.env` (required; must match backend and manager).
 2. Build the worker image: `docker compose --profile build build playground-worker`
 3. `docker compose up -d --build`
 

@@ -74,14 +74,13 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 - **Admin** — Content, Users, Notifications, AI drafts, Settings.
 - **PWA** — installable; offline re-read of lessons already opened (checks require network).
 
-## Optional: Playground
+## Playground
 
-Throwaway Python / JavaScript / Bash workspaces in isolated Docker workers. Off by default.
+Throwaway Python / JavaScript / Bash workspaces in isolated Docker workers. On by default when Compose is up.
 
-1. Set in `.env`:
+1. Set a shared token in `.env` (required):
 
    ```bash
-   PLAYGROUND_ENABLED=true
    PLAYGROUND_TOKEN=<long-random-token>
    ```
 
