@@ -204,6 +204,27 @@ async def test_check_awards_xp_once_and_dashboard_continues(database) -> None:
         bash = next(track for track in later.json()["tracks"] if track["slug"] == "bash")
         assert bash["completed"] == 2
 
+        reset = await request(
+            learner,
+            "POST",
+            "/api/me/progress/reset",
+            {"scope": "track", "track_slug": "bash"},
+        )
+        assert reset.status_code == 200, reset.text
+        assert reset.json()["cleared"] >= 2
+        assert reset.json()["xp_total"] == 0
+        after = await request(learner, "GET", "/api/learn/dashboard")
+        bash = next(track for track in after.json()["tracks"] if track["slug"] == "bash")
+        assert bash["completed"] == 0
+        outline_after = await request(learner, "GET", "/api/learn/tracks/bash/outline")
+        states = {
+            lesson["title"]: lesson["progress"]
+            for module in outline_after.json()["modules"]
+            for lesson in module["lessons"]
+        }
+        assert states["First"] == "new"
+        assert states["Second"] == "new"
+
 
 async def test_output_is_compared_and_drafts_stay_hidden(database) -> None:
     async with api_client() as admin, api_client() as learner:

@@ -21,6 +21,7 @@ import HomePage from "./pages/Home.jsx";
 import NotificationsPage from "./pages/settings/NotificationsPage.jsx";
 import PreferencesPage from "./pages/settings/PreferencesPage.jsx";
 import ProfilePage from "./pages/settings/ProfilePage.jsx";
+import ProgressPage from "./pages/settings/ProgressPage.jsx";
 import SetupPage from "./pages/setup/SetupPage.jsx";
 import AppNav from "./components/layout/AppNav.jsx";
 import SettingsLayout from "./components/layout/SettingsLayout.jsx";
@@ -179,6 +180,7 @@ export default function App() {
           <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
           <Route path="/settings/profile" element={<ProfilePage />} />
           <Route path="/settings/preferences" element={<PreferencesPage />} />
+          <Route path="/settings/progress" element={<ProgressPage />} />
           <Route path="/settings/notifications" element={<NotificationsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="/admin/ai" element={<AiPage />} />

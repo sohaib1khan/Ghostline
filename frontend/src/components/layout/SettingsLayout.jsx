@@ -4,6 +4,7 @@ import { isStaff } from "../../roles.js";
 const YOU = [
   { to: "/settings/profile", label: "Profile", hint: "Name and password" },
   { to: "/settings/preferences", label: "Preferences", hint: "Theme, motion, and sound" },
+  { to: "/settings/progress", label: "Progress", hint: "Reset lessons by track or step" },
 ];
 
 const SITE = [

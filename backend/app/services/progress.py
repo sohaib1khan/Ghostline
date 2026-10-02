@@ -281,3 +281,182 @@ async def lesson_states(
         else:
             result[lesson_id] = "new"
     return result
+
+
+async def _exercise_ids_for_lessons(
+    session: AsyncSession, lesson_ids: list[uuid.UUID]
+) -> list[uuid.UUID]:
+    if not lesson_ids:
+        return []
+    return list(
+        (
+            await session.scalars(
+                select(Exercise.id).where(Exercise.lesson_id.in_(lesson_ids))
+            )
+        ).all()
+    )
+
+
+async def _published_modules_for_track(session: AsyncSession, track_id: uuid.UUID) -> list[Module]:
+    return list(
+        (
+            await session.scalars(
+                select(Module)
+                .where(Module.track_id == track_id, Module.status == "published")
+                .options(selectinload(Module.lessons))
+                .order_by(Module.position)
+            )
+        ).all()
+    )
+
+
+async def _require_visible_track(session: AsyncSession, user: User, slug: str) -> Track:
+    tracks = await list_visible_tracks(session, user)
+    track = next((item for item in tracks if item.slug == slug), None)
+    if track is None:
+        raise ContentError(404, "Track not found")
+    return track
+
+
+async def _resolve_reset_exercise_ids(
+    session: AsyncSession,
+    user: User,
+    *,
+    scope: str,
+    track_slug: str | None,
+    level: str | None,
+    module_id: uuid.UUID | None,
+    lesson_id: uuid.UUID | None,
+) -> tuple[list[uuid.UUID], str]:
+    """Return exercise ids to clear and a short label for the UI notice."""
+    from app.services.content_store import _assign_module_levels
+
+    if scope == "all":
+        ids = list(
+            (
+                await session.scalars(
+                    select(ExerciseProgress.exercise_id).where(ExerciseProgress.user_id == user.id)
+                )
+            ).all()
+        )
+        return ids, "all languages"
+
+    if scope == "track":
+        track = await _require_visible_track(session, user, track_slug or "")
+        modules = await _published_modules_for_track(session, track.id)
+        lesson_ids = [
+            lesson.id
+            for module in modules
+            for lesson in module.lessons
+            if lesson.status == "published"
+        ]
+        return await _exercise_ids_for_lessons(session, lesson_ids), track.name
+
+    if scope == "level":
+        track = await _require_visible_track(session, user, track_slug or "")
+        modules = await _published_modules_for_track(session, track.id)
+        leveled = _assign_module_levels(modules)
+        band = level or "beginner"
+        lesson_ids = [
+            lesson["id"]
+            for module in leveled
+            if module.get("level") == band
+            for lesson in module["lessons"]
+        ]
+        label = {"beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"}.get(
+            band, band
+        )
+        return await _exercise_ids_for_lessons(session, lesson_ids), f"{track.name} · {label}"
+
+    if scope == "module":
+        if module_id is None:
+            raise ContentError(400, "module_id is required")
+        module = await session.scalar(
+            select(Module)
+            .where(Module.id == module_id)
+            .options(selectinload(Module.track), selectinload(Module.lessons))
+        )
+        if module is None:
+            raise ContentError(404, "Module not found")
+        await _require_visible_track(session, user, module.track.slug)
+        lesson_ids = [lesson.id for lesson in module.lessons if lesson.status == "published"]
+        return await _exercise_ids_for_lessons(session, lesson_ids), module.title
+
+    if lesson_id is None:
+        raise ContentError(400, "lesson_id is required")
+    lesson = await session.scalar(
+        select(Lesson)
+        .where(Lesson.id == lesson_id)
+        .options(selectinload(Lesson.module).selectinload(Module.track))
+    )
+    if lesson is None:
+        raise ContentError(404, "Lesson not found")
+    await _require_visible_track(session, user, lesson.module.track.slug)
+    return await _exercise_ids_for_lessons(session, [lesson.id]), lesson.title
+
+
+async def _recompute_xp(session: AsyncSession, user_id: uuid.UUID) -> int:
+    rows = list(
+        (
+            await session.execute(
+                select(ExerciseProgress.hints_used, Exercise.data).join(
+                    Exercise, Exercise.id == ExerciseProgress.exercise_id
+                ).where(
+                    ExerciseProgress.user_id == user_id,
+                    ExerciseProgress.status == "completed",
+                )
+            )
+        ).all()
+    )
+    total = 0
+    for hints_used, data in rows:
+        base = int((data or {}).get("xp") or 0)
+        total += max(0, base - int(hints_used or 0) * HINT_XP_COST)
+    stats = await _stats_for(session, user_id)
+    stats.xp = total
+    return total
+
+
+async def reset_progress(
+    session: AsyncSession,
+    user: User,
+    *,
+    scope: str,
+    track_slug: str | None = None,
+    level: str | None = None,
+    module_id: uuid.UUID | None = None,
+    lesson_id: uuid.UUID | None = None,
+) -> dict:
+    """Delete exercise progress for a learning-path slice and recompute XP."""
+    exercise_ids, label = await _resolve_reset_exercise_ids(
+        session,
+        user,
+        scope=scope,
+        track_slug=track_slug,
+        level=level,
+        module_id=module_id,
+        lesson_id=lesson_id,
+    )
+    cleared = 0
+    if exercise_ids:
+        rows = list(
+            (
+                await session.scalars(
+                    select(ExerciseProgress).where(
+                        ExerciseProgress.user_id == user.id,
+                        ExerciseProgress.exercise_id.in_(exercise_ids),
+                    )
+                )
+            ).all()
+        )
+        cleared = len(rows)
+        for row in rows:
+            await session.delete(row)
+    xp_total = await _recompute_xp(session, user.id)
+    await session.commit()
+    return {
+        "cleared": cleared,
+        "scope": scope,
+        "label": label,
+        "xp_total": xp_total,
+    }
