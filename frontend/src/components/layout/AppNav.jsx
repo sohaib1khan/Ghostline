@@ -10,6 +10,11 @@ const LEARN = [
       path === "/projects" || path.startsWith("/learn/tracks") || path.startsWith("/learn/lessons"),
   },
   {
+    to: "/certificates",
+    label: "Certificates",
+    match: (path) => path.startsWith("/certificates"),
+  },
+  {
     to: "/playground",
     label: "Playground",
     match: (path) => path.startsWith("/playground"),
@@ -23,18 +28,18 @@ const LEARN = [
 
 const STUDIO = [
   {
-    to: "/admin/content",
-    label: "Content",
-    match: (path) => path.startsWith("/admin/content") || path.startsWith("/admin/preview"),
-  },
-  {
     to: "/admin/leaderboard",
     label: "Leaderboard",
     match: (path) => path.startsWith("/admin/leaderboard") || path.startsWith("/admin/leadboard"),
   },
 ];
 
-const STUDIO_USERS = [
+const STUDIO_SUPER = [
+  {
+    to: "/admin/content",
+    label: "Content",
+    match: (path) => path.startsWith("/admin/content") || path.startsWith("/admin/preview"),
+  },
   {
     to: "/admin/users",
     label: "Users",
@@ -78,9 +83,12 @@ export default function AppNav({ user, onSignOut, signingOut }) {
   const path = location.pathname;
   const staff = isStaff(user?.role);
   const superAdmin = isSuperAdmin(user?.role);
-  const studioItems = [...STUDIO, ...(superAdmin ? STUDIO_USERS : [])];
+  const studioItems = [...STUDIO, ...(superAdmin ? STUDIO_SUPER : [])];
   const settingsActive =
-    path.startsWith("/settings") || path === "/admin/settings" || path.startsWith("/admin/ai");
+    path.startsWith("/settings") ||
+    path === "/admin/settings" ||
+    path.startsWith("/admin/ai") ||
+    path.startsWith("/admin/certificates");
 
   return (
     <nav aria-label="Main" className="app-nav">

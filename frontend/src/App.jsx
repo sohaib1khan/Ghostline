@@ -6,9 +6,13 @@ import ContentPage from "./pages/admin/ContentPage.jsx";
 import LeaderboardPage from "./pages/admin/LeaderboardPage.jsx";
 import LessonPreview from "./pages/admin/LessonPreview.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
+import CertificateSettingsPage from "./pages/admin/CertificateSettingsPage.jsx";
 import UsersPage from "./pages/admin/UsersPage.jsx";
 import GamesPage from "./pages/games/GamesPage.jsx";
 import PlayPage from "./pages/games/PlayPage.jsx";
+import CertificatesPage, {
+  CertificateDetailPage,
+} from "./pages/learn/CertificatesPage.jsx";
 import LessonPage from "./pages/learn/LessonPage.jsx";
 import ProjectsPage from "./pages/learn/ProjectsPage.jsx";
 import TrackPage from "./pages/learn/TrackPage.jsx";
@@ -123,7 +127,14 @@ function Shell() {
         location.pathname.startsWith("/settings/notifications"))
     ) {
       destination = "/";
-    } else if (user && !isSuperAdmin(user.role) && location.pathname.startsWith("/admin/users")) {
+    } else if (
+      user &&
+      !isSuperAdmin(user.role) &&
+      (location.pathname.startsWith("/admin/users") ||
+        location.pathname.startsWith("/admin/content") ||
+        location.pathname.startsWith("/admin/preview") ||
+        location.pathname.startsWith("/admin/certificates"))
+    ) {
       destination = "/";
     }
   }
@@ -183,6 +194,7 @@ export default function App() {
           <Route path="/settings/progress" element={<ProgressPage />} />
           <Route path="/settings/notifications" element={<NotificationsPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
+          <Route path="/admin/certificates" element={<CertificateSettingsPage />} />
           <Route path="/admin/ai" element={<AiPage />} />
         </Route>
         <Route path="/admin/content" element={<ContentPage />} />
@@ -194,6 +206,8 @@ export default function App() {
         <Route path="/games/:game" element={<PlayPage />} />
         <Route path="/stats" element={<Navigate to="/" replace />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/certificates" element={<CertificatesPage />} />
+        <Route path="/certificates/:slug" element={<CertificateDetailPage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="/learn/tracks/:slug" element={<TrackPage />} />
         <Route path="/learn/lessons/:lessonId" element={<LessonPage />} />

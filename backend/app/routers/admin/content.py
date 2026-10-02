@@ -20,7 +20,7 @@ from app.schemas.content import (
     TestCheckIn,
     TrackPatch,
 )
-from app.security.deps import require_admin
+from app.security.deps import require_super_admin
 from app.security.requests import client_ip
 from app.services.content_io import (
     export_catalog,
@@ -60,7 +60,7 @@ def _raise(exc: ContentError) -> None:
 
 
 @router.get("/content/tree")
-async def tree(_: User = Depends(require_admin), db: AsyncSession = Depends(get_db)) -> dict:
+async def tree(_: User = Depends(require_super_admin), db: AsyncSession = Depends(get_db)) -> dict:
     return {"tracks": await content_tree(db)}
 
 
@@ -69,7 +69,7 @@ async def patch_track(
     track_id: UUID,
     payload: TrackPatch,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -84,7 +84,7 @@ async def patch_track(
 async def add_module(
     payload: ModuleIn,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -98,7 +98,7 @@ async def patch_module(
     module_id: UUID,
     payload: ModulePatch,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -113,7 +113,7 @@ async def patch_module(
 async def remove_module(
     module_id: UUID,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     try:
@@ -127,7 +127,7 @@ async def remove_module(
 async def add_lesson(
     payload: LessonIn,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -139,7 +139,7 @@ async def add_lesson(
 @router.get("/lessons/{lesson_id}")
 async def read_lesson(
     lesson_id: UUID,
-    _: User = Depends(require_admin),
+    _: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -151,7 +151,7 @@ async def read_lesson(
 @router.get("/lessons/{lesson_id}/preview")
 async def preview_lesson(
     lesson_id: UUID,
-    _: User = Depends(require_admin),
+    _: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -165,7 +165,7 @@ async def patch_lesson(
     lesson_id: UUID,
     payload: LessonPatch,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -180,7 +180,7 @@ async def patch_lesson(
 async def remove_lesson(
     lesson_id: UUID,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     try:
@@ -194,7 +194,7 @@ async def remove_lesson(
 async def publish(
     lesson_id: UUID,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -207,7 +207,7 @@ async def publish(
 async def publish_track_content(
     track_id: UUID,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -220,7 +220,7 @@ async def publish_track_content(
 async def add_exercise(
     payload: ExerciseIn,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -234,7 +234,7 @@ async def patch_exercise(
     exercise_id: UUID,
     payload: ExercisePatch,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
@@ -249,7 +249,7 @@ async def patch_exercise(
 async def remove_exercise(
     exercise_id: UUID,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     try:
@@ -263,7 +263,7 @@ async def remove_exercise(
 async def reorder_items(
     payload: ReorderIn,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     try:
@@ -283,7 +283,7 @@ async def reorder_items(
 @router.post("/exercises/test-check")
 async def test_check(
     payload: TestCheckIn,
-    _: User = Depends(require_admin),
+    _: User = Depends(require_super_admin),
 ) -> dict:
     return run_test_check(payload.data, payload.attempt, payload.output)
 
@@ -291,7 +291,7 @@ async def test_check(
 @router.post("/content/parse-exercise")
 async def parse_exercise(
     payload: ParseExerciseIn,
-    _: User = Depends(require_admin),
+    _: User = Depends(require_super_admin),
 ) -> dict:
     try:
         return {"data": parse_exercise_text(payload.text, payload.format)}
@@ -304,7 +304,7 @@ async def export_content(
     track: str | None = Query(default=None, min_length=1, max_length=40),
     lesson: UUID | None = None,
     fmt: str = Query(default="yaml", alias="format", pattern="^(yaml|json)$"),
-    _: User = Depends(require_admin),
+    _: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     if lesson is not None and track is not None:
@@ -334,7 +334,7 @@ async def export_content(
 async def import_content(
     payload: ImportIn,
     request: Request,
-    actor: User = Depends(require_admin),
+    actor: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:

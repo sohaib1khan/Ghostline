@@ -1960,3 +1960,212 @@ body::after {
   transition: none;
 }
 
+
+/* Certificates */
+.certificate-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border-radius: 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  padding: 1rem 1.1rem;
+}
+
+.certificate-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.certificate-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.1rem;
+  border: 2px solid color-mix(in srgb, var(--cert-accent, var(--accent)) 55%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--cert-accent, var(--accent)) 12%, transparent),
+      transparent 45%
+    ),
+    color-mix(in srgb, var(--bg) 35%, var(--surface));
+  padding: 2rem 1.5rem 1.6rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 640px) {
+  .certificate-frame {
+    padding: 2.5rem 2.25rem 1.85rem;
+  }
+}
+
+.certificate-frame.is-earned {
+  border-width: 3px;
+}
+
+.certificate-watermark {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-18deg);
+  opacity: 0.28;
+  z-index: 1;
+}
+
+.certificate-watermark span:last-child {
+  font-size: 0.55em;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.certificate-brand,
+.certificate-title,
+.certificate-subtitle,
+.certificate-name,
+.certificate-body,
+.certificate-meta,
+.certificate-sign,
+.certificate-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.certificate-brand {
+  margin: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cert-accent, var(--accent));
+}
+
+.certificate-title {
+  margin: 1rem 0 0;
+  font-size: clamp(1.55rem, 3.8vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.certificate-subtitle {
+  margin: 1.1rem 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.certificate-name {
+  margin: 0.55rem 0 0;
+  font-size: clamp(1.45rem, 3.4vw, 2rem);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.certificate-body {
+  margin: 0.85rem auto 0;
+  max-width: 34rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.certificate-meta {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.6rem auto 0;
+  max-width: 36rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.certificate-meta-label {
+  margin: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.certificate-meta-value {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.certificate-code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.certificate-sign {
+  margin: 1.75rem 0 0;
+}
+
+.certificate-signer {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.certificate-signer-title,
+.certificate-footer {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .certificate-wrap,
+  .certificate-wrap * {
+    visibility: visible !important;
+  }
+
+  .certificate-wrap {
+    position: absolute;
+    inset: 0;
+    padding: 1.5rem;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .certificate-frame {
+    box-shadow: none;
+    border-color: #333;
+  }
+
+  .certificate-watermark {
+    opacity: 0.35;
+  }
+}

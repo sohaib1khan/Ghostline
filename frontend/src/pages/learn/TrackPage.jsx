@@ -135,8 +135,21 @@ export default function TrackPage() {
               </span>
             </p>
           ) : (
-            <p className="mt-6 text-sm text-success">Path complete — revisit any lesson to stay sharp.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+              <p className="text-success">Path complete — revisit any lesson to stay sharp.</p>
+              <Link to={`/certificates/${slug}`} className="btn-primary">
+                View certificate
+              </Link>
+            </div>
           )}
+          {continueAt ? (
+            <p className="mt-3 text-sm text-muted">
+              <Link to={`/certificates/${slug}`} className="text-accent">
+                Preview certificate
+              </Link>{" "}
+              (watermarked until the path is finished)
+            </p>
+          ) : null}
 
           <div className="mt-10 flex flex-col gap-10">
             {path.map((step) => {
