@@ -1,5 +1,5 @@
 # Build the static app, then serve it with nginx as a non-root user.
-FROM node:22.23.3-alpine AS build
+FROM node:26.10.0-alpine AS build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
