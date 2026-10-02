@@ -28,9 +28,35 @@ async def staff_insights(session: AsyncSession) -> dict:
         .where(ExerciseProgress.status == "completed")
     )
     sessions = await session.scalar(select(func.count()).select_from(PracticeEvent))
-    time_spent = await session.scalar(
+    time_totals = (
+        await session.execute(
+            select(
+                func.coalesce(func.sum(PracticeEvent.duration_seconds), 0).label("total"),
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (PracticeEvent.source == "lesson", PracticeEvent.duration_seconds),
+                            else_=0,
+                        )
+                    ),
+                    0,
+                ).label("lesson"),
+                func.coalesce(
+                    func.sum(
+                        case(
+                            (PracticeEvent.source != "lesson", PracticeEvent.duration_seconds),
+                            else_=0,
+                        )
+                    ),
+                    0,
+                ).label("game"),
+            ).where(PracticeEvent.duration_seconds.is_not(None))
+        )
+    ).one()
+    time_week = await session.scalar(
         select(func.coalesce(func.sum(PracticeEvent.duration_seconds), 0)).where(
-            PracticeEvent.duration_seconds.is_not(None)
+            PracticeEvent.duration_seconds.is_not(None),
+            cast(PracticeEvent.created_at, Date) >= week_ago,
         )
     )
     avg_wpm = await session.scalar(
@@ -61,6 +87,30 @@ async def staff_insights(session: AsyncSession) -> dict:
                     func.count().label("events"),
                     func.count(func.distinct(PracticeEvent.user_id)).label("learners"),
                     func.coalesce(func.sum(PracticeEvent.duration_seconds), 0).label("seconds"),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    PracticeEvent.source == "lesson",
+                                    PracticeEvent.duration_seconds,
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    ).label("lesson_seconds"),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    PracticeEvent.source != "lesson",
+                                    PracticeEvent.duration_seconds,
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    ).label("game_seconds"),
                 )
                 .where(cast(PracticeEvent.created_at, Date) >= fortnight_ago)
                 .group_by(cast(PracticeEvent.created_at, Date))
@@ -73,6 +123,8 @@ async def staff_insights(session: AsyncSession) -> dict:
             "events": int(row.events or 0),
             "learners": int(row.learners or 0),
             "seconds": int(row.seconds or 0),
+            "lesson_seconds": int(row.lesson_seconds or 0),
+            "game_seconds": int(row.game_seconds or 0),
         }
         for row in activity_rows
     }
@@ -80,22 +132,42 @@ async def staff_insights(session: AsyncSession) -> dict:
     cursor = fortnight_ago
     while cursor <= today:
         key = cursor.isoformat()
-        bucket = by_day.get(key, {"events": 0, "learners": 0, "seconds": 0})
+        bucket = by_day.get(
+            key,
+            {
+                "events": 0,
+                "learners": 0,
+                "seconds": 0,
+                "lesson_seconds": 0,
+                "game_seconds": 0,
+            },
+        )
         activity.append({"day": key, **bucket})
         cursor += timedelta(days=1)
 
     source_rows = list(
         (
             await session.execute(
-                select(PracticeEvent.source, func.count().label("count"))
+                select(
+                    PracticeEvent.source,
+                    func.count().label("count"),
+                    func.coalesce(func.sum(PracticeEvent.duration_seconds), 0).label("seconds"),
+                )
                 .group_by(PracticeEvent.source)
                 .order_by(func.count().desc())
             )
         ).all()
     )
-    sources = [{"source": row.source, "count": int(row.count or 0)} for row in source_rows]
+    sources = [
+        {
+            "source": row.source,
+            "count": int(row.count or 0),
+            "seconds": int(row.seconds or 0),
+        }
+        for row in source_rows
+    ]
 
-    board = await _leaderboard_rows(session)
+    board = await _leaderboard_rows(session, week_ago)
     return {
         "summary": {
             "approved_users": int(approved or 0),
@@ -105,7 +177,10 @@ async def staff_insights(session: AsyncSession) -> dict:
             "exercises_completed": int(completed or 0),
             "exercises_completed_7d": int(completed_week or 0),
             "practice_sessions": int(sessions or 0),
-            "time_spent_seconds": int(time_spent or 0),
+            "time_spent_seconds": int(time_totals.total or 0),
+            "lesson_time_seconds": int(time_totals.lesson or 0),
+            "game_time_seconds": int(time_totals.game or 0),
+            "time_spent_7d": int(time_week or 0),
             "avg_wpm": int(avg_wpm) if avg_wpm is not None else None,
         },
         "activity": activity,
@@ -114,7 +189,7 @@ async def staff_insights(session: AsyncSession) -> dict:
     }
 
 
-async def _leaderboard_rows(session: AsyncSession) -> list[dict]:
+async def _leaderboard_rows(session: AsyncSession, week_ago: date) -> list[dict]:
     users = list(
         (
             await session.scalars(
@@ -156,6 +231,42 @@ async def _leaderboard_rows(session: AsyncSession) -> list[dict]:
                         0,
                     ).label("games"),
                     func.coalesce(func.sum(PracticeEvent.duration_seconds), 0).label("seconds"),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    PracticeEvent.source == "lesson",
+                                    PracticeEvent.duration_seconds,
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    ).label("lesson_seconds"),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    PracticeEvent.source != "lesson",
+                                    PracticeEvent.duration_seconds,
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    ).label("game_seconds"),
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    cast(PracticeEvent.created_at, Date) >= week_ago,
+                                    PracticeEvent.duration_seconds,
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    ).label("week_seconds"),
                     func.round(func.avg(PracticeEvent.wpm)).label("avg_wpm"),
                     func.max(PracticeEvent.created_at).label("last_practice"),
                 )
@@ -188,6 +299,9 @@ async def _leaderboard_rows(session: AsyncSession) -> list[dict]:
                 "practice_sessions": int(events.sessions) if events else 0,
                 "games_played": int(events.games) if events else 0,
                 "time_spent_seconds": int(events.seconds) if events else 0,
+                "lesson_time_seconds": int(events.lesson_seconds) if events else 0,
+                "game_time_seconds": int(events.game_seconds) if events else 0,
+                "time_spent_7d": int(events.week_seconds) if events else 0,
                 "avg_wpm": int(events.avg_wpm) if events and events.avg_wpm is not None else None,
                 "last_practice_at": (
                     events.last_practice.isoformat() if events and events.last_practice else None

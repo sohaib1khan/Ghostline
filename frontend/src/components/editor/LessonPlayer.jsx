@@ -97,6 +97,8 @@ export default function LessonPlayer({
   const [attemptKey, setAttemptKey] = useState(0);
   const [burst, setBurst] = useState(0);
   const [studying, setStudying] = useState(initial.studying);
+  // Wall-clock timer for fills / recall / Check — GhostEditor also reports its own duration.
+  const startedAt = useRef(Date.now());
   // DECISION: never auto-advance after a pass. Next stays disabled briefly so a
   // fast Check click cannot land on the newly shown button.
   const [nextReady, setNextReady] = useState(false);
@@ -128,6 +130,10 @@ export default function LessonPlayer({
       window.removeEventListener("ghostline-prefs", sync);
     };
   }, []);
+
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, [exercise?.id, attemptKey]);
 
   useEffect(() => {
     if (phase !== "ready" || !exercise) {
@@ -294,16 +300,18 @@ export default function LessonPlayer({
         }
         output = ran.output;
       }
+      const elapsed = Math.min(
+        86_400,
+        Math.max(1, Math.round((Date.now() - startedAt.current) / 1000)),
+      );
       const body = {
         attempt,
         hints_used: hintsShown,
+        duration_seconds: stats?.duration_seconds || elapsed,
       };
       if (stats) {
         body.wpm = stats.wpm;
         body.accuracy = stats.accuracy;
-        if (stats.duration_seconds) {
-          body.duration_seconds = stats.duration_seconds;
-        }
       }
       if (output !== undefined) {
         body.output = output;

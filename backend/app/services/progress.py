@@ -125,19 +125,19 @@ async def submit_check(
     stats = await _stats_for(session, user.id)
     stats.xp += awarded
     _touch_streak(stats, datetime.now(UTC).date())
-    if outcome.passed:
-        session.add(
-            PracticeEvent(
-                user_id=user.id,
-                exercise_id=exercise.id,
-                source="lesson",
-                passed=True,
-                wpm=wpm,
-                accuracy=accuracy,
-                duration_seconds=duration_seconds,
-                xp_awarded=awarded,
-            )
+    # Record every check so Leaderboard usage can sum typing time, not only passes.
+    session.add(
+        PracticeEvent(
+            user_id=user.id,
+            exercise_id=exercise.id,
+            source="lesson",
+            passed=outcome.passed,
+            wpm=wpm if outcome.passed else None,
+            accuracy=accuracy if outcome.passed else None,
+            duration_seconds=duration_seconds,
+            xp_awarded=awarded,
         )
+    )
     await session.commit()
     return {
         "passed": outcome.passed,

@@ -1069,7 +1069,8 @@ async def score_round(
             passed=passed,
             wpm=wpm if passed else None,
             accuracy=accuracy if passed else None,
-            duration_seconds=duration_seconds if passed else None,
+            # Keep duration on misses so Studio usage reflects real time on task.
+            duration_seconds=duration_seconds,
             xp_awarded=awarded,
         )
     )
