@@ -1254,6 +1254,38 @@ body::after {
   padding: 0.95rem 1rem;
 }
 
+.landing-certificate-demo {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.landing-certificate-demo .certificate-frame {
+  transform-origin: top center;
+}
+
+@media (max-width: 720px) {
+  .landing-certificate-demo .certificate-frame {
+    padding: 1.25rem 0.85rem 1.1rem;
+  }
+
+  .landing-certificate-demo .certificate-title {
+    font-size: 1.35rem;
+  }
+
+  .landing-certificate-demo .certificate-name {
+    font-size: 1.25rem;
+  }
+
+  .landing-certificate-demo .certificate-seal {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+.certificate-frame-compact {
+  padding: 1.25rem 1rem 1.1rem;
+}
+
 :root[data-reduce-motion="true"] .landing-hero,
 :root[data-reduce-motion="true"] .landing-section,
 :root[data-reduce-motion="true"] .landing-foot {

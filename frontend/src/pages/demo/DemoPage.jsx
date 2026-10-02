@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
+import {
+  CertificateDocument,
+  DEMO_CERTIFICATE,
+} from "../../components/certificates/CertificateDocument.jsx";
 import TrackLogo from "../../components/content/TrackLogo.jsx";
 
 export default function DemoPage() {
@@ -28,6 +32,12 @@ export default function DemoPage() {
   }, []);
 
   const selected = catalog?.find((track) => track.slug === slug) || null;
+  const demoCert = {
+    ...DEMO_CERTIFICATE,
+    track_slug: selected?.slug || DEMO_CERTIFICATE.track_slug,
+    track_name: selected?.name || DEMO_CERTIFICATE.track_name,
+    body: `has successfully completed the ${selected?.name || DEMO_CERTIFICATE.track_name} learning path.`,
+  };
 
   return (
     <div className="landing">
@@ -37,8 +47,8 @@ export default function DemoPage() {
           Feel the keystrokes before you sign up.
         </h1>
         <p className="landing-lead">
-          Short published teasers — no account, no save. Sign in later from the nav if you want a
-          streak, full tracks, games, and the playground.
+          Short published teasers — no account, no save. Sign in later for streaks, full tracks,
+          games, playground, and a certificate with your name when a path is complete.
         </p>
         <div className="landing-cta">
           <a
@@ -49,6 +59,9 @@ export default function DemoPage() {
           >
             View on GitHub
           </a>
+          <Link to="/signup" className="btn-ghost">
+            Sign up for certificates
+          </Link>
         </div>
       </section>
 
@@ -108,6 +121,33 @@ export default function DemoPage() {
             ) : null}
           </>
         ) : null}
+      </section>
+
+      <section className="landing-section" aria-labelledby="demo-certificate">
+        <h2 id="demo-certificate" className="landing-section-title">
+          What a certificate looks like
+        </h2>
+        <p className="landing-section-lead">
+          This sample uses a demo name. After you create an account and finish{" "}
+          {selected?.name || "a track"}, your profile name and a real certificate ID appear here —
+          print or save as PDF.
+        </p>
+        <div className="landing-certificate-demo mt-5">
+          <CertificateDocument
+            cert={demoCert}
+            forceWatermark
+            watermarkLabel="Demo"
+            watermarkHint="Not an official award"
+          />
+        </div>
+        <div className="landing-cta mt-5">
+          <Link to="/signup" className="btn-primary">
+            Sign up to earn yours
+          </Link>
+          <Link to="/login" className="btn-secondary">
+            Log in
+          </Link>
+        </div>
       </section>
 
       <footer className="landing-foot">

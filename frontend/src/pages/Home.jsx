@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { api } from "../api/client.js";
+import {
+  CertificateDocument,
+  DEMO_CERTIFICATE,
+} from "../components/certificates/CertificateDocument.jsx";
 import TrackLogo from "../components/content/TrackLogo.jsx";
 import StreakFlame from "../components/feedback/StreakFlame.jsx";
 import { readPrefs } from "../prefs.js";
@@ -231,7 +235,39 @@ export default function HomePage() {
                 After you sign in, try ideas in a throwaway box that resets on its own.
               </p>
             </li>
+            <li>
+              <p className="landing-mode-title">Certificates</p>
+              <p className="landing-mode-body">
+                Finish a path and earn a printable certificate with your profile name on it.
+              </p>
+            </li>
           </ul>
+        </section>
+
+        <section className="landing-section" aria-labelledby="landing-certificate">
+          <h2 id="landing-certificate" className="landing-section-title">
+            Finish a path. Earn the certificate.
+          </h2>
+          <p className="landing-section-lead">
+            After you sign in, your real name appears on the award. Guests can peek at a sample
+            below — the watermark reminds you it is a demo until the path is complete.
+          </p>
+          <div className="landing-certificate-demo mt-5">
+            <CertificateDocument
+              cert={DEMO_CERTIFICATE}
+              forceWatermark
+              watermarkLabel="Demo"
+              watermarkHint="Sign in · finish a path · unlock yours"
+            />
+          </div>
+          <div className="landing-cta mt-5">
+            <Link to="/demo" className="btn-primary">
+              Try a free lesson
+            </Link>
+            <Link to="/signup" className="btn-secondary">
+              Sign up to earn yours
+            </Link>
+          </div>
         </section>
 
         <section className="landing-section" aria-labelledby="landing-langs">
