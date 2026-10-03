@@ -118,13 +118,23 @@ async def session_for_user(user_id: uuid.UUID) -> dict | None:
     if not session_id:
         return None
     try:
-        body = await _request("GET", f"/v1/sessions/{session_id}")
+        body = await _request("GET", f"/v1/sessions/{session_id}", timeout=5.0)
     except PlaygroundError as exc:
-        if exc.status in {404, 410}:
+        # Missing/expired workers and brief manager blips should not brick the page.
+        # Clear the mapping so Start can create a fresh session.
+        if exc.status in {404, 410, 502, 503, 504}:
             USER_SESSIONS.pop(key, None)
             return None
         raise
     return {**body, "session_id": session_id}
+
+
+async def manager_reachable() -> bool:
+    try:
+        await _request("GET", "/health", timeout=3.0)
+        return True
+    except PlaygroundError:
+        return False
 
 
 async def stop_for_user(user_id: uuid.UUID) -> dict:

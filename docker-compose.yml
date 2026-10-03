@@ -107,7 +107,8 @@ services:
       retries: 6
       start_period: 10s
     restart: unless-stopped
-    mem_limit: 256m
+    # Manager talks to the Docker Engine API; keep headroom above the worker image metadata.
+    mem_limit: 512m
     cpus: 0.5
     logging: *log
 

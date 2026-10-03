@@ -20,9 +20,9 @@ class DockerError(Exception):
         super().__init__(detail)
 
 
-def _client() -> httpx.AsyncClient:
+def _client(timeout: float = 90.0) -> httpx.AsyncClient:
     transport = httpx.AsyncHTTPTransport(uds=SOCKET)
-    return httpx.AsyncClient(transport=transport, base_url="http://docker", timeout=60.0)
+    return httpx.AsyncClient(transport=transport, base_url="http://docker", timeout=timeout)
 
 
 async def ping() -> bool:

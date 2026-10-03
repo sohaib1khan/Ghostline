@@ -46,6 +46,7 @@ class PackagesIn(BaseModel):
 async def status(user: User = Depends(current_user)) -> dict:
     del user
     limits = pg.playground_limits()
+    limits["manager_ok"] = await pg.manager_reachable()
     return limits
 
 

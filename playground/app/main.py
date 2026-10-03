@@ -22,7 +22,7 @@ from app.templates import SEED_FILES
 
 TOKEN = os.environ.get("PLAYGROUND_TOKEN", "").strip()
 WORKER_IMAGE = os.environ.get("PLAYGROUND_WORKER_IMAGE", "ghostline-playground-worker:local")
-MEMORY_MB = int(os.environ.get("PLAYGROUND_MEMORY_MB", "256"))
+MEMORY_MB = int(os.environ.get("PLAYGROUND_MEMORY_MB", "512"))
 CPUS = float(os.environ.get("PLAYGROUND_CPUS", "0.5"))
 WORKSPACE_MB = int(os.environ.get("PLAYGROUND_WORKSPACE_MB", "64"))
 RUN_TIMEOUT = int(os.environ.get("PLAYGROUND_RUN_TIMEOUT", "8"))

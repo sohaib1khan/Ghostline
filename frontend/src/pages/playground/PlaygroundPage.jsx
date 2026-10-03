@@ -346,6 +346,10 @@ export default function PlaygroundPage() {
           setMessage("Playground is turned off on this server.");
           return;
         }
+        if (status.manager_ok === false) {
+          setMessage("The playground service is unreachable. Try again in a moment.");
+          return;
+        }
         const body = await api("/api/playground/session");
         if (cancelled) {
           return;
@@ -606,7 +610,7 @@ export default function PlaygroundPage() {
 
   async function runFile() {
     if (!canRunPath(path)) {
-      setMessage("Open a .py, .js, or .sh file to Run — or type a bash command below.");
+      setMessage("Open a .py, .js, .sh, .java, or .cs file to Run — or type a bash command below.");
       return;
     }
     setPending(true);
