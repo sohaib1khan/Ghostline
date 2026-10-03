@@ -76,7 +76,10 @@ async def _request(
         raise PlaygroundError(response.status_code, detail)
     if response.status_code == 204 or not response.content:
         return {}
-    return response.json()
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise PlaygroundError(502, "Playground manager returned invalid data") from exc
 
 
 def raise_http(exc: PlaygroundError) -> None:
@@ -93,10 +96,12 @@ async def start_for_user(user_id: uuid.UUID, ttl_minutes: int) -> dict:
             return {**current, "session_id": existing, "resumed": True}
         except PlaygroundError:
             USER_SESSIONS.pop(key, None)
+    # Container create can take longer than a normal FS call.
     body = await _request(
         "POST",
         "/v1/sessions",
         json={"user_id": key, "ttl_seconds": minutes * 60},
+        timeout=90.0,
     )
     USER_SESSIONS[key] = body["session_id"]
     return {
