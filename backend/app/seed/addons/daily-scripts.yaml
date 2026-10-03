@@ -730,3 +730,249 @@ tracks:
         - CTE for the last 7 days
         - Join, group, having, order
         xp: 60
+- slug: csharp
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer C# programs with guided hints.
+    status: published
+    lessons:
+    - title: Count lines in files
+      summary: Walk arguments, open each file, count lines.
+      body_markdown: One-liners teach syntax. A daily C# script practices files, loops, and error handling in one sitting. Use hints instead of guessing.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: File.ReadLines
+          explain: Lazily enumerates lines in a file.
+        - match: foreach
+          explain: Walks each path from the arguments.
+        - match: args
+          explain: Paths passed on the command line.
+        blanks: []
+        simulated_output: 'notes.txt: 42
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this line-count program. Match every line and space.
+        code: "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: false
+            case_sensitive: true
+          rules: []
+        hints:
+        - using System, IO, Linq
+        - foreach path in args
+        - File.ReadLines(path).Count()
+        - catch and write to Console.Error
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: 'Write a C# program that prints "path: N" for each file argument, where N is the number of lines. Skip files that fail to open.'
+        code: "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - File.ReadLines
+            - foreach
+            - args
+            pattern: null
+            hint: Need File.ReadLines, foreach, and args.
+            minimum: null
+            maximum: null
+        hints:
+        - usings and Main
+        - foreach over args
+        - Count lines with ReadLines
+        - catch failures
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the line-count program. Hints are there when memory blanks.
+        code: "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "using System;\nusing System.IO;\nusing System.Linq;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    foreach (string path in args)\n    {\n      try\n      {\n        int n = File.ReadLines(path).Count();\n        Console.WriteLine($\"{path}: {n}\");\n      }\n      catch (Exception ex)\n      {\n        Console.Error.WriteLine(ex.Message);\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - ReadLines
+            - args
+            pattern: null
+            hint: ReadLines and args should show up.
+            minimum: null
+            maximum: null
+        hints:
+        - usings and foreach
+        - ReadLines Count
+        - catch to Error
+        xp: 60
+- slug: java
+  modules:
+  - title: Daily scripts
+    description: Intermediate — longer Java programs with guided hints.
+    status: published
+    lessons:
+    - title: Count lines in files
+      summary: Walk arguments, open each file, count lines.
+      body_markdown: One-liners teach syntax. A daily Java script practices files, loops, and exception handling in one sitting. Use hints instead of guessing.
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: Files.lines
+          explain: Stream of lines from a path.
+        - match: 'for (String path : args)'
+          explain: Walks each path from the arguments.
+        - match: catch
+          explain: Skip files that fail to open.
+        blanks: []
+        simulated_output: 'notes.txt: 42
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type this line-count program. Match every line and space.
+        code: "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: false
+            case_sensitive: true
+          rules: []
+        hints:
+        - import Files and Path
+        - for each path in args
+        - Files.lines(...).count()
+        - catch and write to System.err
+        xp: 40
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: 'Write a Java program that prints "path: N" for each file argument, where N is the number of lines. Skip files that fail to open.'
+        code: "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - Files.lines
+            - args
+            - catch
+            pattern: null
+            hint: Need Files.lines, args, and catch.
+            minimum: null
+            maximum: null
+        hints:
+        - imports and main
+        - for-each over args
+        - count with Files.lines
+        - catch failures
+        xp: 50
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: challenge
+        order: 3
+        prompt: Untimed. Rebuild the line-count program. Hints are there when memory blanks.
+        code: "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "import java.nio.file.Files;\nimport java.nio.file.Path;\n\npublic class LineCount {\n  public static void main(String[] args) {\n    for (String path : args) {\n      try {\n        long n = Files.lines(Path.of(path)).count();\n        System.out.println(path + \": \" + n);\n      } catch (Exception e) {\n        System.err.println(e.getMessage());\n      }\n    }\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - Files.lines
+            - args
+            pattern: null
+            hint: Files.lines and args should show up.
+            minimum: null
+            maximum: null
+        hints:
+        - imports and for-each
+        - Files.lines count
+        - catch to err
+        xp: 60

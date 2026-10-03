@@ -16,12 +16,32 @@ Each starter lives in its own folder:
 | `templates/python-flask` | Flask test client (install `flask` first) |
 | `templates/javascript-hello` | Node.js |
 | `templates/bash-hello` | Bash |
+| `templates/csharp-hello` | C# (Mono) |
+| `templates/java-hello` | Java |
 | `templates/web-hello` | HTML/CSS/JS — open **Browser** |
 
 Installed packages stay outside the file tree (`/tmp`). The worker has no network and no published ports.
 """
 
 PYTHON_HELLO = 'print("hello from the playground")\n'
+
+CSHARP_HELLO = '''using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("hello from the playground");
+    }
+}
+'''
+
+JAVA_HELLO = '''public class Main {
+    public static void main(String[] args) {
+        System.out.println("hello from the playground");
+    }
+}
+'''
 
 PYTHON_FLASK = '''"""Flask demo using the test client — no listening port.
 
@@ -116,6 +136,8 @@ SEED_FILES: dict[str, str] = {
     "templates/python-flask/app.py": PYTHON_FLASK,
     "templates/javascript-hello/main.js": JAVASCRIPT_HELLO,
     "templates/bash-hello/main.sh": BASH_HELLO,
+    "templates/csharp-hello/Program.cs": CSHARP_HELLO,
+    "templates/java-hello/Main.java": JAVA_HELLO,
     "templates/web-hello/index.html": WEB_INDEX,
     "templates/web-hello/style.css": WEB_STYLE,
     "templates/web-hello/app.js": WEB_APP,

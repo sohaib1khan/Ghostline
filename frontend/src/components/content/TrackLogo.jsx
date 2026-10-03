@@ -96,6 +96,42 @@ export default function TrackLogo({ slug, color = "var(--accent)", size = "md", 
       </svg>
     );
   }
+  if (slug === "csharp") {
+    return (
+      <svg {...common}>
+        <rect width="40" height="40" rx="10" fill={color} fillOpacity="0.18" />
+        <text
+          x="20"
+          y="26"
+          textAnchor="middle"
+          fontFamily="JetBrains Mono, ui-monospace, monospace"
+          fontSize="13"
+          fontWeight="700"
+          fill={color}
+        >
+          C#
+        </text>
+      </svg>
+    );
+  }
+  if (slug === "java") {
+    return (
+      <svg {...common}>
+        <rect width="40" height="40" rx="10" fill={color} fillOpacity="0.18" />
+        <text
+          x="20"
+          y="26"
+          textAnchor="middle"
+          fontFamily="JetBrains Mono, ui-monospace, monospace"
+          fontSize="12"
+          fontWeight="700"
+          fill={color}
+        >
+          Java
+        </text>
+      </svg>
+    );
+  }
   return (
     <svg {...common}>
       <rect width="40" height="40" rx="10" fill={color} fillOpacity="0.18" />

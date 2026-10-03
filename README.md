@@ -67,7 +67,7 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 
 ## What you get
 
-- **Tracks** — Bash, Python, JavaScript, Go, SQL starter content loads on first boot (`backend/app/seed/lessons/`).
+- **Tracks** — Bash, Python, JavaScript, Go, SQL, C#, and Java starter content loads on first boot (`backend/app/seed/lessons/`).
 - **Ghost editor** — trace exercises with live WPM/accuracy; fill, recall, and challenge with string checks.
 - **Games** — Speed Drill, Bug Hunt, Command Roulette, Fill Frenzy (published exercises only).
 - **Demo** — `/demo` for visitors without an account (rate-limited checks).
@@ -76,7 +76,7 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 
 ## Playground
 
-Throwaway Python / JavaScript / Bash workspaces in isolated Docker workers. On by default when Compose is up.
+Throwaway Python / JavaScript / Bash / C# / Java workspaces in isolated Docker workers. On by default when Compose is up.
 
 1. Set a shared token in `.env` (required):
 

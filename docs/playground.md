@@ -18,6 +18,8 @@ Starters are seeded under `templates/`, one project per folder:
 | `templates/python-flask` | Flask (install `flask` first; test client, no ports) |
 | `templates/javascript-hello` | JavaScript |
 | `templates/bash-hello` | Bash |
+| `templates/csharp-hello` | C# (Mono `mcs` + `mono`) |
+| `templates/java-hello` | Java (`javac` + `java`) |
 | `templates/web-hello` | Web → **Browser** tab |
 
 Installed pip/npm packages live under `/tmp` inside the worker so they do not clutter the Files list.
@@ -48,6 +50,6 @@ Playground is on by default. Compose also forces `PLAYGROUND_ENABLED=true`.
 - No host mounts of Ghostline volumes into workers.
 - No nested Docker in workers.
 - One session per user.
-- Run allowlist: `python3`, `node`, `bash` on workspace-relative paths; plus one-shot `shell` lines via `bash -c` (no interactive TTY).
+- Run allowlist: `python3`, `node`, `bash`, plus compile-and-run for `.java` / `.cs`; one-shot `shell` lines via `bash -c` (no interactive TTY).
 - Preview CSP blocks `connect-src` (no fetch/XHR from rendered pages).
 - Package names are allowlisted (no URLs / VCS); downloads capped by count and size.

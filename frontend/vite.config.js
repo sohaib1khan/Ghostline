@@ -86,7 +86,7 @@ export default defineConfig({
       manifest: {
         name: "Ghostline",
         short_name: "Ghostline",
-        description: "A calm, typing-first way to learn Bash, Python, Go, and JavaScript.",
+        description: "A calm, typing-first way to learn Bash, Python, Go, JavaScript, SQL, C#, and Java.",
         theme_color: THEME,
         background_color: THEME,
         display: "standalone",

@@ -529,7 +529,7 @@ def _public_round(game: str, exercise: Exercise, *, pool_size: int, extra: dict 
         body["prompt"] = "Put the lines back in order."
         body["lines"] = [{"id": index, "text": text} for index, text in enumerate(shuffled)]
         body["_ordered"] = usable
-        body["indent_matters"] = track_slug in {"python", "go"}
+        body["indent_matters"] = track_slug in {"python", "go", "csharp", "java"}
         body["hints"] = merge_hints(
             starter_hints(game, track_slug),
             [
@@ -685,7 +685,7 @@ async def catalog(session: AsyncSession, user: User) -> dict:
                 **item,
                 "guides": {
                     slug: guide_for(item["id"], slug)
-                    for slug in ("bash", "python", "go", "javascript", "sql")
+                    for slug in ("bash", "python", "go", "javascript", "sql", "csharp", "java")
                 },
             }
             for item in GAME_DEFS

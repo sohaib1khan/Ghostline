@@ -605,3 +605,187 @@ tracks:
         - WHERE returned_at IS NULL
         - GROUP BY ORDER BY
         xp: 40
+- slug: csharp
+  modules:
+  - title: Projects
+    description: Advanced — small C# projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Greeter CLI
+      summary: Read a name from args and print a greeting with its length.
+      body_markdown: '# Project: Greeter CLI
+
+
+        If there is no name, print usage. Otherwise greet them and show letter count.
+
+        Type the class, Main, and args until args feels natural.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: args.Length
+          explain: How many command-line arguments arrived.
+        - match: args[0]
+          explain: The first argument — the name.
+        - match: name.Length
+          explain: Letter count.
+        blanks: []
+        simulated_output: 'hello, ada (3 letters)
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Greeter CLI project.
+        code: "using System;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    if (args.Length < 1)\n    {\n      Console.WriteLine(\"usage: greeter <name>\");\n      return;\n    }\n    string name = args[0];\n    Console.WriteLine($\"hello, {name} ({name.Length} letters)\");\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "using System;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    if (args.Length < 1)\n    {\n      Console.WriteLine(\"usage: greeter <name>\");\n      return;\n    }\n    string name = args[0];\n    Console.WriteLine($\"hello, {name} ({name.Length} letters)\");\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - using System and Main
+        - Guard short args
+        - Interpolated hello with length
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Rebuild Greeter CLI.
+        code: "using System;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    if (args.Length < 1)\n    {\n      Console.WriteLine(\"usage: greeter <name>\");\n      return;\n    }\n    string name = args[0];\n    Console.WriteLine($\"hello, {name} ({name.Length} letters)\");\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "using System;\n\nclass Program\n{\n  static void Main(string[] args)\n  {\n    if (args.Length < 1)\n    {\n      Console.WriteLine(\"usage: greeter <name>\");\n      return;\n    }\n    string name = args[0];\n    Console.WriteLine($\"hello, {name} ({name.Length} letters)\");\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - args.Length
+            - args[0]
+            - name.Length
+            pattern: null
+            hint: Need args.Length, args[0], and name.Length.
+            minimum: null
+            maximum: null
+        hints:
+        - class Program and Main
+        - args.Length check
+        - string name = args[0]
+        - Console.WriteLine with $
+        xp: 40
+- slug: java
+  modules:
+  - title: Projects
+    description: Advanced — small Java projects you type end-to-end.
+    status: published
+    lessons:
+    - title: Greeter CLI
+      summary: Read a name from args and print a greeting with its length.
+      body_markdown: '# Project: Greeter CLI
+
+
+        If there is no name, print usage. Otherwise greet them and show letter count.
+
+        Type the class, main, and args until args feels natural.'
+      status: published
+      is_demo: false
+      source_type: original
+      source_attribution: ''
+      source_url: ''
+      license_note: ''
+      exercises:
+      - runtime: none
+        tokens:
+        - match: args.length
+          explain: How many command-line arguments arrived.
+        - match: args[0]
+          explain: The first argument — the name.
+        - match: name.length()
+          explain: Letter count.
+        blanks: []
+        simulated_output: 'hello, ada (3 letters)
+
+          '
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: trace
+        order: 1
+        prompt: Type the Greeter CLI project.
+        code: "public class Greeter {\n  public static void main(String[] args) {\n    if (args.length < 1) {\n      System.out.println(\"usage: greeter <name>\");\n      return;\n    }\n    String name = args[0];\n    System.out.println(\"hello, \" + name + \" (\" + name.length() + \" letters)\");\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "public class Greeter {\n  public static void main(String[] args) {\n    if (args.length < 1) {\n      System.out.println(\"usage: greeter <name>\");\n      return;\n    }\n    String name = args[0];\n    System.out.println(\"hello, \" + name + \" (\" + name.length() + \" letters)\");\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules: []
+        hints:
+        - public class and main
+        - Guard short args
+        - Concatenate hello with length
+        xp: 30
+      - runtime: none
+        tokens: []
+        blanks: []
+        simulated_output: null
+        expected_output: null
+        time_limit_seconds: null
+        status: published
+        type: recall
+        order: 2
+        prompt: Rebuild Greeter CLI.
+        code: "public class Greeter {\n  public static void main(String[] args) {\n    if (args.length < 1) {\n      System.out.println(\"usage: greeter <name>\");\n      return;\n    }\n    String name = args[0];\n    System.out.println(\"hello, \" + name + \" (\" + name.length() + \" letters)\");\n  }\n}"
+        check:
+          mode: either
+          accepted_answers:
+          - "public class Greeter {\n  public static void main(String[] args) {\n    if (args.length < 1) {\n      System.out.println(\"usage: greeter <name>\");\n      return;\n    }\n    String name = args[0];\n    System.out.println(\"hello, \" + name + \" (\" + name.length() + \" letters)\");\n  }\n}"
+          normalize:
+            collapse_whitespace: true
+            trim: true
+            equivalent_quotes: true
+            case_sensitive: true
+          rules:
+          - kind: must_contain_all
+            value: null
+            values:
+            - args.length
+            - args[0]
+            - name.length()
+            pattern: null
+            hint: Need args.length, args[0], and name.length().
+            minimum: null
+            maximum: null
+        hints:
+        - public class Greeter
+        - args.length check
+        - String name = args[0]
+        - System.out.println with concat
+        xp: 40

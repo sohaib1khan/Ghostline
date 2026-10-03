@@ -1,0 +1,299 @@
+slug: java
+name: Java
+description: Learn Java from a tiny program to clear control flow.
+modules:
+- title: A program
+  description: Beginner — The smallest Java program that speaks.
+  status: published
+  lessons:
+  - title: Print hello
+    summary: Print one line from main.
+    body_markdown: A Java program starts in main and prints with System.out.println.
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the call that prints hello.
+      runtime: none
+      code: System.out.println("hello");
+      tokens:
+      - match: System.out.println
+        explain: Prints a line to standard output.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - System.out.println("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the stream that prints.
+      runtime: none
+      code: System.out.println("hello");
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: _______.___
+      check:
+        mode: either
+        accepted_answers:
+        - System.out.println("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Print hello with System.out.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - System.out.println("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: Print hello before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - System.out.println("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 40
+      status: published
+      order: null
+  - title: A short variable
+    summary: Declare a string.
+    body_markdown: Give the type on the left, then the name and value.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a short declaration for a greeting.
+      runtime: none
+      code: String greeting = "hello";
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - String greeting = "hello";
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Add ints
+    summary: Return the sum of two ints.
+    body_markdown: The return type sits before the method name.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Write a method add that returns the sum of two ints.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "int add(int left, int right) {\n    return left + right;\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: return
+          values: []
+          pattern: null
+          hint: Methods that compute a value use return.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Flow
+  description: Intermediate — Choose and repeat.
+  status: published
+  lessons:
+  - title: A loop
+    summary: Print 0, 1, and 2.
+    body_markdown: for has an initializer, a test, and a step.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a loop that prints 0, 1, and 2.
+      runtime: none
+      code: "for (int number = 0; number < 3; number++) {\n    System.out.println(number);\n}"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "for (int number = 0; number < 3; number++) {\n    System.out.println(number);\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A choice
+    summary: Print yes when a value is positive.
+    body_markdown: if needs parentheses around the condition.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Print yes when count is greater than zero.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "if (count > 0) {\n    System.out.println(\"yes\");\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: if
+          values: []
+          pattern: null
+          hint: Start with if.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A named result
+    summary: Return a greeting from a method.
+    body_markdown: The return type comes before the method name.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the keyword that starts a String method.
+      runtime: none
+      code: "String greet() {\n    return \"hello\";\n}"
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ______
+      check:
+        mode: either
+        accepted_answers:
+        - "String greet() {\n    return \"hello\";\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

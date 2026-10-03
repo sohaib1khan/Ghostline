@@ -51,6 +51,22 @@ STARTER_TRACKS = (
         "color": "#c4b4d4",
         "order": 5,
     },
+    {
+        "slug": "csharp",
+        "name": "C#",
+        "description": "Learn C# from a tiny program to clear control flow.",
+        "icon": "hash",
+        "color": "#a8b0d4",
+        "order": 6,
+    },
+    {
+        "slug": "java",
+        "name": "Java",
+        "description": "Learn Java from a tiny program to clear control flow.",
+        "icon": "cup",
+        "color": "#d4a898",
+        "order": 7,
+    },
 )
 
 

@@ -1,0 +1,299 @@
+slug: csharp
+name: C#
+description: Learn C# from a tiny program to clear control flow.
+modules:
+- title: A program
+  description: Beginner — The smallest C# program that speaks.
+  status: published
+  lessons:
+  - title: Print hello
+    summary: Print one line from Main.
+    body_markdown: A C# console app starts in Main and prints with Console.WriteLine.
+    status: published
+    is_demo: true
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type the call that prints hello.
+      runtime: none
+      code: Console.WriteLine("hello");
+      tokens:
+      - match: Console.WriteLine
+        explain: Prints a line to the console.
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - Console.WriteLine("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: fill
+      prompt: Fill the type that writes to the console.
+      runtime: none
+      code: Console.WriteLine("hello");
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: _______
+      check:
+        mode: either
+        accepted_answers:
+        - Console.WriteLine("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: recall
+      prompt: Print hello with Console.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - Console.WriteLine("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+    - type: challenge
+      prompt: Print hello before the timer ends.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - Console.WriteLine("hello");
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: 40
+      status: published
+      order: null
+  - title: A short variable
+    summary: Declare a string.
+    body_markdown: var lets the compiler infer the type from the right-hand side.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a short declaration for a greeting.
+      runtime: none
+      code: var greeting = "hello";
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - var greeting = "hello";
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: Add ints
+    summary: Return the sum of two ints.
+    body_markdown: Parameter and return types sit with the names in C#.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Write a method Add that returns the sum of two ints.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "int Add(int left, int right)\n{\n    return left + right;\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: return
+          values: []
+          pattern: null
+          hint: Methods that compute a value use return.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+- title: Flow
+  description: Intermediate — Choose and repeat.
+  status: published
+  lessons:
+  - title: A loop
+    summary: Print 0, 1, and 2.
+    body_markdown: for has an initializer, a test, and a step.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: trace
+      prompt: Type a loop that prints 0, 1, and 2.
+      runtime: none
+      code: "for (int number = 0; number < 3; number++)\n{\n    Console.WriteLine(number);\n}"
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "for (int number = 0; number < 3; number++)\n{\n    Console.WriteLine(number);\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A choice
+    summary: Print yes when a value is positive.
+    body_markdown: if needs parentheses around the condition.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: recall
+      prompt: Print yes when count is greater than zero.
+      runtime: none
+      code: ''
+      tokens: []
+      blanks: []
+      check:
+        mode: either
+        accepted_answers:
+        - "if (count > 0)\n{\n    Console.WriteLine(\"yes\");\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules:
+        - kind: must_contain
+          value: if
+          values: []
+          pattern: null
+          hint: Start with if.
+          minimum: null
+          maximum: null
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null
+  - title: A named result
+    summary: Return a greeting from a method.
+    body_markdown: The return type comes before the method name.
+    status: draft
+    is_demo: false
+    source_type: original
+    source_attribution: ''
+    source_url: ''
+    license_note: ''
+    exercises:
+    - type: fill
+      prompt: Fill the keyword that starts a string method.
+      runtime: none
+      code: "string Greet()\n{\n    return \"hello\";\n}"
+      tokens: []
+      blanks:
+      - index: 1
+        placeholder: ______
+      check:
+        mode: either
+        accepted_answers:
+        - "string Greet()\n{\n    return \"hello\";\n}"
+        normalize:
+          collapse_whitespace: true
+          trim: true
+          equivalent_quotes: false
+          case_sensitive: true
+        rules: []
+      hints: []
+      simulated_output: null
+      expected_output: null
+      xp: 10
+      time_limit_seconds: null
+      status: published
+      order: null

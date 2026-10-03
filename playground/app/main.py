@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 import os
 import secrets
+import shlex
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
+from pathlib import PurePosixPath
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException
@@ -42,6 +44,10 @@ ALLOWED_BINARIES = {
     "node": ["node"],
     "bash": ["bash"],
     "sh": ["sh"],
+    "javac": ["javac"],
+    "java": ["java"],
+    "mcs": ["mcs"],
+    "mono": ["mono"],
 }
 
 SESSIONS: dict[str, dict] = {}
@@ -463,4 +469,20 @@ def _resolve_argv(body: RunIn) -> list[str]:
         return ["node", safe]
     if lower.endswith(".sh") or lower.endswith(".bash"):
         return ["bash", safe]
-    raise HTTPException(status_code=400, detail="Run .py, .js, or .sh files")
+    if lower.endswith(".java"):
+        # Compile then run the public class matching the file stem.
+        path = PurePosixPath(safe)
+        parent = "." if str(path.parent) in {"", "."} else str(path.parent)
+        stem = path.stem
+        cmd = (
+            f"javac {shlex.quote(safe)} && "
+            f"java -cp {shlex.quote(parent)} {shlex.quote(stem)}"
+        )
+        return ["bash", "-c", cmd]
+    if lower.endswith(".cs"):
+        cmd = (
+            f"mcs -out:/tmp/pg-out.exe {shlex.quote(safe)} && "
+            f"mono /tmp/pg-out.exe"
+        )
+        return ["bash", "-c", cmd]
+    raise HTTPException(status_code=400, detail="Run .py, .js, .sh, .java, or .cs files")

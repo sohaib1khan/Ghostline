@@ -62,6 +62,12 @@ function langFromPath(filePath) {
   if (lower.endsWith(".sh") || lower.endsWith(".bash")) {
     return "bash";
   }
+  if (lower.endsWith(".cs")) {
+    return "csharp";
+  }
+  if (lower.endsWith(".java")) {
+    return "java";
+  }
   if (lower.endsWith(".html") || lower.endsWith(".htm") || lower.endsWith(".css")) {
     return "web";
   }
@@ -142,6 +148,58 @@ const LANGS = [
           fill="currentColor"
           d="M5.5 8.2 10 12l-4.5 3.8-.9-1.1L7.8 12 4.6 9.3l.9-1.1zm6.2 7.3h7.2v1.4h-7.2V15.5z"
         />
+      </svg>
+    ),
+  },
+  {
+    id: "csharp",
+    label: "C#",
+    tip: "templates/csharp-hello — Mono compile + run",
+    file: "templates/csharp-hello/Program.cs",
+    starter:
+      'using System;\n\nclass Program\n{\n    static void Main()\n    {\n        Console.WriteLine("hello from the playground");\n    }\n}\n',
+    view: "editor",
+    color: "#6b7bb8",
+    mark: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="currentColor" opacity="0.18" />
+        <text
+          x="12"
+          y="16"
+          textAnchor="middle"
+          fontFamily="ui-monospace, monospace"
+          fontSize="9"
+          fontWeight="700"
+          fill="currentColor"
+        >
+          C#
+        </text>
+      </svg>
+    ),
+  },
+  {
+    id: "java",
+    label: "Java",
+    tip: "templates/java-hello — javac + java",
+    file: "templates/java-hello/Main.java",
+    starter:
+      'public class Main {\n    public static void main(String[] args) {\n        System.out.println("hello from the playground");\n    }\n}\n',
+    view: "editor",
+    color: "#c4785a",
+    mark: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="currentColor" opacity="0.18" />
+        <text
+          x="12"
+          y="16"
+          textAnchor="middle"
+          fontFamily="ui-monospace, monospace"
+          fontSize="8"
+          fontWeight="700"
+          fill="currentColor"
+        >
+          Java
+        </text>
       </svg>
     ),
   },

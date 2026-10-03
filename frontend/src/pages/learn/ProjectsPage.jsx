@@ -9,6 +9,8 @@ const DOT = {
   go: "bg-success",
   javascript: "bg-muted",
   sql: "bg-[#c4b4d4]",
+  csharp: "bg-[#a8b0d4]",
+  java: "bg-[#d4a898]",
 };
 
 const PROGRESS = {

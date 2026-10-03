@@ -41,6 +41,18 @@ const TRACK_META = {
     tip: "Filter rows before you aggregate or join.",
     level: "Query literacy",
   },
+  csharp: {
+    focus: ["Console", "var", "Loops"],
+    sample: 'Console.WriteLine("hello");',
+    tip: "Main and WriteLine first, then flow.",
+    level: "Typed console",
+  },
+  java: {
+    focus: ["println", "types", "Loops"],
+    sample: 'System.out.println("hello");',
+    tip: "main and System.out before branching.",
+    level: "Typed console",
+  },
 };
 
 function streakNote(days) {
@@ -138,7 +150,7 @@ export default function HomePage() {
             Type the line until your hands know it.
           </h1>
           <p className="landing-lead">
-            A calm learning path for Bash, Python, Go, JavaScript, and SQL — beginner basics,
+            A calm learning path for Bash, Python, Go, JavaScript, SQL, C#, and Java — beginner basics,
             intermediate practice, then advanced projects you type end to end.
           </p>
           <p className="landing-sample" aria-hidden="true">
@@ -284,6 +296,8 @@ export default function HomePage() {
               { slug: "go", name: "Go", blurb: "Packages, loops, and typed flow." },
               { slug: "javascript", name: "JavaScript", blurb: "Declarations and page scripting." },
               { slug: "sql", name: "SQL", blurb: "SELECT, filters, and joins." },
+              { slug: "csharp", name: "C#", blurb: "Console apps, vars, and control flow." },
+              { slug: "java", name: "Java", blurb: "main, types, and clear loops." },
             ].map((lang) => (
               <li key={lang.slug} className="landing-lang">
                 <TrackLogo slug={lang.slug} size="md" title={lang.name} />
