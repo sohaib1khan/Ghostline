@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -214,6 +214,26 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
             )
         ).all()
     )
+    activity_rows = list(
+        (
+            await session.execute(
+                select(
+                    Track.id,
+                    func.max(ExerciseProgress.updated_at),
+                )
+                .join(Module, Module.track_id == Track.id)
+                .join(Lesson, Lesson.module_id == Module.id)
+                .join(Exercise, Exercise.lesson_id == Lesson.id)
+                .join(ExerciseProgress, ExerciseProgress.exercise_id == Exercise.id)
+                .where(
+                    Track.id.in_(track_ids),
+                    ExerciseProgress.user_id == user.id,
+                )
+                .group_by(Track.id)
+            )
+        ).all()
+    )
+    last_activity = {track_id: stamp for track_id, stamp in activity_rows if stamp is not None}
     grouped: dict[uuid.UUID, dict] = {
         track.id: {
             "slug": track.slug,
@@ -226,9 +246,13 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
             "total": 0,
             "continue_lesson_id": None,
             "continue_lesson_title": None,
+            "last_activity_at": None,
         }
         for track in tracks
     }
+    for track_id, stamp in last_activity.items():
+        if track_id in grouped:
+            grouped[track_id]["last_activity_at"] = stamp.isoformat()
     for track_id, lesson_id, lesson_title, exercise_id in rows:
         item = grouped[track_id]
         item["total"] += 1
@@ -237,15 +261,41 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
         elif item["continue_lesson_id"] is None:
             item["continue_lesson_id"] = lesson_id
             item["continue_lesson_title"] = lesson_title
-    return _dashboard_body(stats, [grouped[track.id] for track in tracks])
+    track_payload = [grouped[track.id] for track in tracks]
+    return _dashboard_body(stats, track_payload, continue_at=_pick_continue(track_payload))
 
 
-def _dashboard_body(stats: UserStats | None, tracks: list[dict]) -> dict:
+def _pick_continue(tracks: list[dict]) -> dict | None:
+    """Resume the track the learner was last active on, not the first catalog slug."""
+    candidates = [track for track in tracks if track.get("continue_lesson_id")]
+    if not candidates:
+        return None
+    with_activity = [track for track in candidates if track.get("last_activity_at")]
+    chosen = (
+        max(with_activity, key=lambda track: track["last_activity_at"])
+        if with_activity
+        else candidates[0]
+    )
+    return {
+        "track_slug": chosen["slug"],
+        "track_name": chosen["name"],
+        "lesson_id": str(chosen["continue_lesson_id"]),
+        "lesson_title": chosen["continue_lesson_title"],
+    }
+
+
+def _dashboard_body(
+    stats: UserStats | None,
+    tracks: list[dict],
+    *,
+    continue_at: dict | None = None,
+) -> dict:
     return {
         "xp": 0 if stats is None else stats.xp,
         "current_streak_days": 0 if stats is None else stats.current_streak_days,
         "longest_streak_days": 0 if stats is None else stats.longest_streak_days,
         "tracks": tracks,
+        "continue": continue_at,
     }
 
 

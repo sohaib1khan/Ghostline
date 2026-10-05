@@ -338,8 +338,19 @@ export default function HomePage() {
     board?.tracks?.reduce((sum, track) => sum + (track.completed || 0), 0) ||
     stats?.exercises_completed ||
     0;
-  const nextTrack =
-    board?.tracks?.find((track) => track.continue_lesson_id) || board?.tracks?.[0] || null;
+  const resume = board?.continue || null;
+  const nextTrack = resume
+    ? board?.tracks?.find((track) => track.slug === resume.track_slug) || {
+        slug: resume.track_slug,
+        name: resume.track_name,
+        continue_lesson_id: resume.lesson_id,
+        continue_lesson_title: resume.lesson_title,
+      }
+    : board?.tracks?.find((track) => track.continue_lesson_id) || board?.tracks?.[0] || null;
+  const continueLessonId = resume?.lesson_id || nextTrack?.continue_lesson_id || null;
+  const continueLessonTitle = resume?.lesson_title || nextTrack?.continue_lesson_title || null;
+  const continueTrackName = resume?.track_name || nextTrack?.name || "";
+  const continueTrackSlug = resume?.track_slug || nextTrack?.slug || "";
 
   return (
     <section className="home-shell rounded-2xl bg-surface p-6 shadow-[var(--shadow)] sm:p-8">
@@ -385,20 +396,20 @@ export default function HomePage() {
         />
       </div>
 
-      {nextTrack?.continue_lesson_id ? (
+      {continueLessonId ? (
         <div className={`home-next mt-6 ${reduce ? "" : "practice-rise-delay"}`}>
           <div className="min-w-0">
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">Pick up here</p>
             <p className="mt-1 font-medium text-text">
-              {nextTrack.name}
-              {nextTrack.continue_lesson_title ? ` · ${nextTrack.continue_lesson_title}` : ""}
+              {continueTrackName}
+              {continueLessonTitle ? ` · ${continueLessonTitle}` : ""}
             </p>
             <p className="mt-1 font-mono text-xs text-muted">
-              {(TRACK_META[nextTrack.slug] || {}).sample || "Continue your published path"}
+              {(TRACK_META[continueTrackSlug] || {}).sample || "Continue your published path"}
             </p>
           </div>
           <Link
-            to={`/learn/lessons/${nextTrack.continue_lesson_id}`}
+            to={`/learn/lessons/${continueLessonId}`}
             className="btn-primary shrink-0"
           >
             Continue lesson

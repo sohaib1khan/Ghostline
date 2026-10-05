@@ -190,6 +190,8 @@ async def test_check_awards_xp_once_and_dashboard_continues(database) -> None:
         assert bash["total"] >= 2
         assert bash["continue_lesson_id"]
         assert "python" not in {track["slug"] for track in payload["tracks"]}
+        assert payload["continue"]["track_slug"] == "bash"
+        assert payload["continue"]["lesson_id"] == str(bash["continue_lesson_id"])
 
         outline = await request(learner, "GET", "/api/learn/tracks/bash/outline")
         lessons = [lesson for module in outline.json()["modules"] for lesson in module["lessons"]]
