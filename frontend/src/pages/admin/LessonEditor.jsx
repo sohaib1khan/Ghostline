@@ -39,7 +39,7 @@ function blankExercise(type = "recall") {
     simulated_output: "",
     expected_output: "",
     xp: 10,
-    time_limit_seconds: type === "challenge" ? 60 : null,
+    time_limit_seconds: null,
   };
 }
 

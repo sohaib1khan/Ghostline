@@ -276,8 +276,9 @@ export default function LessonPlayer({
     );
   }
 
+  const timedChallenge = Boolean(exercise?.time_limit_seconds);
   const expired =
-    exercise.type === "challenge" && remaining <= 0 && !result?.passed && !studying;
+    timedChallenge && remaining <= 0 && !result?.passed && !studying;
   const answer =
     exercise.type === "fill" ? fillAnswer(exercise.code, exercise.blanks || [], blanks) : draft;
   const progressPct = Math.round(
@@ -407,7 +408,7 @@ export default function LessonPlayer({
               ) : null}
             </div>
           ) : null}
-          {exercise.type === "challenge" && exercise.time_limit_seconds ? (
+          {exercise.type === "challenge" && timedChallenge ? (
             <p
               className={`mt-2 font-mono text-sm ${
                 remaining <= 8 ? "text-error pulse-urgent" : "text-muted"
@@ -494,15 +495,16 @@ export default function LessonPlayer({
                 type="button"
                 className="text-sm text-accent"
                 onClick={() => {
-                  applyState(freshExerciseState(exercise));
+                  const next = freshExerciseState(exercise);
+                  applyState(next);
                   setAttemptKey((value) => value + 1);
                   upsertExerciseState(lesson.id, index, exercise.id, {
-                    draft: "",
-                    blanks: {},
-                    hintsShown: 0,
-                    result: null,
-                    studying: needsStudy(exercise),
-                    remaining: exercise.time_limit_seconds || 0,
+                    draft: next.draft,
+                    blanks: next.blanks,
+                    hintsShown: next.hintsShown,
+                    result: next.result,
+                    studying: next.studying,
+                    remaining: next.remaining,
                   });
                 }}
               >

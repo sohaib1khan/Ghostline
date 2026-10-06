@@ -109,7 +109,7 @@ modules:
       simulated_output: null
       expected_output: null
       xp: 10
-      time_limit_seconds: 40
+      time_limit_seconds: null
       status: published
       order: null
   - title: A short variable

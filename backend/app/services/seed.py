@@ -137,6 +137,22 @@ async def _label_module_levels(session: AsyncSession) -> None:
                 module.description = wanted
 
 
+async def _clear_challenge_timers(session: AsyncSession) -> None:
+    # DECISION: challenge / daily-script drills stay untimed. A leftover limit of
+    # 0 also made the learner UI treat the round as already expired.
+    from sqlalchemy.orm.attributes import flag_modified
+
+    from app.models.content import Exercise
+
+    rows = list((await session.scalars(select(Exercise).where(Exercise.type == "challenge"))).all())
+    for row in rows:
+        data = dict(row.data or {})
+        if data.get("time_limit_seconds"):
+            data["time_limit_seconds"] = None
+            row.data = data
+            flag_modified(row, "data")
+
+
 async def seed_starter_content(session: AsyncSession) -> None:
     # Tracks are created here so the first admin setup can import lessons
     # even when this process never ran the startup seed.
@@ -151,4 +167,5 @@ async def seed_starter_content(session: AsyncSession) -> None:
     await _import_tracks_without_modules(session)
     await _import_addons(session)
     await _label_module_levels(session)
+    await _clear_challenge_timers(session)
     await session.commit()
