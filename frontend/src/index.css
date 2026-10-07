@@ -148,9 +148,9 @@ body::after {
 
 .ghost-type-marker {
   display: inline-block;
-  width: 0.42rem;
+  width: var(--marker-w, 0.42rem);
   min-width: 5px;
-  height: 1.3em;
+  height: var(--marker-h, 1.3em);
   margin: 0 0.15rem 0 0.08rem;
   vertical-align: text-bottom;
   border-radius: 2px;
@@ -159,6 +159,13 @@ body::after {
     0 0 0 2px color-mix(in srgb, var(--bg) 80%, transparent),
     0 0 0 4px color-mix(in srgb, var(--accent) 55%, transparent);
   animation: type-marker-pulse 1s ease-in-out infinite;
+}
+
+:root[data-typing-contrast="high"] .ghost-type-marker {
+  background: color-mix(in srgb, var(--accent) 70%, #fff);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--bg) 70%, transparent),
+    0 0 0 6px color-mix(in srgb, var(--accent) 65%, transparent);
 }
 
 .ghost-type-marker-inline {
@@ -238,7 +245,7 @@ body::after {
 
 .line-helper-step {
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.72rem;
+  font-size: calc(var(--helper-font, 0.95rem) * 0.72);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--guide);
@@ -246,7 +253,7 @@ body::after {
 }
 
 .line-helper-key {
-  font-size: 0.82rem;
+  font-size: calc(var(--helper-font, 0.95rem) * 0.9);
   color: var(--guide-dim);
 }
 
@@ -256,9 +263,9 @@ body::after {
   border-radius: 0.35rem;
   border: 1px solid color-mix(in srgb, var(--guide-next-bg) 55%, transparent);
   background: var(--guide-next-bg);
-  padding: 0.12rem 0.45rem;
+  padding: 0.18rem 0.55rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.85rem;
+  font-size: var(--helper-font, 0.95rem);
   font-weight: 700;
   color: var(--guide-next-fg);
   animation: type-marker-pulse 1.1s ease-in-out infinite;
@@ -270,7 +277,7 @@ body::after {
 }
 
 .line-helper-scroll {
-  max-height: min(16rem, 42vh);
+  max-height: min(20rem, 48vh);
   overflow: auto;
   overscroll-behavior: contain;
   padding: 0.35rem 0 0.55rem;
@@ -282,18 +289,18 @@ body::after {
   align-items: flex-start;
   gap: 0.45rem;
   margin: 0;
-  padding: 0.28rem 0.9rem;
+  padding: 0.35rem 0.9rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: var(--helper-font, var(--typing-font, 0.95rem));
+  line-height: var(--typing-line, 1.65);
 }
 
 .line-helper-gutter {
   flex-shrink: 0;
-  width: 1.4rem;
+  width: 1.6rem;
   text-align: right;
-  font-size: 0.72rem;
-  line-height: 1.7;
+  font-size: calc(var(--helper-font, 0.95rem) * 0.75);
+  line-height: var(--typing-line, 1.7);
   color: var(--guide-dim);
   opacity: 0.7;
   user-select: none;
@@ -478,6 +485,50 @@ body::after {
 }
 
 /* IDE-style typing frame — calm chrome, readable ghost guide. */
+.ghost-ide {
+  --typing-font: 1.08rem;
+  --typing-line: 1.75;
+  --typing-pad-y: 0.9rem;
+  --typing-pad-x: 1rem;
+  --caret-width: 5px;
+  --marker-w: 0.38rem;
+  --marker-h: 1.45em;
+  --action-pad-y: 0.4rem;
+  --action-pad-x: 0.75rem;
+  --action-font: 0.82rem;
+  --helper-font: 0.95rem;
+}
+
+:root[data-typing-scale="lg"] .ghost-ide,
+:root[data-typing-scale="lg"] .line-helper {
+  --typing-font: 1.28rem;
+  --typing-line: 1.85;
+  --typing-pad-y: 1.05rem;
+  --typing-pad-x: 1.1rem;
+  --caret-width: 6px;
+  --marker-w: 0.46rem;
+  --marker-h: 1.55em;
+  --action-pad-y: 0.5rem;
+  --action-pad-x: 0.9rem;
+  --action-font: 0.95rem;
+  --helper-font: 1.08rem;
+}
+
+:root[data-typing-scale="xl"] .ghost-ide,
+:root[data-typing-scale="xl"] .line-helper {
+  --typing-font: 1.5rem;
+  --typing-line: 1.95;
+  --typing-pad-y: 1.2rem;
+  --typing-pad-x: 1.2rem;
+  --caret-width: 7px;
+  --marker-w: 0.55rem;
+  --marker-h: 1.65em;
+  --action-pad-y: 0.6rem;
+  --action-pad-x: 1rem;
+  --action-font: 1.05rem;
+  --helper-font: 1.2rem;
+}
+
 .ghost-frame {
   position: relative;
   overflow: hidden;
@@ -488,7 +539,22 @@ body::after {
   animation: ide-in 480ms ease-out both;
   transition:
     border-color 200ms ease,
-    box-shadow 240ms ease;
+    box-shadow 240ms ease,
+    background 220ms ease;
+}
+
+:root[data-typing-contrast="high"] .ghost-frame {
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--muted));
+  background: color-mix(in srgb, var(--bg) 78%, #000);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+:root[data-theme="light"][data-typing-contrast="high"] .ghost-frame {
+  background: #fffdf8;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--muted));
 }
 
 :root[data-theme="light"] .ghost-frame {
@@ -566,6 +632,53 @@ body::after {
   animation: ghost-breathe 2.8s ease-in-out infinite;
 }
 
+.ghost-vision-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  padding: 0.12rem;
+}
+
+.ghost-vision-btn {
+  min-width: 2.1rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  padding: 0.28rem 0.4rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.ghost-vision-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+}
+
+.ghost-vision-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.ghost-vision-scale {
+  min-width: 1.5rem;
+  text-align: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
 .ghost-type-actions {
   display: flex;
   flex-wrap: wrap;
@@ -580,15 +693,16 @@ body::after {
   border-radius: 0.45rem;
   border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
   background: var(--bg);
-  padding: 0.3rem 0.65rem;
+  padding: var(--action-pad-y, 0.3rem) var(--action-pad-x, 0.65rem);
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: var(--action-font, 0.75rem);
   color: var(--text);
   cursor: pointer;
   transition:
     border-color 160ms ease,
     background 160ms ease,
-    opacity 160ms ease;
+    opacity 160ms ease,
+    transform 160ms ease;
 }
 
 .ghost-type-action:hover:not(:disabled) {
@@ -610,8 +724,40 @@ body::after {
 
 .ghost-type-action-hint {
   flex: 1 1 10rem;
-  font-size: 0.75rem;
+  font-size: var(--action-font, 0.75rem);
   color: var(--muted);
+}
+
+.ghost-ide-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  padding: 0.45rem 0.85rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--action-font, 0.75rem);
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  animation: status-rise 420ms ease-out both;
+}
+
+.ghost-ide-statusbar strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@keyframes status-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .line-helper-blank {
@@ -628,14 +774,25 @@ body::after {
   pointer-events: none;
   position: absolute;
   z-index: 2;
-  top: 0.95rem;
-  left: 1rem;
+  top: var(--typing-pad-y, 0.95rem);
+  left: var(--typing-pad-x, 1rem);
   margin: 0;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.85rem;
+  font-size: var(--helper-font, 0.85rem);
   font-weight: 600;
   letter-spacing: 0.02em;
   color: color-mix(in srgb, var(--accent) 75%, var(--muted));
+  animation: caret-hint-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes caret-hint-glow {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .ghost-stats {
@@ -669,20 +826,22 @@ body::after {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.9rem 1rem;
+  padding: var(--typing-pad-y, 0.9rem) var(--typing-pad-x, 1rem);
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 1rem;
+  font-size: var(--typing-font, 1.08rem);
+  line-height: var(--typing-line, 1.75);
   color: var(--text);
 }
 
 .fill-blank {
-  width: 6.5rem;
+  width: 7.5rem;
+  min-height: 2.4rem;
   border-radius: 0.45rem;
   border: 1px solid color-mix(in srgb, var(--muted) 40%, transparent);
   background: var(--bg);
-  padding: 0.35rem 0.5rem;
+  padding: 0.4rem 0.55rem;
   color: var(--text);
-  font-size: 1rem;
+  font-size: var(--typing-font, 1.08rem);
   outline: none;
   transition:
     border-color 180ms ease,
@@ -725,38 +884,54 @@ body::after {
   align-items: flex-start;
   overflow-x: auto;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 1.02rem;
-  line-height: 1.7;
+  font-size: var(--typing-font, 1.08rem);
+  line-height: var(--typing-line, 1.75);
 }
 
 .cm-content {
   flex: 1 1 auto;
   white-space: pre;
   caret-color: transparent;
-  padding: 0.85rem 0;
+  padding: var(--typing-pad-y, 0.85rem) 0;
   min-height: 1.7em;
   outline: none;
 }
 
 .cm-line {
-  padding: 0 0.9rem;
+  padding: 0 var(--typing-pad-x, 0.9rem);
 }
 
 .cm-gutters {
   background: color-mix(in srgb, var(--surface) 70%, transparent);
   border-right: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
   color: var(--muted);
+  font-size: calc(var(--typing-font, 1.08rem) * 0.82);
+}
+
+.cm-activeLine {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+:root[data-typing-contrast="high"] .cm-activeLine {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .cm-activeLineGutter {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
+  font-weight: 700;
 }
 
 .cm-editor .cm-cursor {
-  border-left: 4px solid var(--accent);
+  border-left: var(--caret-width, 5px) solid var(--accent);
   margin-left: -2px;
-  height: 1.35em !important;
+  height: var(--marker-h, 1.35em) !important;
+  border-radius: 1px;
+}
+
+:root[data-typing-contrast="high"] .cm-editor .cm-cursor {
+  border-left-color: color-mix(in srgb, var(--accent) 55%, #fff);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 
 .cm-editor .cm-dropCursor {
@@ -820,6 +995,8 @@ body::after {
   .ghost-type-marker,
   .ghost-type-hint,
   .ghost-type-action-hot,
+  .ghost-caret-hint,
+  .ghost-ide-statusbar,
   .line-helper,
   .line-helper-key kbd,
   .line-helper-current .line-helper-mark,
@@ -835,6 +1012,8 @@ body::after {
 :root[data-reduce-motion="true"] .ghost-type-marker,
 :root[data-reduce-motion="true"] .ghost-type-hint,
 :root[data-reduce-motion="true"] .ghost-type-action-hot,
+:root[data-reduce-motion="true"] .ghost-caret-hint,
+:root[data-reduce-motion="true"] .ghost-ide-statusbar,
 :root[data-reduce-motion="true"] .line-helper,
 :root[data-reduce-motion="true"] .line-helper-key kbd,
 :root[data-reduce-motion="true"] .line-helper-current .line-helper-mark,

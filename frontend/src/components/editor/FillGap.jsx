@@ -3,6 +3,7 @@ import { wordsOf } from "./fill.js";
 export default function FillGap({ code, blanks, values, onChange, disabled }) {
   const words = wordsOf(code);
   return (
+    <div className="ghost-ide">
     <div className="ghost-frame">
       <div className="ghost-frame-chrome" aria-hidden="true">
         <span className="ghost-frame-traffic">
@@ -10,7 +11,7 @@ export default function FillGap({ code, blanks, values, onChange, disabled }) {
           <span className="ghost-frame-dot" />
           <span className="ghost-frame-dot" />
         </span>
-        <span className="ghost-frame-title">Ghostline · Fill</span>
+        <span className="ghost-frame-title">editor · fill blanks</span>
         <span className="ghost-frame-badge">blanks</span>
       </div>
       <div className="ghost-frame-body fill-frame">
@@ -58,6 +59,7 @@ export default function FillGap({ code, blanks, values, onChange, disabled }) {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

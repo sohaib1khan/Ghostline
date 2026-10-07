@@ -2,6 +2,7 @@ import { EditorState, Prec } from "@codemirror/state";
 import { Decoration, EditorView, drawSelection, keymap, WidgetType } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { bumpTypingScale, readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
 
 class TypeMarkerWidget extends WidgetType {
@@ -198,8 +199,8 @@ function lineGuide(target, typed) {
 const SETUP = {
   lineNumbers: false,
   foldGutter: false,
-  highlightActiveLine: false,
-  highlightActiveLineGutter: false,
+  highlightActiveLine: true,
+  highlightActiveLineGutter: true,
   autocompletion: false,
   closeBrackets: false,
   closeBracketsKeymap: false,
@@ -209,6 +210,8 @@ const SETUP = {
   indentOnInput: false,
   searchKeymap: false,
 };
+
+const SCALE_LABEL = { md: "M", lg: "L", xl: "XL" };
 
 function isScript(text) {
   return Boolean(text) && (text.includes("\n") || text.length > 80);
@@ -314,6 +317,7 @@ export default function GhostEditor({
   const finished = useRef(false);
   const previous = useRef("");
   const [stats, setStats] = useState({ wpm: 0, accuracy: 100, duration_seconds: 0 });
+  const [prefs, setPrefs] = useState(readPrefs);
   const viewRef = useRef(null);
   notify.current = onChange;
   complete.current = onComplete;
@@ -327,6 +331,21 @@ export default function GhostEditor({
   const canFillWhitespace = locked && Boolean(whitespaceInsert(target, value));
   // Every practice typing box gets Enter/Tab helpers — locked fills from the ghost; free keeps indent.
   const showTypeActions = !disabled;
+  const caretLine = guide ? guide.lineIndex + 1 : value.split("\n").length;
+  const caretCol = guide ? guide.col + 1 : (value.split("\n").pop() || "").length + 1;
+
+  useEffect(() => {
+    function sync() {
+      setPrefs(readPrefs());
+    }
+    window.addEventListener("ghostline-prefs", sync);
+    return () => window.removeEventListener("ghostline-prefs", sync);
+  }, []);
+
+  function changeScale(delta) {
+    setPrefs(bumpTypingScale(delta));
+    queueMicrotask(() => viewRef.current?.focus());
+  }
 
   function runEditorInsert(builder) {
     const view = viewRef.current;
@@ -474,9 +493,9 @@ export default function GhostEditor({
   );
 
   return (
-    <div className={wrong ? "ghost-shake" : undefined}>
+    <div className={`ghost-ide ${wrong ? "ghost-shake" : ""}`}>
       {activeToken ? (
-        <p className="mb-2 rounded-xl border border-accent/20 bg-bg/80 px-3 py-2 text-sm text-muted">
+        <p className="ghost-ide-tip mb-2 rounded-xl border border-accent/20 bg-bg/80 px-3 py-2 text-sm text-muted">
           {activeToken.explain}
         </p>
       ) : null}
@@ -488,7 +507,32 @@ export default function GhostEditor({
             <span className="ghost-frame-dot" />
             <span className="ghost-frame-dot" />
           </span>
-          <span className="ghost-frame-title">Your typing</span>
+          <span className="ghost-frame-title">editor · your typing</span>
+          <div className="ghost-vision-tools" role="group" aria-label="Typing size">
+            <button
+              type="button"
+              className="ghost-vision-btn"
+              aria-label="Smaller typing"
+              title="Smaller typing"
+              disabled={prefs.typingScale === "md"}
+              onClick={() => changeScale(-1)}
+            >
+              A−
+            </button>
+            <span className="ghost-vision-scale" aria-live="polite">
+              {SCALE_LABEL[prefs.typingScale] || "L"}
+            </span>
+            <button
+              type="button"
+              className="ghost-vision-btn"
+              aria-label="Larger typing"
+              title="Larger typing"
+              disabled={prefs.typingScale === "xl"}
+              onClick={() => changeScale(1)}
+            >
+              A+
+            </button>
+          </div>
           <span className="ghost-frame-badge" aria-hidden="true">
             live
           </span>
@@ -555,16 +599,19 @@ export default function GhostEditor({
             theme="none"
           />
         </div>
+        <div className="ghost-ide-statusbar" aria-live="polite">
+          <span className="ghost-caret-legend">
+            <span className="ghost-type-marker ghost-type-marker-inline" aria-hidden="true" />
+            caret
+          </span>
+          <span>
+            Ln <strong>{caretLine}</strong> · Col <strong>{caretCol}</strong>
+          </span>
+          <span>
+            <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%
+          </span>
+        </div>
       </div>
-      <p className="ghost-stats" aria-live="polite">
-        <span className="ghost-caret-legend">
-          <span className="ghost-type-marker ghost-type-marker-inline" aria-hidden="true" />
-          typing cursor
-        </span>
-        <span>
-          <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%
-        </span>
-      </p>
     </div>
   );
 }

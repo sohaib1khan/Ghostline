@@ -39,6 +39,37 @@ export default function PreferencesPage() {
           </label>
         </fieldset>
         <fieldset className="flex flex-col gap-3 border-t border-muted/20 pt-4">
+          <legend className="text-sm font-medium text-text">Vision & typing</legend>
+          <p className="text-sm text-muted">
+            Larger type, a thicker caret, and stronger contrast in the practice editor. You can
+            also change size with A− / A+ on the typing frame.
+          </p>
+          <label className="block text-sm text-muted" htmlFor="typing-scale">
+            Typing size
+            <select
+              id="typing-scale"
+              value={prefs.typingScale}
+              onChange={(event) => setPrefs({ ...prefs, typingScale: event.target.value })}
+              className="mt-1 block w-full rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
+            >
+              <option value="md">Comfortable</option>
+              <option value="lg">Large (recommended)</option>
+              <option value="xl">Extra large</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm" htmlFor="typing-contrast">
+            <input
+              id="typing-contrast"
+              type="checkbox"
+              checked={prefs.highContrastTyping}
+              onChange={(event) =>
+                setPrefs({ ...prefs, highContrastTyping: event.target.checked })
+              }
+            />
+            High-contrast typing frame
+          </label>
+        </fieldset>
+        <fieldset className="flex flex-col gap-3 border-t border-muted/20 pt-4">
           <legend className="text-sm font-medium text-text">Motion</legend>
           <label className="flex items-center gap-2 text-sm" htmlFor="reduce-motion">
             <input
