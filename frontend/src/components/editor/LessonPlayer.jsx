@@ -435,6 +435,7 @@ export default function LessonPlayer({
                 tokens={exercise.tokens || []}
                 disabled={pending || expired || Boolean(result?.passed)}
                 onComplete={(stats) => submit(exercise.code, stats)}
+                indentUnit={lesson.track_slug === "javascript" ? 2 : 4}
               />
             )}
           </div>
@@ -520,7 +521,7 @@ export default function LessonPlayer({
         </>
       )}
       {message ? (
-        <p className="mt-3 text-sm text-error" role="status">
+        <p className="mt-3 practice-check-fail" role="status">
           {message}
         </p>
       ) : null}

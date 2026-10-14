@@ -44,6 +44,9 @@ class NormalizeIn(BaseModel):
     trim: bool = True
     equivalent_quotes: bool = False
     case_sensitive: bool = True
+    # Soft matching for typed languages: 2-space vs 4-space levels, [1,2] vs [1, 2].
+    indent_levels: bool = False
+    comma_space: bool = False
 
 
 class RuleIn(BaseModel):

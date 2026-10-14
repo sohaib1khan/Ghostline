@@ -50,15 +50,83 @@ def validate_pattern(pattern: str) -> None:
             raise PatternError("That regex can take too long. Simplify the repetition.")
 
 
+def _comma_space(text: str) -> str:
+    # [1,2] and print(x,y) → spaced forms learners often mistype when zoomed.
+    return re.sub(r",[ \t]*", ", ", text)
+
+
+def _indent_levels(text: str) -> str:
+    """Map leading spaces/tabs to indent levels so 2-space and 4-space match.
+
+    Near-miss widths (e.g. 3 spaces for a 4-space level) round to the nearest level.
+    Structure still matters — zero indent will not match a nested block.
+    """
+    lines = text.split("\n")
+    unit = 4
+    for line in lines:
+        if not line.strip():
+            continue
+        leading = len(line) - len(line.lstrip(" \t"))
+        if leading <= 0:
+            continue
+        expanded = line[:leading].replace("\t", "    ")
+        width = len(expanded)
+        if width % 4 == 0:
+            unit = 4
+        elif width % 2 == 0:
+            unit = 2
+        break
+    out: list[str] = []
+    for line in lines:
+        if not line.strip():
+            out.append("")
+            continue
+        stripped = line.lstrip(" \t")
+        leading = line[: len(line) - len(stripped)].replace("\t", "    ")
+        width = len(leading)
+        level = (width + unit // 2) // unit
+        out.append(("\t" * level) + stripped)
+    return "\n".join(out)
+
+
 def normalize_text(value: str, options: dict) -> str:
     text = value.translate(QUOTE_MAP) if options.get("equivalent_quotes") else value
     if options.get("trim", True):
         text = text.strip()
+    # Indent levels must run before collapse_whitespace, which would flatten newlines.
+    if options.get("indent_levels"):
+        text = _indent_levels(text)
+    if options.get("comma_space"):
+        text = _comma_space(text)
     if options.get("collapse_whitespace"):
         text = re.sub(r"\s+", " ", text)
     if not options.get("case_sensitive", True):
         text = text.casefold()
     return text
+
+
+def with_typed_language_normalize(data: dict, track_slug: str | None) -> dict:
+    """Soften invisible whitespace for typed languages without editing seed YAML."""
+    slug = (track_slug or "").strip().lower()
+    if slug not in {"python", "go", "csharp", "java"}:
+        return data
+    payload = dict(data or {})
+    check = dict(payload.get("check") or {})
+    normalize = dict(check.get("normalize") or {})
+    normalize.setdefault("comma_space", True)
+    normalize.setdefault("equivalent_quotes", True)
+    answers = check.get("accepted_answers") or []
+    multiline = any("\n" in str(item) for item in answers) or "\n" in str(payload.get("code") or "")
+    # Multi-line blocks: keep newlines and compare indent *levels* (2-space ≈ 4-space).
+    # Missing nest levels still fail — zero indent will not match an indented block.
+    if multiline:
+        normalize["collapse_whitespace"] = False
+        normalize.setdefault("indent_levels", True)
+    elif not normalize.get("collapse_whitespace"):
+        normalize.setdefault("indent_levels", True)
+    check["normalize"] = normalize
+    payload["check"] = check
+    return payload
 
 
 def check_attempt(data: dict, attempt: str, output: str | None = None) -> CheckOutcome:

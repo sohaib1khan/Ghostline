@@ -2,8 +2,9 @@ import { EditorState, Prec } from "@codemirror/state";
 import { Decoration, EditorView, drawSelection, keymap, WidgetType } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bumpTypingScale, readPrefs } from "../../prefs.js";
+import { bumpTypingScale, readPrefs, writePrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
+import { indentDepth, whitespaceGuides } from "./whitespace.js";
 
 class TypeMarkerWidget extends WidgetType {
   toDOM() {
@@ -99,11 +100,11 @@ function whitespaceInsert(target, current) {
   return rest.slice(0, index);
 }
 
-function tabInsert(target, current) {
+function tabInsert(target, current, indentUnit = 4) {
   if (target) {
     return indentFromGhost(target, current) || whitespaceInsert(target, current);
   }
-  return "  ";
+  return " ".repeat(Math.max(2, indentUnit || 4));
 }
 
 function dispatchInsert(view, insert) {
@@ -309,6 +310,7 @@ export default function GhostEditor({
   tokens = [],
   disabled = false,
   onComplete,
+  indentUnit = 4,
 }) {
   const notify = useRef(onChange);
   const complete = useRef(onComplete);
@@ -319,6 +321,7 @@ export default function GhostEditor({
   const [stats, setStats] = useState({ wpm: 0, accuracy: 100, duration_seconds: 0 });
   const [prefs, setPrefs] = useState(readPrefs);
   const viewRef = useRef(null);
+  const unit = Math.max(2, Number(indentUnit) || 4);
   notify.current = onChange;
   complete.current = onComplete;
   const script = isScript(target) || isScript(value);
@@ -333,6 +336,8 @@ export default function GhostEditor({
   const showTypeActions = !disabled;
   const caretLine = guide ? guide.lineIndex + 1 : value.split("\n").length;
   const caretCol = guide ? guide.col + 1 : (value.split("\n").pop() || "").length + 1;
+  const indent = indentDepth(value, unit);
+  const showSpaces = prefs.showWhitespace !== false;
 
   useEffect(() => {
     function sync() {
@@ -414,13 +419,14 @@ export default function GhostEditor({
             key: "Tab",
             run(view) {
               const current = view.state.doc.toString();
-              const insert = tabInsert(target, current);
+              const insert = tabInsert(target, current, unit);
               dispatchInsert(view, insert);
               return true;
             },
           },
         ]),
       ),
+      ...(showSpaces ? [whitespaceGuides(unit)] : []),
       EditorView.updateListener.of((update) => {
         if (locked && update.selectionSet && !update.docChanged) {
           const length = update.state.doc.length;
@@ -480,7 +486,7 @@ export default function GhostEditor({
         return Decoration.set(marks, true);
       }),
     ];
-  }, [disabled, locked, target]);
+  }, [disabled, locked, target, unit, showSpaces]);
 
   const activeToken = target ? tokenAt(target, tokens, sharedPrefix(target, value)) : null;
   const wrong = Boolean(target) && value.length > 0 && !target.startsWith(value);
@@ -508,7 +514,7 @@ export default function GhostEditor({
             <span className="ghost-frame-dot" />
           </span>
           <span className="ghost-frame-title">editor · your typing</span>
-          <div className="ghost-vision-tools" role="group" aria-label="Typing size">
+          <div className="ghost-vision-tools" role="group" aria-label="Typing size and spaces">
             <button
               type="button"
               className="ghost-vision-btn"
@@ -532,6 +538,16 @@ export default function GhostEditor({
             >
               A+
             </button>
+            <button
+              type="button"
+              className={`ghost-vision-btn ${showSpaces ? "ghost-vision-btn-on" : ""}`}
+              aria-label={showSpaces ? "Hide space marks" : "Show space marks"}
+              aria-pressed={showSpaces}
+              title={showSpaces ? "Hide · space marks" : "Show · space marks"}
+              onClick={() => setPrefs(writePrefs({ ...prefs, showWhitespace: !showSpaces }))}
+            >
+              ··
+            </button>
           </div>
           <span className="ghost-frame-badge" aria-hidden="true">
             live
@@ -551,7 +567,7 @@ export default function GhostEditor({
               type="button"
               className={`ghost-type-action ${locked && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""}`}
               disabled={disabled || (locked && !nextIsIndent && !canFillWhitespace)}
-              onClick={() => runEditorInsert(tabInsert)}
+              onClick={() => runEditorInsert((t, c) => tabInsert(t, c, unit))}
             >
               Tab indent
             </button>
@@ -573,7 +589,7 @@ export default function GhostEditor({
                   : nextIsIndent
                     ? "Press Tab or Space for indentation"
                     : "Type the highlighted key from the guide"
-                : "Enter keeps indent · Tab inserts two spaces"}
+                : `Enter keeps indent · Tab inserts ${unit} spaces`}
             </span>
           </div>
         ) : null}
@@ -606,6 +622,20 @@ export default function GhostEditor({
           </span>
           <span>
             Ln <strong>{caretLine}</strong> · Col <strong>{caretCol}</strong>
+          </span>
+          <span
+            className={`ghost-indent-meter ${indent.level > 0 ? "ghost-indent-meter-on" : ""}`}
+            title={`${indent.spaces} leading spaces · level ${indent.level} (${indent.unit}-space)`}
+          >
+            indent <strong>{indent.level}</strong>
+            <span className="ghost-indent-bars" aria-hidden="true">
+              {Array.from({ length: Math.min(8, Math.max(0, indent.level)) }, (_, i) => (
+                <span key={i} className="ghost-indent-bar" />
+              ))}
+            </span>
+            <span className="ghost-indent-spaces">
+              {indent.spaces} sp
+            </span>
           </span>
           <span>
             <strong>{stats.wpm}</strong> wpm · <strong>{stats.accuracy}</strong>%

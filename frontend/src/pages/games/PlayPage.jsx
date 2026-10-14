@@ -916,6 +916,7 @@ export default function PlayPage() {
                   tokens={round.tokens || []}
                   disabled={locked}
                   onComplete={(stats) => submit(round.code, stats)}
+                  indentUnit={round.track_slug === "javascript" ? 2 : 4}
                 />
               )}
             </div>

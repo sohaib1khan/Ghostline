@@ -12,7 +12,7 @@ from app.models.practice import PracticeEvent
 from app.models.progress import ExerciseProgress, UserStats
 from app.models.track import Track, UserTrackAccess
 from app.models.user import User
-from app.services.check_engine import check_attempt
+from app.services.check_engine import check_attempt, with_typed_language_normalize
 from app.services.content_store import ContentError
 from app.services.tracks import list_visible_tracks
 
@@ -90,7 +90,16 @@ async def submit_check(
         )
         if access is None:
             raise ContentError(403, "You do not have access to this track")
-    outcome = check_attempt(exercise.data or {}, attempt, output)
+    track_slug = (
+        exercise.lesson.module.track.slug
+        if exercise.lesson and exercise.lesson.module and exercise.lesson.module.track
+        else None
+    )
+    outcome = check_attempt(
+        with_typed_language_normalize(exercise.data or {}, track_slug),
+        attempt,
+        output,
+    )
     progress = await session.scalar(
         select(ExerciseProgress).where(
             ExerciseProgress.user_id == user.id,

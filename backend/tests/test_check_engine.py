@@ -6,6 +6,7 @@ from app.services.check_engine import (
     check_attempt,
     normalize_text,
     validate_pattern,
+    with_typed_language_normalize,
 )
 
 NORMALIZE = {
@@ -119,3 +120,38 @@ def test_safe_pattern_is_accepted_and_nested_repeat_is_rejected() -> None:
 def test_empty_rules_in_rules_mode_fail() -> None:
     outcome = check_attempt(exercise([], mode="rules"), "ls")
     assert outcome.passed is False
+
+
+def test_indent_levels_equate_two_and_four_space() -> None:
+    options = {
+        "collapse_whitespace": False,
+        "trim": True,
+        "indent_levels": True,
+        "comma_space": True,
+        "equivalent_quotes": True,
+        "case_sensitive": True,
+    }
+    four = "for x in [1, 2]:\n    for y in [\"a\", \"b\"]:\n        print(x, y)"
+    two = "for x in [1, 2]:\n  for y in [\"a\", \"b\"]:\n    print(x, y)"
+    tight = "for x in [1,2]:\n    for y in [\"a\", \"b\"]:\n        print(x, y)"
+    assert normalize_text(four, options) == normalize_text(two, options)
+    assert normalize_text(four, options) == normalize_text(tight, options)
+    missing = "for x in [1, 2]:\nfor y in [\"a\", \"b\"]:\n    print(x, y)"
+    assert normalize_text(four, options) != normalize_text(missing, options)
+
+
+def test_typed_language_normalize_softens_multiline_python() -> None:
+    data = exercise(
+        [],
+        answers=["for x in [1, 2]:\n    for y in [\"a\", \"b\"]:\n        print(x, y)"],
+        mode="answers",
+    )
+    data["check"]["normalize"]["collapse_whitespace"] = True
+    soft = with_typed_language_normalize(data, "python")
+    assert soft["check"]["normalize"]["collapse_whitespace"] is False
+    assert soft["check"]["normalize"]["indent_levels"] is True
+    assert soft["check"]["normalize"]["comma_space"] is True
+    two_space = "for x in [1,2]:\n  for y in [\"a\", \"b\"]:\n    print(x, y)"
+    assert check_attempt(soft, two_space).passed is True
+    flat = "for x in [1, 2]:\nfor y in [\"a\", \"b\"]:\n    print(x, y)"
+    assert check_attempt(soft, flat).passed is False

@@ -68,6 +68,17 @@ export default function PreferencesPage() {
             />
             High-contrast typing frame
           </label>
+          <label className="flex items-center gap-2 text-sm" htmlFor="show-whitespace">
+            <input
+              id="show-whitespace"
+              type="checkbox"
+              checked={prefs.showWhitespace !== false}
+              onChange={(event) =>
+                setPrefs({ ...prefs, showWhitespace: event.target.checked })
+              }
+            />
+            Show spaces and indent levels (· marks)
+          </label>
         </fieldset>
         <fieldset className="flex flex-col gap-3 border-t border-muted/20 pt-4">
           <legend className="text-sm font-medium text-text">Motion</legend>

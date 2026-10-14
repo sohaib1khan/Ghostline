@@ -10,6 +10,8 @@ export const PREF_DEFAULTS = {
   // hunt for a preference before the first lesson feels readable.
   typingScale: "lg",
   highContrastTyping: true,
+  // DECISION: show · for spaces and indent bars so nested blocks are visible.
+  showWhitespace: true,
 };
 
 function clampScale(value) {
@@ -29,6 +31,10 @@ export function readPrefs() {
         parsed.highContrastTyping === undefined
           ? PREF_DEFAULTS.highContrastTyping
           : Boolean(parsed.highContrastTyping),
+      showWhitespace:
+        parsed.showWhitespace === undefined
+          ? PREF_DEFAULTS.showWhitespace
+          : Boolean(parsed.showWhitespace),
     };
   } catch {
     return { ...PREF_DEFAULTS };
@@ -39,6 +45,7 @@ function applyDom(prefs) {
   document.documentElement.dataset.reduceMotion = prefs.reduceMotion ? "true" : "false";
   document.documentElement.dataset.typingScale = prefs.typingScale;
   document.documentElement.dataset.typingContrast = prefs.highContrastTyping ? "high" : "normal";
+  document.documentElement.dataset.showWhitespace = prefs.showWhitespace ? "true" : "false";
 }
 
 export function writePrefs(next) {
@@ -48,6 +55,7 @@ export function writePrefs(next) {
     volume: Math.min(1, Math.max(0, Number(next.volume) || 0)),
     typingScale: clampScale(next.typingScale),
     highContrastTyping: Boolean(next.highContrastTyping),
+    showWhitespace: Boolean(next.showWhitespace),
   };
   localStorage.setItem(KEY, JSON.stringify(prefs));
   applyDom(prefs);

@@ -32,6 +32,8 @@ function blankExercise(type = "recall") {
         trim: true,
         equivalent_quotes: false,
         case_sensitive: true,
+        indent_levels: false,
+        comma_space: false,
       },
       rules: [],
     },
@@ -390,11 +392,13 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
               ["collapse_whitespace", "Collapse spaces"],
               ["equivalent_quotes", "Equivalent quotes"],
               ["case_sensitive", "Case sensitive"],
+              ["indent_levels", "Indent levels (2≈4 spaces)"],
+              ["comma_space", "Comma spacing"],
             ].map(([key, label]) => (
               <label key={key} className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={form.check.normalize[key]}
+                  checked={Boolean(form.check.normalize[key])}
                   onChange={(event) => updateNormalize({ [key]: event.target.checked })}
                 />
                 {label}

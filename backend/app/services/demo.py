@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.content import Exercise, Lesson, Module
 from app.models.track import Track
-from app.services.check_engine import check_attempt
+from app.services.check_engine import check_attempt, with_typed_language_normalize
 from app.services.content_store import ContentError, learner_lesson
 
 
@@ -95,7 +95,12 @@ async def demo_check(
     )
     if row is None or row.status != "published" or not _published_demo(row.lesson):
         raise ContentError(404, "Exercise not found")
-    outcome = check_attempt(row.data or {}, attempt, output)
+    track_slug = row.lesson.module.track.slug if row.lesson and row.lesson.module else None
+    outcome = check_attempt(
+        with_typed_language_normalize(row.data or {}, track_slug),
+        attempt,
+        output,
+    )
     # DECISION: a demo check is not saved. Account XP and streaks stay on
     # POST /api/check. The browser keeps demo progress in localStorage.
     return {
