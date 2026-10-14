@@ -1,4 +1,4 @@
-/** Visible spaces, tabs, and indent depth marks for low-vision typing. */
+/** Quiet indent guides: soft · for spaces, thin rail at each indent level. */
 
 import { Decoration, EditorView } from "@codemirror/view";
 
@@ -17,7 +17,7 @@ function leadingWidth(lineText) {
 }
 
 /**
- * Decorate leading whitespace so spaces and tabs are visible.
+ * Decorate leading whitespace so nesting is readable without visual noise.
  * @param {number} indentUnit
  */
 export function whitespaceGuides(indentUnit = 4) {
@@ -29,42 +29,25 @@ export function whitespaceGuides(indentUnit = 4) {
       const line = state.doc.line(lineNumber);
       const text = line.text;
       let col = 0;
-      let i = 0;
-      for (; i < text.length; i += 1) {
+      for (let i = 0; i < text.length; i += 1) {
         const ch = text[i];
         const from = line.from + i;
         if (ch === " ") {
-          const guide = col % unit === 0;
+          const atUnit = col % unit === 0;
           marks.push(
             Decoration.mark({
-              class: guide ? "ws-space ws-space-guide" : "ws-space",
+              class: atUnit ? "ws-space ws-guide" : "ws-space",
             }).range(from, from + 1),
           );
           col += 1;
           continue;
         }
         if (ch === "\t") {
-          marks.push(Decoration.mark({ class: "ws-tab" }).range(from, from + 1));
+          marks.push(Decoration.mark({ class: "ws-tab ws-guide" }).range(from, from + 1));
           col += unit;
           continue;
         }
         break;
-      }
-      const depth = leadingWidth(text);
-      const level = Math.floor(depth / unit);
-      if (text.trim() && level > 0 && i < text.length) {
-        marks.push(
-          Decoration.mark({
-            class: `ws-indent-edge ws-indent-l${Math.min(8, level)}`,
-          }).range(line.from + i, line.from + i + 1),
-        );
-      }
-      if (level > 0) {
-        marks.push(
-          Decoration.line({
-            class: `ws-line-indent ws-line-l${Math.min(8, level)}`,
-          }).range(line.from),
-        );
       }
     }
     return Decoration.set(marks, true);

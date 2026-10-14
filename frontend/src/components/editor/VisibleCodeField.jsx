@@ -158,17 +158,12 @@ export default function VisibleCodeField({
           </span>
           <span
             className={`ghost-indent-meter ${indent.level > 0 ? "ghost-indent-meter-on" : ""}`}
-            title={`${indent.spaces} leading spaces · level ${indent.level} (${indent.unit}-space)`}
+            title={`${indent.spaces} spaces · Tab inserts ${unit}`}
           >
-            indent <strong>{indent.level}</strong>
-            <span className="ghost-indent-bars" aria-hidden="true">
-              {Array.from({ length: Math.min(8, Math.max(0, indent.level)) }, (_, i) => (
-                <span key={i} className="ghost-indent-bar" />
-              ))}
-            </span>
-            <span className="ghost-indent-spaces">{indent.spaces} sp</span>
+            Level <strong>{indent.level}</strong>
+            <span aria-hidden="true">·</span>
+            <span>{indent.spaces} spaces</span>
           </span>
-          <span className="ghost-indent-spaces">{unit}-space tab</span>
         </div>
       </div>
     </div>

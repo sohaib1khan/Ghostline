@@ -63,14 +63,10 @@ export default function WorkedExample({
       <pre className="example-code mt-3 overflow-x-auto font-mono text-sm leading-relaxed">
         {lines.slice(0, shown).map((line, index) => {
           const active = tokens.find((token) => line.includes(token.match));
-          const depth = (line.match(/^[ \t]*/)?.[0] || "").replace(/\t/g, "    ").length;
-          const level = Math.floor(depth / 4);
           return (
             <motion.div
               key={`${index}-${line}`}
-              className={`example-line ${active ? "example-line-hot" : ""} ${
-                level > 0 ? `example-indent-l${Math.min(4, level)}` : ""
-              }`}
+              className={`example-line ${active ? "example-line-hot" : ""}`}
               initial={reduce ? false : { opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
