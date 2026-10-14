@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import ReactMarkdown from "react-markdown";
+import { visibleCodeChildren } from "./visibleCode.jsx";
 
 const SAFE_LINK = /^(https?:|mailto:)/i;
 
@@ -29,8 +30,8 @@ export default function MarkdownView({ text }) {
             <code className="rounded bg-bg px-1 font-mono text-[0.95em]">{children}</code>
           ),
           pre: ({ children }) => (
-            <pre className="mb-3 overflow-x-auto rounded-xl bg-bg p-3 font-mono text-sm">
-              {children}
+            <pre className="markdown-code-visible mb-3 overflow-x-auto rounded-xl bg-bg p-3 font-mono text-sm">
+              {visibleCodeChildren(children)}
             </pre>
           ),
           h1: ({ children }) => <h2 className="mb-2 text-xl font-semibold">{children}</h2>,

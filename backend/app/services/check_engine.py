@@ -105,11 +105,18 @@ def normalize_text(value: str, options: dict) -> str:
     return text
 
 
+# Every learning track — soft indent/comma matching is language-agnostic structure help.
+TRACK_NORMALIZE_SLUGS = frozenset(
+    {"bash", "python", "go", "javascript", "sql", "csharp", "java"}
+)
+
+
 def with_typed_language_normalize(data: dict, track_slug: str | None) -> dict:
-    """Soften invisible whitespace for typed languages without editing seed YAML."""
+    """Soften invisible whitespace for all tracks without editing seed YAML."""
     slug = (track_slug or "").strip().lower()
-    if slug not in {"python", "go", "csharp", "java"}:
+    if slug and slug not in TRACK_NORMALIZE_SLUGS:
         return data
+    # Empty slug still softens (demo / unknown) so learners never hit hard space traps.
     payload = dict(data or {})
     check = dict(payload.get("check") or {})
     normalize = dict(check.get("normalize") or {})

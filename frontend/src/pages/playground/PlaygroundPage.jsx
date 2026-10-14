@@ -1,6 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
+import VisibleCodeField from "../../components/editor/VisibleCodeField.jsx";
+import { indentUnitForPath } from "../../components/editor/indent.js";
 import { readPrefs } from "../../prefs.js";
 import { PYTHON_FLASK_STARTER } from "./flaskStarter.js";
 
@@ -1079,42 +1081,17 @@ export default function PlaygroundPage() {
               </div>
             ) : (
               <>
-            <textarea
-              value={content}
-              onChange={(event) => {
-                setContent(event.target.value);
-                setDirty(true);
-              }}
-              onKeyDown={(event) => {
-                const area = event.currentTarget;
-                const start = area.selectionStart;
-                const end = area.selectionEnd;
-                if (event.key === "Tab") {
-                  event.preventDefault();
-                  const next = `${content.slice(0, start)}  ${content.slice(end)}`;
+            <div className="playground-editor mt-3">
+              <VisibleCodeField
+                value={content}
+                indentUnit={indentUnitForPath(path)}
+                disabled={pending}
+                onChange={(next) => {
                   setContent(next);
                   setDirty(true);
-                  queueMicrotask(() => {
-                    area.selectionStart = area.selectionEnd = start + 2;
-                  });
-                  return;
-                }
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  const lineStart = content.lastIndexOf("\n", start - 1) + 1;
-                  const indent = /^[ \t]*/.exec(content.slice(lineStart, start))?.[0] || "";
-                  const insert = `\n${indent}`;
-                  const next = `${content.slice(0, start)}${insert}${content.slice(end)}`;
-                  setContent(next);
-                  setDirty(true);
-                  queueMicrotask(() => {
-                    area.selectionStart = area.selectionEnd = start + insert.length;
-                  });
-                }
-              }}
-              spellCheck={false}
-              className="playground-editor mt-3 h-72 w-full rounded-xl border border-muted/20 bg-bg p-3 font-mono text-sm leading-relaxed"
-            />
+                }}
+              />
+            </div>
             <div className="playground-terminal mt-3 overflow-hidden rounded-xl border border-muted/20 bg-bg">
               <pre className="max-h-48 overflow-auto p-3 font-mono text-xs text-muted whitespace-pre-wrap">
                 {output || "Output shows here after Run or a bash command."}

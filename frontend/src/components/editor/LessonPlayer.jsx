@@ -18,6 +18,7 @@ import XpPop from "../feedback/XpPop.jsx";
 import FillGap from "./FillGap.jsx";
 import { fillAnswer } from "./fill.js";
 import GhostEditor from "./GhostEditor.jsx";
+import { indentUnitForTrack } from "./indent.js";
 import { runInSandbox } from "./sandbox.js";
 import SimulatedTerminal from "./SimulatedTerminal.jsx";
 
@@ -435,7 +436,7 @@ export default function LessonPlayer({
                 tokens={exercise.tokens || []}
                 disabled={pending || expired || Boolean(result?.passed)}
                 onComplete={(stats) => submit(exercise.code, stats)}
-                indentUnit={lesson.track_slug === "javascript" ? 2 : 4}
+                indentUnit={indentUnitForTrack(lesson.track_slug)}
               />
             )}
           </div>

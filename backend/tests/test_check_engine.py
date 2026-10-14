@@ -155,3 +155,17 @@ def test_typed_language_normalize_softens_multiline_python() -> None:
     assert check_attempt(soft, two_space).passed is True
     flat = "for x in [1, 2]:\nfor y in [\"a\", \"b\"]:\n    print(x, y)"
     assert check_attempt(soft, flat).passed is False
+
+
+def test_typed_language_normalize_applies_to_every_track() -> None:
+    snippet = "if (ok) {\n  return 1;\n}"
+    data = exercise([], answers=[snippet], mode="answers")
+    data["check"]["normalize"]["collapse_whitespace"] = True
+    for slug in ("javascript", "bash", "sql", "go", "csharp", "java", "python", ""):
+        soft = with_typed_language_normalize(data, slug or None)
+        assert soft["check"]["normalize"]["indent_levels"] is True
+        assert soft["check"]["normalize"]["comma_space"] is True
+    assert check_attempt(
+        with_typed_language_normalize(data, "javascript"),
+        "if (ok) {\n    return 1;\n}",
+    ).passed is True

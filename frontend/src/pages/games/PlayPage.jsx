@@ -6,6 +6,7 @@ import WorkedExample from "../../components/content/WorkedExample.jsx";
 import FillGap from "../../components/editor/FillGap.jsx";
 import { fillAnswer } from "../../components/editor/fill.js";
 import GhostEditor from "../../components/editor/GhostEditor.jsx";
+import { indentUnitForTrack } from "../../components/editor/indent.js";
 import XpPop from "../../components/feedback/XpPop.jsx";
 import { readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
@@ -916,7 +917,7 @@ export default function PlayPage() {
                   tokens={round.tokens || []}
                   disabled={locked}
                   onComplete={(stats) => submit(round.code, stats)}
-                  indentUnit={round.track_slug === "javascript" ? 2 : 4}
+                  indentUnit={indentUnitForTrack(round.track_slug)}
                 />
               )}
             </div>

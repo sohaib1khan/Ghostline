@@ -1,6 +1,27 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+/** Render leading spaces/tabs as visible · / ⇥ marks for low-vision nesting. */
+function VisibleLine({ text }) {
+  const raw = text || " ";
+  let i = 0;
+  const marks = [];
+  while (i < raw.length && (raw[i] === " " || raw[i] === "\t")) {
+    marks.push(
+      <span key={`ws-${i}`} className={raw[i] === "\t" ? "ws-ex-tab" : "ws-ex-space"} aria-hidden="true">
+        {raw[i] === "\t" ? "⇥" : "·"}
+      </span>,
+    );
+    i += 1;
+  }
+  return (
+    <span className="ws-ex-line">
+      {marks}
+      <span>{raw.slice(i) || (marks.length ? "" : " ")}</span>
+    </span>
+  );
+}
+
 /**
  * Guided study step before recall/challenge. Lines reveal, then the learner starts.
  */
@@ -39,19 +60,23 @@ export default function WorkedExample({
       <p className="mt-1 text-sm text-muted">
         Read it once. Tokens light up as the lines settle — then type it yourself.
       </p>
-      <pre className="mt-3 overflow-x-auto font-mono text-sm leading-relaxed">
+      <pre className="example-code mt-3 overflow-x-auto font-mono text-sm leading-relaxed">
         {lines.slice(0, shown).map((line, index) => {
           const active = tokens.find((token) => line.includes(token.match));
+          const depth = (line.match(/^[ \t]*/)?.[0] || "").replace(/\t/g, "    ").length;
+          const level = Math.floor(depth / 4);
           return (
             <motion.div
               key={`${index}-${line}`}
-              className={`example-line ${active ? "example-line-hot" : ""}`}
+              className={`example-line ${active ? "example-line-hot" : ""} ${
+                level > 0 ? `example-indent-l${Math.min(4, level)}` : ""
+              }`}
               initial={reduce ? false : { opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
             >
               <span className="mr-3 select-none text-muted/50">{index + 1}</span>
-              <span>{line || " "}</span>
+              <VisibleLine text={line} />
               {active ? (
                 <span className="mt-1 block pl-8 text-xs text-muted">{active.explain}</span>
               ) : null}

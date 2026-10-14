@@ -15,7 +15,11 @@ from app.models.content import Exercise, Lesson, Module
 from app.models.practice import PracticeEvent
 from app.models.progress import UserStats
 from app.models.user import User
-from app.services.check_engine import check_attempt
+from app.services.check_engine import (
+    check_attempt,
+    normalize_text,
+    with_typed_language_normalize,
+)
 from app.services.content_store import ContentError
 from app.services.game_guides import (
     crossword_tokens,
@@ -529,7 +533,15 @@ def _public_round(game: str, exercise: Exercise, *, pool_size: int, extra: dict 
         body["prompt"] = "Put the lines back in order."
         body["lines"] = [{"id": index, "text": text} for index, text in enumerate(shuffled)]
         body["_ordered"] = usable
-        body["indent_matters"] = track_slug in {"python", "go", "csharp", "java"}
+        body["indent_matters"] = track_slug in {
+            "python",
+            "go",
+            "csharp",
+            "java",
+            "javascript",
+            "bash",
+            "sql",
+        }
         body["hints"] = merge_hints(
             starter_hints(game, track_slug),
             [
@@ -918,7 +930,7 @@ async def score_round(
     if track.id not in {item.id for item in allowed}:
         raise ContentError(403, "You do not have access to this track")
 
-    data = exercise.data or {}
+    data = with_typed_language_normalize(exercise.data or {}, track.slug)
     if phase == "reveal":
         answer = _reveal_answer(game, data, exercise.id)
         return {
@@ -936,6 +948,7 @@ async def score_round(
     hint = None
     failed_kind = None
     extra: dict = {}
+    soft_indent = {"trim": True, "indent_levels": True, "comma_space": True, "collapse_whitespace": False}
 
     if game in {
         "speed_drill",
@@ -1025,7 +1038,9 @@ async def score_round(
             failed_kind = "answers"
     elif game == "code_scramble":
         usable = [line for line in str(data.get("code") or "").splitlines() if line.strip()]
-        passed = _normalize_line(attempt) == _normalize_line("\n".join(usable))
+        passed = normalize_text(attempt, soft_indent) == normalize_text(
+            "\n".join(usable), soft_indent
+        )
         if not passed:
             hint = "Watch indentation and line order."
             failed_kind = "answers"
