@@ -7,7 +7,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.28.3-alpine
+FROM nginx:1.31.0-alpine
 
 # DECISION: the official image pins extra modules to nginx 1.28.3-r1, which
 # blocks the patched 1.28.3 package. This server does not load those modules.
