@@ -770,6 +770,17 @@ body::after {
   color: var(--accent);
 }
 
+.ghost-hint-banner {
+  border-radius: 0.65rem;
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  padding: 0.65rem 0.85rem;
+  font-size: var(--helper-font, 1rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
 /*
   Indent visibility — one quiet system:
   soft · for each space, thin rail only at each indent level.

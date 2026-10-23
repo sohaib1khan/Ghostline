@@ -433,6 +433,12 @@ export default function LessonPlayer({
                 value={draft}
                 onChange={setDraft}
                 target={exercise.type === "trace" ? exercise.code : ""}
+                ghost={
+                  (exercise.type === "recall" || exercise.type === "challenge") &&
+                  hintsShown > 0
+                    ? exercise.ghost || ""
+                    : ""
+                }
                 tokens={exercise.tokens || []}
                 disabled={pending || expired || Boolean(result?.passed)}
                 onComplete={(stats) => submit(exercise.code, stats)}
@@ -443,7 +449,8 @@ export default function LessonPlayer({
           {exercise.hints?.length ? (
             <div className="mt-4">
               <p className="text-xs text-muted">
-                Stuck? Open a hint — each one costs a little XP when you pass.
+                Stuck? Open a hint — it also turns on a typing ghost for the next key. Each hint
+                costs a little XP when you pass.
               </p>
               <ul className="mt-2 flex flex-col gap-1">
                 {exercise.hints.slice(0, hintsShown).map((hint, hintIndex) =>
@@ -470,6 +477,10 @@ export default function LessonPlayer({
                   onClick={() => setHintsShown((count) => count + 1)}
                 >
                   Hint ({hintsShown}/{exercise.hints.length})
+                  {(exercise.type === "recall" || exercise.type === "challenge") &&
+                  hintsShown === 0
+                    ? " · show ghost"
+                    : ""}
                 </button>
               ) : hintsShown > 0 ? (
                 <p className="mt-2 text-xs text-muted">All hints are open.</p>

@@ -101,10 +101,11 @@ function whitespaceInsert(target, current) {
 }
 
 function tabInsert(target, current, indentUnit = 4) {
-  if (target) {
-    return indentFromGhost(target, current) || whitespaceInsert(target, current);
+  const pad = " ".repeat(Math.max(2, indentUnit || 4));
+  if (target && target.startsWith(current)) {
+    return indentFromGhost(target, current) || whitespaceInsert(target, current) || pad;
   }
-  return " ".repeat(Math.max(2, indentUnit || 4));
+  return pad;
 }
 
 function dispatchInsert(view, insert) {
@@ -307,6 +308,8 @@ export default function GhostEditor({
   value,
   onChange,
   target = "",
+  /** Soft guide text (hint ghost) — shows LineHelper without locking free typing. */
+  ghost = "",
   tokens = [],
   disabled = false,
   onComplete,
@@ -324,15 +327,24 @@ export default function GhostEditor({
   const unit = Math.max(2, Number(indentUnit) || 4);
   notify.current = onChange;
   complete.current = onComplete;
-  const script = isScript(target) || isScript(value);
+  // Trace locks to `target`. Hint ghost guides with `ghost` but still allows free typing + Check.
+  const guideText = target || ghost || "";
   const locked = Boolean(target);
-  const guide = useMemo(() => (locked ? lineGuide(target, value) : null), [locked, target, value]);
-  const nextIsEnter = locked ? guide?.nextChar === "\n" : true;
-  const nextIsIndent = locked
-    ? guide?.nextChar === " " || guide?.nextChar === "\t" || Boolean(indentFromGhost(target, value))
-    : true;
-  const canFillWhitespace = locked && Boolean(whitespaceInsert(target, value));
-  // Every practice typing box gets Enter/Tab helpers — locked fills from the ghost; free keeps indent.
+  const guided = Boolean(guideText);
+  const onPath = guided && guideText.startsWith(value);
+  const script = isScript(guideText) || isScript(value);
+  const guide = useMemo(
+    () => (guided ? lineGuide(guideText, value) : null),
+    [guided, guideText, value],
+  );
+  const nextIsEnter = guided && onPath ? guide?.nextChar === "\n" : !guided;
+  const nextIsIndent = guided && onPath
+    ? guide?.nextChar === " " ||
+      guide?.nextChar === "\t" ||
+      Boolean(indentFromGhost(guideText, value))
+    : !guided;
+  const canFillWhitespace = guided && onPath && Boolean(whitespaceInsert(guideText, value));
+  // Every practice typing box gets Enter/Tab helpers — locked/ghost fills from the guide; free keeps indent.
   const showTypeActions = !disabled;
   const caretLine = guide ? guide.lineIndex + 1 : value.split("\n").length;
   const caretCol = guide ? guide.col + 1 : (value.split("\n").pop() || "").length + 1;
@@ -358,7 +370,7 @@ export default function GhostEditor({
       return;
     }
     const current = view.state.doc.toString();
-    dispatchInsert(view, builder(target, current));
+    dispatchInsert(view, builder(guideText, current));
     view.focus();
   }
 
@@ -405,7 +417,7 @@ export default function GhostEditor({
             key: "Enter",
             run(view) {
               const current = view.state.doc.toString();
-              const insert = enterInsert(target, current);
+              const insert = enterInsert(guideText, current);
               if (locked) {
                 // Always consume Enter in locked mode so a wrong newline never slips in.
                 dispatchInsert(view, insert);
@@ -419,7 +431,7 @@ export default function GhostEditor({
             key: "Tab",
             run(view) {
               const current = view.state.doc.toString();
-              const insert = tabInsert(target, current, unit);
+              const insert = tabInsert(guideText, current, unit);
               dispatchInsert(view, insert);
               return true;
             },
@@ -486,10 +498,13 @@ export default function GhostEditor({
         return Decoration.set(marks, true);
       }),
     ];
-  }, [disabled, locked, target, unit, showSpaces]);
+  }, [disabled, locked, target, guideText, unit, showSpaces]);
 
-  const activeToken = target ? tokenAt(target, tokens, sharedPrefix(target, value)) : null;
-  const wrong = Boolean(target) && value.length > 0 && !target.startsWith(value);
+  const activeToken = guideText
+    ? tokenAt(guideText, tokens, sharedPrefix(guideText, value))
+    : null;
+  const wrong = locked && value.length > 0 && !target.startsWith(value);
+  const hintGhost = Boolean(ghost) && !locked;
   const setup = useMemo(
     () => ({
       ...SETUP,
@@ -505,6 +520,11 @@ export default function GhostEditor({
           {activeToken.explain}
         </p>
       ) : null}
+      {hintGhost ? (
+        <p className="ghost-hint-banner mb-2" role="status">
+          Hint ghost on — bright letter is next. Type it, or use Tab / Enter when they light up.
+        </p>
+      ) : null}
       {guide ? <LineHelper guide={guide} /> : null}
       <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
         <div className="ghost-frame-chrome">
@@ -513,7 +533,9 @@ export default function GhostEditor({
             <span className="ghost-frame-dot" />
             <span className="ghost-frame-dot" />
           </span>
-          <span className="ghost-frame-title">editor · your typing</span>
+          <span className="ghost-frame-title">
+            {hintGhost ? "editor · hint ghost" : "editor · your typing"}
+          </span>
           <div className="ghost-vision-tools" role="group" aria-label="Typing size and spaces">
             <button
               type="button"
@@ -557,7 +579,7 @@ export default function GhostEditor({
           <div className="ghost-type-actions">
             <button
               type="button"
-              className={`ghost-type-action ${locked && nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              className={`ghost-type-action ${guided && onPath && nextIsEnter ? "ghost-type-action-hot" : ""}`}
               disabled={disabled || (locked && !nextIsEnter)}
               onClick={() => runEditorInsert(enterInsert)}
             >
@@ -565,13 +587,15 @@ export default function GhostEditor({
             </button>
             <button
               type="button"
-              className={`ghost-type-action ${locked && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""}`}
+              className={`ghost-type-action ${
+                guided && onPath && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""
+              }`}
               disabled={disabled || (locked && !nextIsIndent && !canFillWhitespace)}
               onClick={() => runEditorInsert((t, c) => tabInsert(t, c, unit))}
             >
               Tab indent
             </button>
-            {locked ? (
+            {guided && onPath ? (
               <button
                 type="button"
                 className="ghost-type-action"
@@ -583,13 +607,15 @@ export default function GhostEditor({
               </button>
             ) : null}
             <span className="ghost-type-action-hint">
-              {locked
+              {guided && onPath
                 ? nextIsEnter
                   ? "Press Enter — blank lines and indent are included when needed"
                   : nextIsIndent
                     ? "Press Tab or Space for indentation"
                     : "Type the highlighted key from the guide"
-                : `Enter keeps indent · Tab inserts ${unit} spaces`}
+                : guided
+                  ? "Backspace to the matching prefix to rejoin the ghost line"
+                  : `Enter keeps indent · Tab inserts ${unit} spaces`}
             </span>
           </div>
         ) : null}

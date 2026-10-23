@@ -171,6 +171,7 @@ async def test_demo_hides_private_lessons_and_does_not_save_progress(database) -
         assert body["is_demo"] is True
         assert "accepted_answers" not in opened.text
         assert body["exercises"][0]["code"] == ""
+        assert body["exercises"][0].get("ghost")
 
         hidden = await request(guest, "GET", f"/api/demo/lessons/{private_id}")
         assert hidden.status_code == 404

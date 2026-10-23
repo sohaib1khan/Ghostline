@@ -203,6 +203,7 @@ async def test_admin_builds_publishes_and_previews(database) -> None:
         assert preview.status_code == 200
         recall_row = next(item for item in preview.json()["exercises"] if item["type"] == "recall")
         assert recall_row["code"] == ""
+        assert recall_row.get("ghost")
         assert "accepted_answers" not in preview.text
         visible = await request(admin, "GET", f"/api/learn/lessons/{lesson_id}")
         assert visible.status_code == 200

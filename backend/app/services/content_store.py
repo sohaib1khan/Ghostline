@@ -219,11 +219,23 @@ def _fill_hints(data: dict, rule_hints: list[str]) -> list[str]:
     return unique
 
 
+def _ghost_answer(data: dict) -> str:
+    """Canonical typing path for hint-guided recall — not shown until a hint opens."""
+    check = data.get("check") or {}
+    for item in check.get("accepted_answers") or []:
+        sample = str(item).strip()
+        if sample:
+            return sample
+    return str(data.get("code") or "").strip()
+
+
 def _learner_exercise(row: Exercise) -> dict:
     data = row.data or {}
     # DECISION: recall and challenge hide the canonical code so the answer is
-    # not in the page. Trace and fill need that code as the ghost text.
+    # not pasted into the study panel. Trace and fill need that code as ghost text.
+    # `ghost` is the typing guide unlocked client-side when the learner opens a hint.
     code = data.get("code", "") if row.type in {"trace", "fill"} else ""
+    ghost = _ghost_answer(data) if row.type in {"recall", "challenge"} else ""
     return {
         "id": row.id,
         "order": row.position,
@@ -231,6 +243,7 @@ def _learner_exercise(row: Exercise) -> dict:
         "prompt": data.get("prompt", ""),
         "runtime": data.get("runtime", "none"),
         "code": code,
+        "ghost": ghost,
         "tokens": data.get("tokens") or [],
         "blanks": data.get("blanks") or [],
         "hints": _practice_hints(row.type, data),
