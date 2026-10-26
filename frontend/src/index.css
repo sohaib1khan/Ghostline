@@ -435,15 +435,18 @@ body::after {
 
 .ghost-frame-body {
   position: relative;
+  z-index: 1;
+  isolation: isolate;
   resize: vertical;
   overflow: auto;
-  min-height: 10rem;
+  min-height: 12rem;
   max-height: 75vh;
   height: min(26rem, 52vh);
+  background: color-mix(in srgb, var(--bg) 96%, #000);
 }
 
 .ghost-frame-script .ghost-frame-body {
-  min-height: 14rem;
+  min-height: 16rem;
   height: min(34rem, 58vh);
 }
 
@@ -589,8 +592,7 @@ body::after {
 
 .ghost-frame {
   position: relative;
-  /* visible so the editor resize grip isn’t clipped when zoomed */
-  overflow: visible;
+  overflow: hidden;
   border-radius: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
   background: color-mix(in srgb, var(--bg) 92%, #000);
@@ -740,12 +742,19 @@ body::after {
 
 .ghost-type-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
   border-bottom: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
   background: color-mix(in srgb, var(--surface) 55%, transparent);
   padding: 0.45rem 0.75rem;
+}
+
+.ghost-type-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .ghost-type-action {
@@ -782,8 +791,9 @@ body::after {
 }
 
 .ghost-type-action-hint {
-  flex: 1 1 10rem;
+  margin: 0;
   font-size: var(--action-font, 0.75rem);
+  line-height: 1.35;
   color: var(--muted);
 }
 
@@ -939,16 +949,17 @@ body::after {
 .ghost-caret-hint {
   pointer-events: none;
   position: absolute;
-  z-index: 2;
+  z-index: 0;
   top: var(--typing-pad-y, 0.95rem);
-  left: var(--typing-pad-x, 1rem);
+  left: calc(var(--typing-pad-x, 1rem) + 2.5rem);
+  max-width: calc(100% - 4rem);
   margin: 0;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--helper-font, 0.85rem);
+  font-size: calc(var(--typing-font, 1.08rem) * 0.72);
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--accent) 75%, var(--muted));
-  animation: caret-hint-glow 2.4s ease-in-out infinite;
+  color: color-mix(in srgb, var(--muted) 70%, var(--accent));
+  opacity: 0.55;
 }
 
 @keyframes caret-hint-glow {

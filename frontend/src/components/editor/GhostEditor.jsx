@@ -64,7 +64,8 @@ class GhostTailWidget extends WidgetType {
   }
 }
 
-function currentLineTail(guideText, typed) {
+/** Only the next key beside the caret — full line stays in the focus strip above. */
+function nextKeyTail(guideText, typed) {
   if (!guideText || !guideText.startsWith(typed)) {
     return "";
   }
@@ -75,8 +76,7 @@ function currentLineTail(guideText, typed) {
   if (rest[0] === "\n") {
     return "↵";
   }
-  const breakAt = rest.indexOf("\n");
-  return breakAt === -1 ? rest : rest.slice(0, breakAt);
+  return rest[0];
 }
 
 function sharedPrefix(target, typed) {
@@ -440,13 +440,17 @@ export default function GhostEditor({
       return undefined;
     }
     const saved = Number(readPrefs().editorBodyPx);
-    if (Number.isFinite(saved) && saved >= 160) {
-      el.style.height = `${saved}px`;
+    // Ignore tiny saved heights from bad resize sessions that crushed the IDE.
+    if (Number.isFinite(saved) && saved >= 220) {
+      el.style.height = `${Math.min(saved, Math.round(window.innerHeight * 0.75))}px`;
+    } else if (Number.isFinite(saved) && saved < 220) {
+      writePrefs({ ...readPrefs(), editorBodyPx: null });
+      el.style.height = "";
     }
     let timer = 0;
     const observer = new ResizeObserver((entries) => {
       const height = Math.round(entries[0]?.contentRect?.height || 0);
-      if (height < 160) {
+      if (height < 220) {
         return;
       }
       window.clearTimeout(timer);
@@ -600,7 +604,7 @@ export default function GhostEditor({
           marks.push(
             Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(head),
           );
-          const tail = currentLineTail(guideText, typed);
+          const tail = nextKeyTail(guideText, typed);
           if (tail) {
             marks.push(
               Decoration.widget({
@@ -699,46 +703,48 @@ export default function GhostEditor({
         ) : null}
         {showTypeActions ? (
           <div className="ghost-type-actions">
-            <button
-              type="button"
-              className={`ghost-type-action ${guided && onPath && nextIsEnter ? "ghost-type-action-hot" : ""}`}
-              disabled={disabled || (locked && !nextIsEnter)}
-              onClick={() => runEditorInsert(enterInsert)}
-            >
-              Enter ↵
-            </button>
-            <button
-              type="button"
-              className={`ghost-type-action ${
-                guided && onPath && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""
-              }`}
-              disabled={disabled || (locked && !nextIsIndent && !canFillWhitespace)}
-              onClick={() => runEditorInsert((t, c) => tabInsert(t, c, unit))}
-            >
-              Tab indent
-            </button>
-            {guided && onPath ? (
+            <div className="ghost-type-action-row">
               <button
                 type="button"
-                className="ghost-type-action"
-                disabled={disabled || !canFillWhitespace}
-                onClick={() => runEditorInsert(whitespaceInsert)}
-                title="Insert spaces, tabs, and blank lines until the next character"
+                className={`ghost-type-action ${guided && onPath && nextIsEnter ? "ghost-type-action-hot" : ""}`}
+                disabled={disabled || (locked && !nextIsEnter)}
+                onClick={() => runEditorInsert(enterInsert)}
               >
-                Fill spaces
+                Enter ↵
               </button>
-            ) : null}
-            <span className="ghost-type-action-hint">
+              <button
+                type="button"
+                className={`ghost-type-action ${
+                  guided && onPath && nextIsIndent && !nextIsEnter ? "ghost-type-action-hot" : ""
+                }`}
+                disabled={disabled || (locked && !nextIsIndent && !canFillWhitespace)}
+                onClick={() => runEditorInsert((t, c) => tabInsert(t, c, unit))}
+              >
+                Tab indent
+              </button>
+              {guided && onPath ? (
+                <button
+                  type="button"
+                  className="ghost-type-action"
+                  disabled={disabled || !canFillWhitespace}
+                  onClick={() => runEditorInsert(whitespaceInsert)}
+                  title="Insert spaces, tabs, and blank lines until the next character"
+                >
+                  Fill spaces
+                </button>
+              ) : null}
+            </div>
+            <p className="ghost-type-action-hint">
               {guided && onPath
                 ? nextIsEnter
                   ? "Press Enter — blank lines and indent are included when needed"
                   : nextIsIndent
                     ? "Press Tab or Space for indentation"
-                    : "Type the bright letter beside the caret"
+                    : "Type the bright letter in the guide (and beside the caret)"
                 : guided
                   ? "Backspace to the matching prefix to rejoin the ghost line"
                   : `Enter keeps indent · Tab inserts ${unit} spaces`}
-            </span>
+            </p>
           </div>
         ) : null}
         <div
@@ -746,7 +752,7 @@ export default function GhostEditor({
           ref={bodyRef}
           title="Drag the bottom edge to resize"
         >
-          {!value && !disabled ? (
+          {!value && !disabled && !guided ? (
             <p className="ghost-caret-hint" aria-hidden="true">
               Thick bar marks where you type
             </p>

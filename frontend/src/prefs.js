@@ -39,7 +39,7 @@ export function readPrefs() {
           : Boolean(parsed.showWhitespace),
       editorBodyPx: (() => {
         const height = Number(parsed.editorBodyPx);
-        return Number.isFinite(height) && height >= 160 ? Math.round(height) : null;
+        return Number.isFinite(height) && height >= 220 ? Math.round(height) : null;
       })(),
     };
   } catch {
@@ -64,7 +64,7 @@ export function writePrefs(next) {
     showWhitespace: Boolean(next.showWhitespace),
     editorBodyPx: (() => {
       const height = Number(next.editorBodyPx);
-      return Number.isFinite(height) && height >= 160 ? Math.round(height) : null;
+      return Number.isFinite(height) && height >= 220 ? Math.round(height) : null;
     })(),
   };
   localStorage.setItem(KEY, JSON.stringify(prefs));
