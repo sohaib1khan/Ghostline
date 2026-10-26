@@ -205,157 +205,182 @@ body::after {
   animation: practice-rise 500ms ease-out both;
 }
 
-/* Line teleprompter — stable guide above the editor (no erasing ghost). */
-.line-helper {
+/*
+  Focus guide lives INSIDE the editor frame (same width + typing font).
+  No second scrolled code list that drifts when the browser zooms.
+*/
+.focus-guide {
   --guide: #f0d9a8;
   --guide-dim: #9a8b6e;
   --guide-done: #b7d4c4;
   --guide-next-bg: #f4c15d;
   --guide-next-fg: #1b1f23;
-  --guide-panel: #252018;
-  margin-bottom: 0.75rem;
-  overflow: hidden;
-  border-radius: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--guide) 28%, transparent);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--guide) 8%, transparent), transparent 55%),
-    var(--guide-panel);
-  box-shadow: var(--shadow);
-  animation: line-helper-in 420ms ease-out both;
+  border-bottom: 1px solid color-mix(in srgb, var(--guide) 22%, transparent);
+  background: color-mix(in srgb, var(--guide) 8%, transparent);
+  padding: 0.55rem 0.85rem 0.7rem;
 }
 
-:root[data-theme="light"] .line-helper {
+:root[data-theme="light"] .focus-guide {
   --guide: #7a5c1e;
   --guide-dim: #8a7a5c;
   --guide-done: #3d7a5c;
   --guide-next-bg: #e8a820;
   --guide-next-fg: #1b1f23;
-  --guide-panel: #f7f1e4;
 }
 
-.line-helper-meta {
+.focus-guide-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--guide) 18%, transparent);
-  padding: 0.55rem 0.9rem;
+  gap: 0.55rem 0.85rem;
+  margin-bottom: 0.45rem;
 }
 
-.line-helper-step {
+.focus-guide-step {
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: calc(var(--helper-font, 0.95rem) * 0.72);
-  letter-spacing: 0.12em;
+  font-size: calc(var(--typing-font, 1.08rem) * 0.68);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--guide);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.line-helper-key {
-  font-size: calc(var(--helper-font, 0.95rem) * 0.9);
+.focus-guide-key {
+  font-size: calc(var(--typing-font, 1.08rem) * 0.85);
   color: var(--guide-dim);
 }
 
-.line-helper-key kbd {
+.focus-guide-key kbd {
   display: inline-block;
   margin-left: 0.25rem;
   border-radius: 0.35rem;
-  border: 1px solid color-mix(in srgb, var(--guide-next-bg) 55%, transparent);
   background: var(--guide-next-bg);
-  padding: 0.18rem 0.55rem;
+  padding: 0.2rem 0.55rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--helper-font, 0.95rem);
-  font-weight: 700;
+  font-size: var(--typing-font, 1.08rem);
+  font-weight: 800;
   color: var(--guide-next-fg);
   animation: type-marker-pulse 1.1s ease-in-out infinite;
 }
 
-.line-helper-key-done {
+.focus-guide-key-done {
   color: var(--guide-done);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.line-helper-scroll {
-  max-height: min(20rem, 48vh);
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 0.35rem 0 0.55rem;
-  scroll-behavior: smooth;
+.focus-guide-toggle {
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--guide) 35%, transparent);
+  border-radius: 0.4rem;
+  background: transparent;
+  padding: 0.25rem 0.55rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: calc(var(--typing-font, 1.08rem) * 0.65);
+  color: var(--guide);
+  cursor: pointer;
 }
 
-.line-helper-row {
+.focus-guide-toggle:hover {
+  background: color-mix(in srgb, var(--guide) 14%, transparent);
+}
+
+.focus-guide-current {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
-  margin: 0;
-  padding: 0.35rem 0.9rem;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--helper-font, var(--typing-font, 0.95rem));
-  line-height: var(--typing-line, 1.65);
+  gap: 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--guide) 30%, transparent);
+  background: color-mix(in srgb, var(--guide) 12%, transparent);
+  padding: 0.55rem 0.65rem;
 }
 
-.line-helper-gutter {
+.focus-guide-gutter {
   flex-shrink: 0;
-  width: 1.6rem;
+  min-width: 1.75rem;
   text-align: right;
-  font-size: calc(var(--helper-font, 0.95rem) * 0.75);
-  line-height: var(--typing-line, 1.7);
-  color: var(--guide-dim);
-  opacity: 0.7;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: calc(var(--typing-font, 1.08rem) * 0.78);
+  font-weight: 700;
+  color: var(--guide);
   user-select: none;
 }
 
-.line-helper-row code {
+.focus-guide-code {
+  flex: 1;
+  min-width: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--typing-font, 1.08rem);
+  line-height: var(--typing-line, 1.75);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--guide);
+}
+
+.focus-guide-peek {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: calc(var(--typing-font, 1.08rem) * 0.82);
+  line-height: 1.45;
+  color: var(--guide-dim);
+}
+
+.focus-guide-peek code {
   flex: 1;
   min-width: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  font-family: inherit;
+  opacity: 0.85;
 }
 
-.line-helper-mark {
+.focus-guide-peek-label {
   flex-shrink: 0;
-  width: 1rem;
-  text-align: center;
-  font-weight: 700;
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
 }
 
-.line-helper-prev {
+.focus-guide-script {
+  margin-top: 0.55rem;
+  max-height: min(14rem, 32vh);
+  overflow: auto;
+  resize: vertical;
+  overscroll-behavior: contain;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--guide) 22%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  padding: 0.35rem 0;
+}
+
+.focus-guide-script-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.2rem 0.65rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: calc(var(--typing-font, 1.08rem) * 0.88);
+  line-height: var(--typing-line, 1.65);
   color: var(--guide-dim);
-  opacity: 0.8;
 }
 
-.line-helper-prev .line-helper-mark {
-  color: var(--guide-done);
+.focus-guide-script-row code {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.line-helper-current {
-  position: sticky;
-  top: 0;
-  bottom: 0;
-  z-index: 1;
-  margin: 0.15rem 0;
-  border-radius: 0.4rem;
-  padding-top: 0.4rem;
-  padding-bottom: 0.4rem;
+.focus-guide-script-row.is-done {
+  opacity: 0.7;
+}
+
+.focus-guide-script-row.is-current {
   background: color-mix(in srgb, var(--guide) 14%, transparent);
-  outline: 1px solid color-mix(in srgb, var(--guide) 28%, transparent);
   color: var(--guide);
-  font-size: 1.02rem;
-  font-weight: 500;
-  scroll-margin-block: 0.75rem;
-}
-
-.line-helper-current .line-helper-gutter {
-  color: var(--guide);
-  opacity: 1;
   font-weight: 600;
-}
-
-.line-helper-current .line-helper-mark {
-  color: var(--guide-next-bg);
-  animation: type-marker-pulse 1.1s ease-in-out infinite;
 }
 
 .line-helper-done {
@@ -368,7 +393,7 @@ body::after {
   border-radius: 3px;
   background: var(--guide-next-bg);
   padding: 0 0.18em;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--guide-next-fg);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--guide-next-bg) 40%, transparent);
   animation: next-key-glow 1.1s ease-in-out infinite;
@@ -383,20 +408,55 @@ body::after {
   opacity: 0.78;
 }
 
-.line-helper-upcoming {
-  color: var(--guide-dim);
-  opacity: 0.58;
+.ghost-inline-tail {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre;
+  pointer-events: none;
+  opacity: 0.92;
 }
 
-@keyframes line-helper-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.ghost-inline-next {
+  display: inline-block;
+  margin: 0 1px;
+  border-radius: 3px;
+  background: #f4c15d;
+  padding: 0 0.16em;
+  font-weight: 800;
+  color: #1b1f23;
+  animation: next-key-glow 1.1s ease-in-out infinite;
+}
+
+.ghost-inline-rest {
+  color: color-mix(in srgb, var(--muted) 35%, #f0d9a8);
+  opacity: 0.85;
+}
+
+.ghost-frame-body {
+  position: relative;
+  resize: vertical;
+  overflow: auto;
+  min-height: 10rem;
+  max-height: 75vh;
+  height: min(26rem, 52vh);
+}
+
+.ghost-frame-script .ghost-frame-body {
+  min-height: 14rem;
+  height: min(34rem, 58vh);
+}
+
+.ghost-resize-hint {
+  border-top: 1px dashed color-mix(in srgb, var(--muted) 35%, transparent);
+  padding: 0.2rem 0.85rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  user-select: none;
 }
 
 @keyframes next-key-glow {
@@ -499,8 +559,7 @@ body::after {
   --helper-font: 0.95rem;
 }
 
-:root[data-typing-scale="lg"] .ghost-ide,
-:root[data-typing-scale="lg"] .line-helper {
+:root[data-typing-scale="lg"] .ghost-ide {
   --typing-font: 1.28rem;
   --typing-line: 1.85;
   --typing-pad-y: 1.05rem;
@@ -514,8 +573,7 @@ body::after {
   --helper-font: 1.08rem;
 }
 
-:root[data-typing-scale="xl"] .ghost-ide,
-:root[data-typing-scale="xl"] .line-helper {
+:root[data-typing-scale="xl"] .ghost-ide {
   --typing-font: 1.5rem;
   --typing-line: 1.95;
   --typing-pad-y: 1.2rem;
@@ -531,7 +589,8 @@ body::after {
 
 .ghost-frame {
   position: relative;
-  overflow: hidden;
+  /* visible so the editor resize grip isn’t clipped when zoomed */
+  overflow: visible;
   border-radius: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
   background: color-mix(in srgb, var(--bg) 92%, #000);
@@ -877,10 +936,6 @@ body::after {
   font-weight: 500;
 }
 
-.ghost-frame-body {
-  position: relative;
-}
-
 .ghost-caret-hint {
   pointer-events: none;
   position: absolute;
@@ -1108,10 +1163,9 @@ body::after {
   .ghost-type-action-hot,
   .ghost-caret-hint,
   .ghost-ide-statusbar,
-  .line-helper,
-  .line-helper-key kbd,
-  .line-helper-current .line-helper-mark,
+  .focus-guide-key kbd,
   .line-helper-next,
+  .ghost-inline-next,
   .cm-focused > .cm-scroller > .cm-cursorLayer {
     animation: none;
   }
@@ -1125,10 +1179,9 @@ body::after {
 :root[data-reduce-motion="true"] .ghost-type-action-hot,
 :root[data-reduce-motion="true"] .ghost-caret-hint,
 :root[data-reduce-motion="true"] .ghost-ide-statusbar,
-:root[data-reduce-motion="true"] .line-helper,
-:root[data-reduce-motion="true"] .line-helper-key kbd,
-:root[data-reduce-motion="true"] .line-helper-current .line-helper-mark,
+:root[data-reduce-motion="true"] .focus-guide-key kbd,
 :root[data-reduce-motion="true"] .line-helper-next,
+:root[data-reduce-motion="true"] .ghost-inline-next,
 :root[data-reduce-motion="true"] .cm-focused > .cm-scroller > .cm-cursorLayer {
   animation: none;
 }

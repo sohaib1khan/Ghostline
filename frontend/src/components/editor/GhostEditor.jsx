@@ -24,6 +24,61 @@ class TypeMarkerWidget extends WidgetType {
   }
 }
 
+/** Faded remainder of the current guide line — sits beside the caret so zoom never misaligns it. */
+class GhostTailWidget extends WidgetType {
+  constructor(text) {
+    super();
+    this.text = text;
+  }
+
+  toDOM() {
+    const wrap = document.createElement("span");
+    wrap.className = "ghost-inline-tail";
+    wrap.setAttribute("aria-hidden", "true");
+    if (this.text === "↵") {
+      const next = document.createElement("span");
+      next.className = "ghost-inline-next";
+      next.textContent = "↵";
+      wrap.appendChild(next);
+      return wrap;
+    }
+    const next = document.createElement("span");
+    next.className = "ghost-inline-next";
+    next.textContent = this.text[0] || "";
+    wrap.appendChild(next);
+    if (this.text.length > 1) {
+      const rest = document.createElement("span");
+      rest.className = "ghost-inline-rest";
+      rest.textContent = this.text.slice(1);
+      wrap.appendChild(rest);
+    }
+    return wrap;
+  }
+
+  ignoreEvent() {
+    return true;
+  }
+
+  eq(other) {
+    return other instanceof GhostTailWidget && other.text === this.text;
+  }
+}
+
+function currentLineTail(guideText, typed) {
+  if (!guideText || !guideText.startsWith(typed)) {
+    return "";
+  }
+  const rest = guideText.slice(typed.length);
+  if (!rest) {
+    return "";
+  }
+  if (rest[0] === "\n") {
+    return "↵";
+  }
+  const breakAt = rest.indexOf("\n");
+  return breakAt === -1 ? rest : rest.slice(0, breakAt);
+}
+
 function sharedPrefix(target, typed) {
   const limit = Math.min(target.length, typed.length);
   let index = 0;
@@ -219,87 +274,100 @@ function isScript(text) {
   return Boolean(text) && (text.includes("\n") || text.length > 80);
 }
 
-function LineHelper({ guide }) {
-  const scroller = useRef(null);
-  const currentRow = useRef(null);
-
-  useEffect(() => {
-    if (!currentRow.current) {
-      return;
-    }
-    currentRow.current.scrollIntoView({
-      block: "nearest",
-      behavior: "smooth",
-    });
-  }, [guide?.lineIndex]);
-
+/**
+ * Single-line focus strip inside the editor frame — same width/font as typing,
+ * so browser zoom cannot drift a second scrolled code list out of alignment.
+ */
+function FocusGuide({ guide, expanded, onToggle }) {
   if (!guide) {
     return null;
   }
   const label = displayChar(guide.nextChar);
+  const lineNo = Math.min(guide.lineIndex + 1, guide.lineCount);
   return (
-    <div className="line-helper">
-      <div className="line-helper-meta">
-        <span className="line-helper-step">
-          Line {Math.min(guide.lineIndex + 1, guide.lineCount)} of {guide.lineCount}
+    <div className="focus-guide">
+      <div className="focus-guide-meta">
+        <span className="focus-guide-step">
+          Line {lineNo} of {guide.lineCount}
         </span>
         {!guide.complete && guide.nextChar ? (
-          <span className="line-helper-key" title="Next key to press">
+          <span className="focus-guide-key" title="Next key to press">
             Next: <kbd>{label}</kbd>
           </span>
         ) : (
-          <span className="line-helper-key line-helper-key-done">Line clear</span>
+          <span className="focus-guide-key focus-guide-key-done">Line clear</span>
         )}
+        {guide.lineCount > 1 ? (
+          <button
+            type="button"
+            className="focus-guide-toggle"
+            aria-expanded={expanded}
+            onClick={onToggle}
+          >
+            {expanded ? "Hide full script" : "Show full script"}
+          </button>
+        ) : null}
       </div>
-      <div className="line-helper-scroll" ref={scroller} role="list">
-        {guide.lines.map((line, index) => {
-          const done = index < guide.lineIndex;
-          const current = index === guide.lineIndex && !guide.complete;
-          let rowClass = "line-helper-row line-helper-upcoming";
-          if (done) {
-            rowClass = "line-helper-row line-helper-prev";
-          } else if (current) {
-            rowClass = "line-helper-row line-helper-current";
-          }
-          return (
-            <p
-              key={`guide-line-${index}`}
-              className={rowClass}
-              role="listitem"
-              ref={current ? currentRow : undefined}
-              aria-current={current ? "step" : undefined}
-            >
-              <span className="line-helper-gutter" aria-hidden="true">
-                {index + 1}
-              </span>
-              <span className="line-helper-mark" aria-hidden="true">
-                {done ? "✓" : current ? "▸" : "·"}
-              </span>
-              <code>
-                {current ? (
-                  <>
-                    <span className="line-helper-done">{guide.done}</span>
-                    {guide.nextChar && guide.nextChar !== "\n" ? (
-                      <span className="line-helper-next">{guide.nextChar}</span>
-                    ) : null}
-                    {guide.nextChar === "\n" ? (
-                      <span className="line-helper-next line-helper-return">↵</span>
-                    ) : null}
-                    <span className="line-helper-rest">{guide.rest}</span>
-                    {!guide.line && guide.nextChar === "\n" ? (
-                      <span className="line-helper-blank"> (blank line — press Enter)</span>
-                    ) : null}
-                  </>
-                ) : line ? (
-                  line
-                ) : (
-                  <span className="line-helper-blank">(blank line)</span>
-                )}
-              </code>
-            </p>
-          );
-        })}
+      <div className="focus-guide-current" aria-current="step">
+        <span className="focus-guide-gutter" aria-hidden="true">
+          {lineNo}
+        </span>
+        <code className="focus-guide-code">
+          {guide.complete ? (
+            <span className="line-helper-done">{guide.line || " "}</span>
+          ) : (
+            <>
+              <span className="line-helper-done">{guide.done}</span>
+              {guide.nextChar && guide.nextChar !== "\n" ? (
+                <span className="line-helper-next">{guide.nextChar}</span>
+              ) : null}
+              {guide.nextChar === "\n" ? (
+                <span className="line-helper-next line-helper-return">↵</span>
+              ) : null}
+              <span className="line-helper-rest">{guide.rest}</span>
+              {!guide.line && guide.nextChar === "\n" ? (
+                <span className="line-helper-blank"> (blank line — press Enter)</span>
+              ) : null}
+            </>
+          )}
+        </code>
       </div>
+      {guide.prevLine != null ? (
+        <p className="focus-guide-peek focus-guide-peek-prev">
+          <span className="focus-guide-peek-label">prev</span>
+          <code>{guide.prevLine || "(blank)"}</code>
+        </p>
+      ) : null}
+      {guide.nextLine != null ? (
+        <p className="focus-guide-peek">
+          <span className="focus-guide-peek-label">next</span>
+          <code>{guide.nextLine || "(blank)"}</code>
+        </p>
+      ) : null}
+      {expanded ? (
+        <div
+          className="focus-guide-script"
+          role="region"
+          aria-label="Full script guide — drag the bottom edge to resize"
+        >
+          {guide.lines.map((line, index) => {
+            const current = index === guide.lineIndex && !guide.complete;
+            return (
+              <p
+                key={`full-${index}`}
+                className={`focus-guide-script-row ${current ? "is-current" : ""} ${
+                  index < guide.lineIndex ? "is-done" : ""
+                }`}
+              >
+                <span className="focus-guide-gutter" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <code>{line || " "}</code>
+              </p>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -323,7 +391,9 @@ export default function GhostEditor({
   const previous = useRef("");
   const [stats, setStats] = useState({ wpm: 0, accuracy: 100, duration_seconds: 0 });
   const [prefs, setPrefs] = useState(readPrefs);
+  const [scriptOpen, setScriptOpen] = useState(false);
   const viewRef = useRef(null);
+  const bodyRef = useRef(null);
   const unit = Math.max(2, Number(indentUnit) || 4);
   notify.current = onChange;
   complete.current = onComplete;
@@ -358,6 +428,42 @@ export default function GhostEditor({
     window.addEventListener("ghostline-prefs", sync);
     return () => window.removeEventListener("ghostline-prefs", sync);
   }, []);
+
+  useEffect(() => {
+    setScriptOpen(false);
+  }, [guideText]);
+
+  // Remember a dragged editor height so zoom + big monitors stay comfortable.
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) {
+      return undefined;
+    }
+    const saved = Number(readPrefs().editorBodyPx);
+    if (Number.isFinite(saved) && saved >= 160) {
+      el.style.height = `${saved}px`;
+    }
+    let timer = 0;
+    const observer = new ResizeObserver((entries) => {
+      const height = Math.round(entries[0]?.contentRect?.height || 0);
+      if (height < 160) {
+        return;
+      }
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const current = readPrefs();
+        if (current.editorBodyPx === height) {
+          return;
+        }
+        writePrefs({ ...current, editorBodyPx: height });
+      }, 450);
+    });
+    observer.observe(el);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [script]);
 
   function changeScale(delta) {
     setPrefs(bumpTypingScale(delta));
@@ -481,7 +587,7 @@ export default function GhostEditor({
           }
         }
       }),
-      // Thick typing marker at the caret — always on so low-vision users can find their place.
+      // Thick caret marker + inline ghost of the rest of this line (stays glued to the caret).
       EditorView.decorations.compute(["doc", "selection"], (state) => {
         const typed = state.doc.toString();
         const marks = [];
@@ -494,6 +600,15 @@ export default function GhostEditor({
           marks.push(
             Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(head),
           );
+          const tail = currentLineTail(guideText, typed);
+          if (tail) {
+            marks.push(
+              Decoration.widget({
+                widget: new GhostTailWidget(tail),
+                side: 1,
+              }).range(head),
+            );
+          }
         }
         return Decoration.set(marks, true);
       }),
@@ -522,10 +637,10 @@ export default function GhostEditor({
       ) : null}
       {hintGhost ? (
         <p className="ghost-hint-banner mb-2" role="status">
-          Hint ghost on — bright letter is next. Type it, or use Tab / Enter when they light up.
+          Hint ghost on — the bright letter sits beside your caret. Drag the editor’s bottom edge
+          taller if you need more room when zoomed.
         </p>
       ) : null}
-      {guide ? <LineHelper guide={guide} /> : null}
       <div className={`ghost-frame ${script ? "ghost-frame-script" : ""}`}>
         <div className="ghost-frame-chrome">
           <span className="ghost-frame-traffic" aria-hidden="true">
@@ -534,7 +649,7 @@ export default function GhostEditor({
             <span className="ghost-frame-dot" />
           </span>
           <span className="ghost-frame-title">
-            {hintGhost ? "editor · hint ghost" : "editor · your typing"}
+            {hintGhost ? "editor · hint ghost" : guided ? "editor · guided" : "editor · your typing"}
           </span>
           <div className="ghost-vision-tools" role="group" aria-label="Typing size and spaces">
             <button
@@ -575,6 +690,13 @@ export default function GhostEditor({
             live
           </span>
         </div>
+        {guide ? (
+          <FocusGuide
+            guide={guide}
+            expanded={scriptOpen}
+            onToggle={() => setScriptOpen((open) => !open)}
+          />
+        ) : null}
         {showTypeActions ? (
           <div className="ghost-type-actions">
             <button
@@ -612,14 +734,18 @@ export default function GhostEditor({
                   ? "Press Enter — blank lines and indent are included when needed"
                   : nextIsIndent
                     ? "Press Tab or Space for indentation"
-                    : "Type the highlighted key from the guide"
+                    : "Type the bright letter beside the caret"
                 : guided
                   ? "Backspace to the matching prefix to rejoin the ghost line"
                   : `Enter keeps indent · Tab inserts ${unit} spaces`}
             </span>
           </div>
         ) : null}
-        <div className="ghost-frame-body">
+        <div
+          className="ghost-frame-body"
+          ref={bodyRef}
+          title="Drag the bottom edge to resize"
+        >
           {!value && !disabled ? (
             <p className="ghost-caret-hint" aria-hidden="true">
               Thick bar marks where you type
@@ -640,6 +766,9 @@ export default function GhostEditor({
             onChange={() => {}}
             theme="none"
           />
+        </div>
+        <div className="ghost-resize-hint" aria-hidden="true">
+          ▬ drag edge to resize
         </div>
         <div className="ghost-ide-statusbar" aria-live="polite">
           <span className="ghost-caret-legend">

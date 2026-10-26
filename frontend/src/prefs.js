@@ -12,6 +12,8 @@ export const PREF_DEFAULTS = {
   highContrastTyping: true,
   // DECISION: show · for spaces and indent bars so nested blocks are visible.
   showWhitespace: true,
+  // Resizable practice editor height (px). Null = CSS default.
+  editorBodyPx: null,
 };
 
 function clampScale(value) {
@@ -35,6 +37,10 @@ export function readPrefs() {
         parsed.showWhitespace === undefined
           ? PREF_DEFAULTS.showWhitespace
           : Boolean(parsed.showWhitespace),
+      editorBodyPx: (() => {
+        const height = Number(parsed.editorBodyPx);
+        return Number.isFinite(height) && height >= 160 ? Math.round(height) : null;
+      })(),
     };
   } catch {
     return { ...PREF_DEFAULTS };
@@ -56,6 +62,10 @@ export function writePrefs(next) {
     typingScale: clampScale(next.typingScale),
     highContrastTyping: Boolean(next.highContrastTyping),
     showWhitespace: Boolean(next.showWhitespace),
+    editorBodyPx: (() => {
+      const height = Number(next.editorBodyPx);
+      return Number.isFinite(height) && height >= 160 ? Math.round(height) : null;
+    })(),
   };
   localStorage.setItem(KEY, JSON.stringify(prefs));
   applyDom(prefs);
