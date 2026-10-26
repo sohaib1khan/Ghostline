@@ -3,6 +3,7 @@ import { Decoration, EditorView, drawSelection, keymap, WidgetType } from "@code
 import CodeMirror from "@uiw/react-codemirror";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { bumpTypingScale, readPrefs, writePrefs } from "../../prefs.js";
+import { fadeGhost } from "../../lib/fadeGhost.js";
 import { playSound } from "../../sounds.js";
 import { indentDepth, whitespaceGuides } from "./whitespace.js";
 
@@ -65,7 +66,7 @@ class GhostTailWidget extends WidgetType {
 }
 
 /** Only the next key beside the caret — full line stays in the focus strip above. */
-function nextKeyTail(guideText, typed) {
+function nextKeyTail(guideText, typed, shown = guideText) {
   if (!guideText || !guideText.startsWith(typed)) {
     return "";
   }
@@ -76,7 +77,8 @@ function nextKeyTail(guideText, typed) {
   if (rest[0] === "\n") {
     return "↵";
   }
-  return rest[0];
+  const visible = shown[typed.length] || "";
+  return visible;
 }
 
 function sharedPrefix(target, typed) {
@@ -218,11 +220,14 @@ function displayChar(char) {
 }
 
 /** Stable line-by-line progress — guide stays put; editor only shows typed text. */
-function lineGuide(target, typed) {
+function lineGuide(target, typed, shown = target) {
   if (!target) {
     return null;
   }
-  const lines = target.split("\n");
+  // `shown` is the (possibly faded) text we display; positions always come from the real target.
+  const realLines = target.split("\n");
+  const shownLines = shown ? shown.split("\n") : realLines.map(() => "");
+  const lines = realLines;
   const correct = sharedPrefix(target, typed);
   let offset = 0;
   let lineIndex = 0;
@@ -234,21 +239,24 @@ function lineGuide(target, typed) {
     }
     offset += withBreak;
   }
-  const line = lines[lineIndex] || "";
-  const col = Math.min(Math.max(0, correct - offset), line.length);
-  const needsReturn = col >= line.length && lineIndex < lines.length - 1;
-  const nextChar = needsReturn ? "\n" : line[col] || "";
+  const realLine = realLines[lineIndex] || "";
+  const line = shownLines[lineIndex] ?? "";
+  const col = Math.min(Math.max(0, correct - offset), realLine.length);
+  const needsReturn = col >= realLine.length && lineIndex < realLines.length - 1;
+  const nextChar = needsReturn ? "\n" : realLine[col] || "";
+  const shownNext = needsReturn ? "\n" : line[col] || "";
   return {
-    lines,
+    lines: shownLines,
     lineIndex,
-    lineCount: lines.length,
-    line,
+    lineCount: realLines.length,
+    line: correct >= target.length ? realLine : line,
     col,
-    done: line.slice(0, col),
+    done: realLine.slice(0, col),
     nextChar,
+    shownNext,
     rest: needsReturn ? "" : line.slice(col + (nextChar ? 1 : 0)),
-    prevLine: lineIndex > 0 ? lines[lineIndex - 1] : null,
-    nextLine: lineIndex < lines.length - 1 ? lines[lineIndex + 1] : null,
+    prevLine: lineIndex > 0 ? shownLines[lineIndex - 1] : null,
+    nextLine: lineIndex < realLines.length - 1 ? shownLines[lineIndex + 1] : null,
     complete: correct >= target.length,
   };
 }
@@ -282,7 +290,7 @@ function FocusGuide({ guide, expanded, onToggle }) {
   if (!guide) {
     return null;
   }
-  const label = displayChar(guide.nextChar);
+  const label = displayChar(guide.shownNext);
   const lineNo = Math.min(guide.lineIndex + 1, guide.lineCount);
   return (
     <div className="focus-guide">
@@ -290,9 +298,13 @@ function FocusGuide({ guide, expanded, onToggle }) {
         <span className="focus-guide-step">
           Line {lineNo} of {guide.lineCount}
         </span>
-        {!guide.complete && guide.nextChar ? (
+        {!guide.complete && guide.nextChar && guide.shownNext.trim() !== "" ? (
           <span className="focus-guide-key" title="Next key to press">
             Next: <kbd>{label}</kbd>
+          </span>
+        ) : !guide.complete && guide.nextChar ? (
+          <span className="focus-guide-key" title="Faded ghost">
+            Ghost faded — recall the next key
           </span>
         ) : (
           <span className="focus-guide-key focus-guide-key-done">Line clear</span>
@@ -318,8 +330,8 @@ function FocusGuide({ guide, expanded, onToggle }) {
           ) : (
             <>
               <span className="line-helper-done">{guide.done}</span>
-              {guide.nextChar && guide.nextChar !== "\n" ? (
-                <span className="line-helper-next">{guide.nextChar}</span>
+              {guide.shownNext && guide.shownNext !== "\n" ? (
+                <span className="line-helper-next">{guide.shownNext}</span>
               ) : null}
               {guide.nextChar === "\n" ? (
                 <span className="line-helper-next line-helper-return">↵</span>
@@ -382,6 +394,8 @@ export default function GhostEditor({
   disabled = false,
   onComplete,
   indentUnit = 4,
+  /** 0–3: how much of the guide to hide (see lib/fadeGhost.js). Typing still locks to the real target. */
+  fadeStage = 0,
 }) {
   const notify = useRef(onChange);
   const complete = useRef(onComplete);
@@ -403,9 +417,10 @@ export default function GhostEditor({
   const guided = Boolean(guideText);
   const onPath = guided && guideText.startsWith(value);
   const script = isScript(guideText) || isScript(value);
+  const shownText = useMemo(() => fadeGhost(guideText, fadeStage), [guideText, fadeStage]);
   const guide = useMemo(
-    () => (guided ? lineGuide(guideText, value) : null),
-    [guided, guideText, value],
+    () => (guided ? lineGuide(guideText, value, shownText) : null),
+    [guided, guideText, value, shownText],
   );
   const nextIsEnter = guided && onPath ? guide?.nextChar === "\n" : !guided;
   const nextIsIndent = guided && onPath
@@ -420,6 +435,8 @@ export default function GhostEditor({
   const caretCol = guide ? guide.col + 1 : (value.split("\n").pop() || "").length + 1;
   const indent = indentDepth(value, unit);
   const showSpaces = prefs.showWhitespace !== false;
+  const wrapLines = prefs.wrapLongLines !== false;
+  const [mistakeNote, setMistakeNote] = useState("");
 
   useEffect(() => {
     function sync() {
@@ -487,6 +504,7 @@ export default function GhostEditor({
   const extensions = useMemo(() => {
     return [
       EditorView.editable.of(!disabled),
+      ...(wrapLines ? [EditorView.lineWrapping] : []),
       // DECISION: solid caret. Guide lives outside the editor so typing stays calm.
       drawSelection({ cursorBlinkRate: 0 }),
       EditorView.domEventHandlers({
@@ -572,6 +590,18 @@ export default function GhostEditor({
         }
         if (locked && next.length > previous.current.length && next.length > correct) {
           mistakes.current += 1;
+          const expected = target[correct] || "";
+          const label =
+            expected === "\n"
+              ? "Enter"
+              : expected === " "
+                ? "space"
+                : expected === "\t"
+                  ? "tab"
+                  : expected || "next character";
+          setMistakeNote(`Wrong character: expected ${label}`);
+        } else if (locked && target.startsWith(next)) {
+          setMistakeNote("");
         }
         previous.current = next;
         const nextStats = liveStats(started.current, correct, mistakes.current);
@@ -604,7 +634,7 @@ export default function GhostEditor({
           marks.push(
             Decoration.widget({ widget: new TypeMarkerWidget(), side: 1 }).range(head),
           );
-          const tail = nextKeyTail(guideText, typed);
+          const tail = nextKeyTail(guideText, typed, shownText);
           if (tail) {
             marks.push(
               Decoration.widget({
@@ -617,7 +647,7 @@ export default function GhostEditor({
         return Decoration.set(marks, true);
       }),
     ];
-  }, [disabled, locked, target, guideText, unit, showSpaces]);
+  }, [disabled, locked, target, guideText, shownText, unit, showSpaces, wrapLines]);
 
   const activeToken = guideText
     ? tokenAt(guideText, tokens, sharedPrefix(guideText, value))
@@ -634,6 +664,9 @@ export default function GhostEditor({
 
   return (
     <div className={`ghost-ide ${wrong ? "ghost-shake" : ""}`}>
+      <p className="ghost-mistake-live" role="status" aria-live="polite">
+        {mistakeNote}
+      </p>
       {activeToken ? (
         <p className="ghost-ide-tip mb-2 rounded-xl border border-accent/20 bg-bg/80 px-3 py-2 text-sm text-muted">
           {activeToken.explain}

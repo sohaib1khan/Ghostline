@@ -2,8 +2,19 @@
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Integer, UniqueConstraint, Uuid
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, IdMixin, TimestampMixin
@@ -28,6 +39,11 @@ class ExerciseProgress(IdMixin, TimestampMixin, Base):
     best_accuracy: Mapped[int | None] = mapped_column(Integer)
     hints_used: Mapped[int] = mapped_column(Integer, default=0)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_review_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    interval_days: Mapped[int] = mapped_column(Integer, default=0)
+    ease: Mapped[Decimal] = mapped_column(Numeric(4, 2), default=Decimal("2.50"))
+    lapses: Mapped[int] = mapped_column(Integer, default=0)
+    last_result: Mapped[str | None] = mapped_column(String(16))
 
 
 class UserStats(IdMixin, TimestampMixin, Base):

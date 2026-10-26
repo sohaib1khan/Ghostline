@@ -20,9 +20,11 @@ from app.routers.check import router as check_router
 from app.routers.demo import router as demo_router
 from app.routers.games import router as games_router
 from app.routers.health import router as health_router
+from app.routers.journal import router as journal_router
 from app.routers.learn import router as learn_router
 from app.routers.me import router as me_router
 from app.routers.playground import router as playground_router
+from app.routers.review import router as review_router
 from app.routers.setup import router as setup_router
 from app.security.csrf import CSRFMiddleware
 from app.security.rate_limit import limiter
@@ -67,6 +69,8 @@ def create_app() -> FastAPI:
     app.include_router(check_router, prefix="/api")
     app.include_router(demo_router, prefix="/api")
     app.include_router(games_router, prefix="/api")
+    app.include_router(review_router, prefix="/api")
+    app.include_router(journal_router, prefix="/api")
     app.include_router(playground_router, prefix="/api")
     app.include_router(admin_ai_router, prefix="/api")
     app.include_router(admin_users_router, prefix="/api")

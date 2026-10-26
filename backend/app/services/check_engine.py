@@ -32,6 +32,27 @@ class CheckOutcome:
     passed: bool
     hint: str | None
     failed_kind: str | None
+    partial_ratio: float | None = None
+    missing_pieces: tuple[str, ...] = ()
+
+
+def partial_credit_for_must_contain_all(data: dict, attempt: str) -> tuple[float, list[str]]:
+    """Score long recalls by how many must_contain_all pieces are present."""
+    check = data.get("check") or {}
+    options = check.get("normalize") or {}
+    normalized = normalize_text(attempt, options)
+    pieces: list[str] = []
+    for rule in check.get("rules") or []:
+        if str(rule.get("kind") or "") != "must_contain_all":
+            continue
+        for value in rule.get("values") or []:
+            if isinstance(value, str) and value:
+                pieces.append(value)
+    if not pieces:
+        return 0.0, []
+    missing = [piece for piece in pieces if not _contains(normalized, piece, options)]
+    present = len(pieces) - len(missing)
+    return present / len(pieces), missing
 
 
 def validate_pattern(pattern: str) -> None:
@@ -147,18 +168,35 @@ def check_attempt(data: dict, attempt: str, output: str | None = None) -> CheckO
     normalized = normalize_text(attempt, options)
     answers_match = bool(answers) and normalized in answers
     soft_miss = "Not quite — open a hint and try again."
+    ratio, missing = partial_credit_for_must_contain_all(data, attempt)
+    partial_kw = {
+        "partial_ratio": ratio if missing or ratio else None,
+        "missing_pieces": tuple(missing),
+    }
     if mode == "answers":
         if answers_match:
             return CheckOutcome(True, None, None)
-        return CheckOutcome(False, _fallback_hint(rules, soft_miss), None)
+        return CheckOutcome(False, _fallback_hint(rules, soft_miss), None, **partial_kw)
     rule_outcome = _rules(rules, normalized, output, options, data)
     if mode == "rules":
-        return rule_outcome
+        if rule_outcome.passed:
+            return rule_outcome
+        return CheckOutcome(
+            False,
+            rule_outcome.hint,
+            rule_outcome.failed_kind,
+            **partial_kw,
+        )
     if answers_match or rule_outcome.passed:
         return CheckOutcome(True, None, None)
     if rules:
-        return rule_outcome
-    return CheckOutcome(False, soft_miss, None)
+        return CheckOutcome(
+            False,
+            rule_outcome.hint,
+            rule_outcome.failed_kind,
+            **partial_kw,
+        )
+    return CheckOutcome(False, soft_miss, None, **partial_kw)
 
 
 def _fallback_hint(rules: list[dict], default: str) -> str:

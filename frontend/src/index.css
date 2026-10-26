@@ -45,18 +45,26 @@
 /* Dark is the default. Light is one attribute switch. */
 :root {
   color-scheme: dark;
+  --ui-scale: 1;
   --bg: #1b1f23;
   --surface: #232a2f;
   --text: #e8eef3;
-  --muted: #9aa6b2;
+  --muted: #b0bac4;
   --accent: #8fb9a8;
   --accent-2: #a3b8d4;
   --success: #9ccc9c;
   --error: #e39a9a;
   --on-accent: #1b1f23;
-  /* Guide text: softer than typed text, still readable. */
-  --ghost: #7d8a96;
+  /* Guide text: softer than typed text, still readable (≥3:1 against bg). */
+  --ghost: #9aa6b2;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  --focus-width: 3px;
+  --line-space: 1.5;
+  --ghost-opacity: 0.6;
+}
+
+html {
+  font-size: calc(100% * var(--ui-scale, 1));
 }
 
 :root[data-theme="light"] {
@@ -64,14 +72,76 @@
   --bg: #f6f4ef;
   --surface: #ffffff;
   --text: #2b3137;
-  --muted: #5c6872;
+  --muted: #4f5b66;
   --accent: #5f8f7e;
   --accent-2: #6c87ab;
   --success: #4f8f4f;
   --error: #b85c5c;
   --on-accent: #ffffff;
-  --ghost: #8a96a0;
+  --ghost: #5c6872;
   --shadow: 0 16px 40px rgba(43, 49, 55, 0.08);
+}
+
+:root[data-contrast="high-dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #121212;
+  --text: #ffffff;
+  --muted: #d0d0d0;
+  --accent: #7dffb2;
+  --accent-2: #9ec9ff;
+  --success: #8cff8c;
+  --error: #ff9e9e;
+  --on-accent: #000000;
+  --ghost: #c8c8c8;
+}
+
+:root[data-contrast="high-light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #f4f4f4;
+  --text: #000000;
+  --muted: #333333;
+  --accent: #0b5c3b;
+  --accent-2: #0b3d7a;
+  --success: #0a5c0a;
+  --error: #8b0000;
+  --on-accent: #ffffff;
+  --ghost: #444444;
+}
+
+:root[data-line-spacing="relaxed"] {
+  --line-space: 1.6;
+}
+
+:root[data-line-spacing="loose"] {
+  --line-space: 1.9;
+}
+
+:root[data-ghost-strength="30"] {
+  --ghost-opacity: 0.3;
+}
+
+:root[data-ghost-strength="45"] {
+  --ghost-opacity: 0.45;
+}
+
+:root[data-ghost-strength="60"] {
+  --ghost-opacity: 0.6;
+}
+
+:root[data-ghost-strength="75"] {
+  --ghost-opacity: 0.75;
+}
+
+:root[data-focus-ring="thick"] {
+  --focus-width: 0.25rem;
+}
+
+:root[data-dyslexia-spacing="true"] body,
+:root[data-dyslexia-spacing="true"] main {
+  letter-spacing: 0.04em;
+  word-spacing: 0.12em;
 }
 
 body {
@@ -93,12 +163,31 @@ body {
     var(--bg);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  line-height: var(--line-space, 1.5);
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 /* High-contrast keyboard focus for low vision — mouse users keep native cursors. */
 :focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
+  outline: var(--focus-width, 3px) solid var(--accent);
+  outline-offset: 0.2rem;
 }
 
 a:focus:not(:focus-visible),
@@ -1874,9 +1963,41 @@ body::after {
   transform: none;
 }
 
-/* Main navigation — Learn / Studio segments */
+/* Main navigation — Learn / Studio segments; collapses to one menu when narrow/zoomed. */
 .app-nav {
   max-width: 100%;
+}
+
+.app-nav-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+  padding: 0.35rem 0.15rem;
+}
+
+.app-nav-current {
+  margin: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.app-nav-toggle {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  background: var(--surface);
+  padding: 0.45rem 0.85rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
 }
 
 .app-nav-rail {
@@ -2019,14 +2140,37 @@ body::after {
   cursor: default;
 }
 
-@media (max-width: 640px) {
+/* ~1280px at 200–400% zoom ≈ narrow CSS pixels — force one-column nav menu. */
+@media (max-width: 56rem) {
+  .app-nav-bar {
+    display: flex;
+  }
+
   .app-nav-rail {
+    display: none;
+    flex-direction: column;
     gap: 0.45rem;
     padding: 0.45rem;
   }
 
+  .app-nav.is-open .app-nav-rail {
+    display: flex;
+  }
+
   .app-nav-segment {
     min-width: 100%;
+  }
+
+  .app-nav-keys {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-nav-key,
+  .app-nav-signout {
+    min-height: 2.75rem;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .app-nav-account {
@@ -2036,6 +2180,58 @@ body::after {
     padding: 0.15rem 0.35rem 0.25rem;
     border-top: 1px solid color-mix(in srgb, var(--muted) 14%, transparent);
   }
+
+  .lg\:sticky {
+    position: static;
+  }
+}
+
+:root[data-code-scale="100"] .ghost-ide {
+  --typing-font: 1.05rem;
+}
+
+:root[data-code-scale="125"] .ghost-ide {
+  --typing-font: 1.18rem;
+}
+
+:root[data-code-scale="150"] .ghost-ide {
+  --typing-font: 1.32rem;
+}
+
+:root[data-code-scale="175"] .ghost-ide {
+  --typing-font: 1.48rem;
+}
+
+:root[data-code-scale="200"] .ghost-ide {
+  --typing-font: 1.65rem;
+}
+
+:root[data-wrap-long-lines="true"] .cm-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+:root[data-cursor-style="thick"] .ghost-type-marker,
+:root[data-cursor-style="glow"] .ghost-type-marker {
+  width: 0.55rem;
+}
+
+:root[data-cursor-style="glow"] .ghost-type-marker {
+  box-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
+.ghost-inline-rest,
+.line-helper-rest,
+.ghost-inline-tail {
+  opacity: var(--ghost-opacity, 0.6);
+}
+
+.ghost-mistake-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -98,18 +98,65 @@ async def _published_exercise_ids(
     return [row[0] for row in rows]
 
 
-async def _completion_for_track(
+async def _module_boss_completion(
     session: AsyncSession, user_id: uuid.UUID, track_id: uuid.UUID
 ) -> dict:
-    exercise_ids = await _published_exercise_ids(session, track_id)
-    total = len(exercise_ids)
+    """Certificates require every published module boss, not raw exercise counts."""
+    from app.models.module_progress import ModuleProgress
+
+    modules = list(
+        (
+            await session.scalars(
+                select(Module)
+                .where(Module.track_id == track_id, Module.status == "published")
+                .order_by(Module.position)
+            )
+        ).all()
+    )
+    total = len(modules)
     if total == 0:
         return {
             "total": 0,
             "completed": 0,
             "complete": False,
             "completed_at": None,
+            "bosses_required": True,
         }
+    rows = list(
+        (
+            await session.scalars(
+                select(ModuleProgress).where(
+                    ModuleProgress.user_id == user_id,
+                    ModuleProgress.module_id.in_([module.id for module in modules]),
+                    ModuleProgress.mastered_at.is_not(None),
+                )
+            )
+        ).all()
+    )
+    done = len(rows)
+    latest = None
+    for row in rows:
+        if row.mastered_at is None:
+            continue
+        stamp = row.mastered_at.date()
+        if latest is None or stamp > latest:
+            latest = stamp
+    return {
+        "total": total,
+        "completed": done,
+        "complete": done >= total,
+        "completed_at": latest,
+        "bosses_required": True,
+    }
+
+
+async def _completion_for_track(
+    session: AsyncSession, user_id: uuid.UUID, track_id: uuid.UUID
+) -> dict:
+    # Prefer module-boss mastery; still surface exercise counts for progress UI.
+    bosses = await _module_boss_completion(session, user_id, track_id)
+    exercise_ids = await _published_exercise_ids(session, track_id)
+    exercise_total = len(exercise_ids)
     done_rows = list(
         (
             await session.execute(
@@ -121,20 +168,15 @@ async def _completion_for_track(
                 )
             )
         ).all()
-    )
-    done = len(done_rows)
-    latest = None
-    for _exercise_id, completed_at in done_rows:
-        if completed_at is None:
-            continue
-        stamp = completed_at.date() if isinstance(completed_at, datetime) else completed_at
-        if latest is None or stamp > latest:
-            latest = stamp
+    ) if exercise_ids else []
     return {
-        "total": total,
-        "completed": done,
-        "complete": done >= total,
-        "completed_at": latest,
+        "total": bosses["total"],
+        "completed": bosses["completed"],
+        "complete": bosses["complete"],
+        "completed_at": bosses["completed_at"],
+        "bosses_required": True,
+        "exercises_total": exercise_total,
+        "exercises_completed": len(done_rows),
     }
 
 

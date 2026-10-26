@@ -5,6 +5,7 @@ import { readPrefs } from "../../prefs.js";
 
 const PROGRESS = {
   new: "Not started",
+  practiced: "Practiced",
   started: "In progress",
   done: "Done",
 };
@@ -23,6 +24,9 @@ function sectionProgress(modules) {
 function nextLesson(modulesByLevel) {
   for (const level of LEVEL_ORDER) {
     for (const module of modulesByLevel[level] || []) {
+      if (module.unlocked === false) {
+        continue;
+      }
       for (const lesson of module.lessons) {
         if (lesson.progress !== "done") {
           return { lesson, module, level };
@@ -170,7 +174,9 @@ export default function TrackPage() {
                     </p>
                   </div>
                   <div className="mt-4 flex flex-col gap-5">
-                    {modules.map((module) => (
+                    {modules.map((module) => {
+                      const locked = module.unlocked === false;
+                      return (
                       <div
                         key={module.id}
                         className={
@@ -179,6 +185,16 @@ export default function TrackPage() {
                       >
                         <h3 className="font-medium">
                           {module.title}
+                          {module.mastered ? (
+                            <span className="ml-2 font-mono text-xs font-normal uppercase tracking-wider text-success">
+                              mastered
+                            </span>
+                          ) : null}
+                          {locked ? (
+                            <span className="ml-2 font-mono text-xs font-normal uppercase tracking-wider text-muted">
+                              locked
+                            </span>
+                          ) : null}
                           {module.title === "Daily scripts" ? (
                             <span className="ml-2 font-mono text-xs font-normal uppercase tracking-wider text-accent">
                               guided practice
@@ -193,6 +209,21 @@ export default function TrackPage() {
                         {module.description ? (
                           <p className="mt-1 text-sm text-muted">{module.description}</p>
                         ) : null}
+                        {locked ? (
+                          <p className="mt-2 text-sm text-muted" role="status">
+                            {module.lock_reason || "Pass more recalls in the previous module to unlock."}
+                          </p>
+                        ) : null}
+                        {!locked ? (
+                          <p className="mt-2">
+                            <Link
+                              to={`/learn/modules/${module.id}/boss`}
+                              className="inline-flex min-h-11 items-center text-sm text-accent"
+                            >
+                              Module boss
+                            </Link>
+                          </p>
+                        ) : null}
                         {module.lessons.length === 0 ? (
                           <p className="mt-2 text-sm text-muted">No published lessons yet.</p>
                         ) : (
@@ -202,12 +233,16 @@ export default function TrackPage() {
                                 key={lesson.id}
                                 className="lesson-row rounded-xl border border-transparent px-2 py-2 transition hover:border-muted/25 hover:bg-bg/60"
                               >
-                                <Link
-                                  to={`/learn/lessons/${lesson.id}`}
-                                  className="text-accent"
-                                >
-                                  {lesson.title}
-                                </Link>
+                                {locked ? (
+                                  <span className="text-muted">{lesson.title}</span>
+                                ) : (
+                                  <Link
+                                    to={`/learn/lessons/${lesson.id}`}
+                                    className="text-accent"
+                                  >
+                                    {lesson.title}
+                                  </Link>
+                                )}
                                 {lesson.is_demo ? (
                                   <span className="ml-2 text-sm text-muted">Demo</span>
                                 ) : null}
@@ -224,7 +259,8 @@ export default function TrackPage() {
                           </ul>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               );

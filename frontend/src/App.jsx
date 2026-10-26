@@ -15,6 +15,8 @@ import CertificatesPage, {
 } from "./pages/learn/CertificatesPage.jsx";
 import LessonPage from "./pages/learn/LessonPage.jsx";
 import ProjectsPage from "./pages/learn/ProjectsPage.jsx";
+import BossPage from "./pages/learn/BossPage.jsx";
+import ReviewPage from "./pages/learn/ReviewPage.jsx";
 import TrackPage from "./pages/learn/TrackPage.jsx";
 import PlaygroundPage from "./pages/playground/PlaygroundPage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
@@ -32,7 +34,7 @@ import SettingsLayout from "./components/layout/SettingsLayout.jsx";
 import InstallPrompt from "./components/pwa/InstallPrompt.jsx";
 import OfflineNotice from "./components/pwa/OfflineNotice.jsx";
 import { clearPracticeSession } from "./practiceSession.js";
-import { applyStoredPrefs } from "./prefs.js";
+import { applyStoredPrefs, mergeServerPrefs } from "./prefs.js";
 import { isStaff, isSuperAdmin } from "./roles.js";
 import { applyTheme, readTheme } from "./theme/theme.js";
 
@@ -81,6 +83,14 @@ function Shell() {
           setSetupRequired(status.setup_required);
           setUser(current);
           setError("");
+          if (current) {
+            try {
+              const remotePrefs = await api("/api/me/preferences");
+              mergeServerPrefs(remotePrefs);
+            } catch {
+              /* keep local prefs */
+            }
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -140,40 +150,51 @@ function Shell() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-bg px-4 py-8 text-text sm:px-6 sm:py-16">
-      <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-6 sm:gap-8">
-        <header className="practice-rise flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
-              Ghostline
+    <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <div className="min-h-screen overflow-x-clip bg-bg px-4 py-8 text-text sm:px-6 sm:py-16">
+        <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-col gap-6 sm:gap-8">
+          <header className="practice-rise flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-2xl font-medium tracking-tight text-accent sm:text-3xl">
+                Ghostline
+              </p>
+              <p className="mt-2 max-w-xl text-muted">
+                Learn coding by typing. Keep the muscle memory.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="theme-pin inline-flex min-h-11 shrink-0 items-center rounded-full border border-muted/25 bg-surface px-3.5 py-2 font-mono text-xs uppercase tracking-[0.16em] text-muted shadow-[var(--shadow)] hover:border-accent/35 hover:text-text"
+              onClick={() => setTheme(nextTheme)}
+              aria-label={`Switch to ${nextTheme} theme`}
+              title={`Switch to ${nextTheme} theme`}
+            >
+              {theme === "dark" ? "Light" : "Dark"}
+            </button>
+          </header>
+          {ready && !setupRequired ? (
+            <AppNav user={user} onSignOut={logout} signingOut={signingOut} />
+          ) : null}
+          <InstallPrompt />
+          <OfflineNotice />
+          {error ? (
+            <p className="text-sm text-error" role="status">
+              {error}
             </p>
-            <p className="mt-2 max-w-xl text-muted">
-              Learn coding by typing. Keep the muscle memory.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="theme-pin inline-flex shrink-0 items-center rounded-full border border-muted/25 bg-surface px-3.5 py-2 font-mono text-xs uppercase tracking-[0.16em] text-muted shadow-[var(--shadow)] hover:border-accent/35 hover:text-text"
-            onClick={() => setTheme(nextTheme)}
-            aria-label={`Switch to ${nextTheme} theme`}
-            title={`Switch to ${nextTheme} theme`}
-          >
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
-        </header>
-        {ready && !setupRequired ? (
-          <AppNav user={user} onSignOut={logout} signingOut={signingOut} />
-        ) : null}
-        <InstallPrompt />
-        <OfflineNotice />
-        {error ? <p className="text-sm text-error">{error}</p> : null}
-        {!ready && !error ? <p className="text-sm text-muted">Loading…</p> : null}
-        {destination ? <Navigate to={destination} replace /> : null}
-        {ready && !error && !destination ? (
-          <Outlet context={{ user, setUser, setSetupRequired, theme, setTheme }} />
-        ) : null}
+          ) : null}
+          {!ready && !error ? <p className="text-sm text-muted">Loading…</p> : null}
+          {destination ? <Navigate to={destination} replace /> : null}
+          {ready && !error && !destination ? (
+            <main id="main-content" tabIndex={-1}>
+              <Outlet context={{ user, setUser, setSetupRequired, theme, setTheme }} />
+            </main>
+          ) : null}
+        </div>
       </div>
-    </main>
+    </>
   );
 }
 
@@ -206,6 +227,8 @@ export default function App() {
         <Route path="/games/:game" element={<PlayPage />} />
         <Route path="/stats" element={<Navigate to="/" replace />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/review" element={<ReviewPage />} />
+        <Route path="/learn/modules/:moduleId/boss" element={<BossPage />} />
         <Route path="/certificates" element={<CertificatesPage />} />
         <Route path="/certificates/:slug" element={<CertificateDetailPage />} />
         <Route path="/playground" element={<PlaygroundPage />} />

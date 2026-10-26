@@ -6,11 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models.user import User
 from app.schemas.auth import PasswordChangeIn, ProfileIn, UserOut
+from app.schemas.preferences import PreferencesIn, PreferencesOut
 from app.schemas.progress import ProgressResetIn
 from app.security.cookies import SESSION_COOKIE
 from app.security.deps import current_user
 from app.security.requests import client_ip
 from app.services.content_store import ContentError
+from app.services.preferences import read_preferences, update_preferences
 from app.services.profile import ProfileError, change_password, update_profile
 from app.services.progress import reset_progress
 from app.services.stats import learner_stats
@@ -24,6 +26,22 @@ async def my_stats(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     return await learner_stats(db, user)
+
+
+@router.get("/me/preferences", response_model=PreferencesOut)
+async def get_preferences(user: User = Depends(current_user)) -> PreferencesOut:
+    return PreferencesOut.model_validate(await read_preferences(user))
+
+
+@router.put("/me/preferences", response_model=PreferencesOut)
+async def put_preferences(
+    payload: PreferencesIn,
+    request: Request,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PreferencesOut:
+    saved = await update_preferences(db, user, payload, ip=client_ip(request))
+    return PreferencesOut.model_validate(saved)
 
 
 @router.get("/me", response_model=UserOut)
@@ -69,6 +87,16 @@ async def patch_password(
     response = Response(status_code=204)
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+@router.get("/me/reflection/weekly")
+async def weekly_reflection_view(
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    from app.services.reflection import weekly_reflection
+
+    return await weekly_reflection(db, user)
 
 
 @router.post("/me/progress/reset")

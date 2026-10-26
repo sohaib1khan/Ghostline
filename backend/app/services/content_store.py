@@ -250,6 +250,9 @@ def _learner_exercise(row: Exercise) -> dict:
         "simulated_output": data.get("simulated_output"),
         "xp": data.get("xp", 0),
         "time_limit_seconds": data.get("time_limit_seconds"),
+        # DECISION: expose mode + parsons so LessonPlayer can switch UI without leaking checks.
+        "mode": data.get("mode") or ("parsons" if data.get("parsons") else None),
+        "parsons": bool(data.get("parsons") or data.get("mode") == "parsons"),
     }
 
 
@@ -862,6 +865,9 @@ async def lesson_for_learner(session: AsyncSession, user: User, lesson_id: uuid.
         )
         if access is None:
             raise ContentError(403, "You do not have access to this track")
+        from app.services.gating import assert_module_unlocked
+
+        await assert_module_unlocked(session, user, row.module)
     siblings = list(
         (
             await session.scalars(

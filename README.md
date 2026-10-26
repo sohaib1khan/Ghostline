@@ -68,7 +68,10 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 ## What you get
 
 - **Tracks** — Bash, Python, JavaScript, Go, SQL, C#, and Java starter content loads on first boot (`backend/app/seed/lessons/`).
-- **Ghost editor** — trace exercises with live WPM/accuracy; fill, recall, and challenge with string checks.
+- **Ghost editor** — trace exercises with live WPM/accuracy; fill, recall, and challenge with string checks; fading ghost on repeated traces.
+- **Spaced review** — due queue on Home and `/review`, with confidence ratings that feed the schedule.
+- **Mastery gates** — unlock the next module at 80% recall; module bosses; certificates need every boss.
+- **Accessibility** — Settings → Preferences for text/code scale, contrast, wrap, and more; layouts reflow at high zoom.
 - **Games** — Speed Drill, Bug Hunt, Command Roulette, Fill Frenzy (published exercises only).
 - **Demo** — `/demo` for visitors without an account (rate-limited checks).
 - **Admin** — Content, Users, Notifications, AI drafts, Settings.

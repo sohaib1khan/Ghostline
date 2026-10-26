@@ -12,13 +12,22 @@ import {
 } from "../../practiceSession.js";
 import MarkdownView from "../content/MarkdownView.jsx";
 import WorkedExample from "../content/WorkedExample.jsx";
+import { bumpDaily } from "../../lib/dailyGoal.js";
 import { readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
 import XpPop from "../feedback/XpPop.jsx";
 import FillGap from "./FillGap.jsx";
 import { fillAnswer } from "./fill.js";
+import {
+  loadFadeStage,
+  nextFadeStage,
+  saveFadeStage,
+} from "../../lib/fadeGhost.js";
+import ExplainBack, { shouldExplainBack } from "./ExplainBack.jsx";
 import GhostEditor from "./GhostEditor.jsx";
 import { indentUnitForTrack } from "./indent.js";
+import ParsonsPuzzle from "./ParsonsPuzzle.jsx";
+import PredictReveal from "../learning/PredictReveal.jsx";
 import { runInSandbox } from "./sandbox.js";
 import SimulatedTerminal from "./SimulatedTerminal.jsx";
 
@@ -98,6 +107,10 @@ export default function LessonPlayer({
   const [attemptKey, setAttemptKey] = useState(0);
   const [burst, setBurst] = useState(0);
   const [studying, setStudying] = useState(initial.studying);
+  const [fadeStage, setFadeStage] = useState(() =>
+    loadFadeStage(lesson.exercises[index]?.id),
+  );
+  const [explainBack, setExplainBack] = useState(false);
   // Wall-clock timer for fills / recall / Check — GhostEditor also reports its own duration.
   const startedAt = useRef(Date.now());
   // DECISION: never auto-advance after a pass. Next stays disabled briefly so a
@@ -187,7 +200,7 @@ export default function LessonPlayer({
     studying,
   ]);
 
-  function applyState(next) {
+  function applyState(next, nextExerciseId) {
     setDraft(next.draft);
     setBlanks(next.blanks);
     setHintsShown(next.hintsShown);
@@ -197,6 +210,9 @@ export default function LessonPlayer({
     setRemaining(next.remaining);
     setStudying(next.studying);
     setNextReady(Boolean(next.result?.passed));
+    if (nextExerciseId) {
+      setFadeStage(loadFadeStage(nextExerciseId));
+    }
   }
 
   function goTo(nextIndex) {
@@ -215,22 +231,24 @@ export default function LessonPlayer({
     setIndex(nextIndex);
     setSessionIndex(lesson.id, nextIndex);
     setAttemptKey(0);
-    applyState(hydrateExerciseState(lesson.id, nextExercise));
+    applyState(hydrateExerciseState(lesson.id, nextExercise), nextExercise.id);
   }
 
   function resumeSession() {
     const session = sessionForLesson(lesson.id);
     const nextIndex = session ? Math.min(session.index, lesson.exercises.length - 1) : startIndex;
+    const nextExercise = lesson.exercises[nextIndex];
     setIndex(nextIndex);
-    applyState(hydrateExerciseState(lesson.id, lesson.exercises[nextIndex]));
+    applyState(hydrateExerciseState(lesson.id, nextExercise), nextExercise.id);
     setAttemptKey(0);
     setPhase("ready");
   }
 
   function startFresh() {
     clearPracticeSession();
+    const nextExercise = lesson.exercises[startIndex];
     setIndex(startIndex);
-    applyState(freshExerciseState(lesson.exercises[startIndex]));
+    applyState(freshExerciseState(nextExercise), nextExercise.id);
     setAttemptKey(0);
     setPhase("ready");
   }
@@ -280,8 +298,14 @@ export default function LessonPlayer({
   const timedChallenge = Boolean(exercise?.time_limit_seconds);
   const expired =
     timedChallenge && remaining <= 0 && !result?.passed && !studying;
+  const parsons = Boolean(
+    exercise.parsons ||
+      exercise.mode === "parsons" ||
+      exercise.data?.parsons === true ||
+      exercise.data?.mode === "parsons",
+  );
   const answer =
-    exercise.type === "fill" ? fillAnswer(exercise.code, exercise.blanks || [], blanks) : draft;
+    exercise.type === "fill" && !parsons ? fillAnswer(exercise.code, exercise.blanks || [], blanks) : draft;
   const progressPct = Math.round(
     ((index + (result?.passed ? 1 : 0)) / lesson.exercises.length) * 100,
   );
@@ -324,6 +348,13 @@ export default function LessonPlayer({
         return;
       }
       setResult(data);
+      if (exercise.type === "trace") {
+        const missRatio =
+          stats?.accuracy != null ? Math.max(0, (100 - Number(stats.accuracy)) / 100) : data.passed ? 0 : 0.25;
+        const next = nextFadeStage(fadeStage, data.passed ? missRatio : Math.max(missRatio, 0.25));
+        setFadeStage(next);
+        saveFadeStage(exercise.id, next);
+      }
       upsertExerciseState(lesson.id, index, exercise.id, {
         draft: attempt,
         blanks,
@@ -334,6 +365,15 @@ export default function LessonPlayer({
       });
       if (data.passed && onPassed) {
         onPassed(exercise.id);
+      }
+      setExplainBack(Boolean(data.passed && shouldExplainBack(exercise.tokens || [])));
+      if (
+        data.passed &&
+        accountXp &&
+        index >= lesson.exercises.length - 1 &&
+        exercise.progress?.status !== "completed"
+      ) {
+        bumpDaily("lessons");
       }
       if (data.passed) {
         const last = index >= lesson.exercises.length - 1;
@@ -427,6 +467,14 @@ export default function LessonPlayer({
                 onChange={setBlanks}
                 disabled={pending || expired || Boolean(result?.passed)}
               />
+            ) : parsons ? (
+              <ParsonsPuzzle
+                key={`${exercise.id}-${attemptKey}`}
+                lines={String(exercise.code || exercise.ghost || "").split("\n")}
+                value={draft}
+                onChange={setDraft}
+                disabled={pending || expired || Boolean(result?.passed)}
+              />
             ) : (
               <GhostEditor
                 key={`${exercise.id}-${attemptKey}`}
@@ -443,9 +491,36 @@ export default function LessonPlayer({
                 disabled={pending || expired || Boolean(result?.passed)}
                 onComplete={(stats) => submit(exercise.code, stats)}
                 indentUnit={indentUnitForTrack(lesson.track_slug)}
+                fadeStage={exercise.type === "trace" ? fadeStage : 0}
               />
             )}
           </div>
+          {result?.passed && exercise.type === "trace" && !parsons && fadeStage < 3 ? (
+            <button
+              type="button"
+              className="mt-3 min-h-11 text-sm text-accent"
+              onClick={() => {
+                const next = freshExerciseState(exercise);
+                next.studying = false;
+                setExplainBack(false);
+                applyState(next);
+                setAttemptKey((value) => value + 1);
+                upsertExerciseState(lesson.id, index, exercise.id, {
+                  draft: "",
+                  blanks: {},
+                  hintsShown: 0,
+                  result: null,
+                  studying: false,
+                  remaining: next.remaining,
+                });
+              }}
+            >
+              Type it again — the ghost fades
+            </button>
+          ) : null}
+          {result?.passed && explainBack ? (
+            <ExplainBack key={exercise.id} id={exercise.id} tokens={exercise.tokens || []} />
+          ) : null}
           {exercise.hints?.length ? (
             <div className="mt-4">
               <p className="text-xs text-muted">
@@ -488,7 +563,7 @@ export default function LessonPlayer({
             </div>
           ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {exercise.type !== "trace" ? (
+            {exercise.type !== "trace" || parsons ? (
               <button
                 type="button"
                 disabled={pending || expired || Boolean(result?.passed)}
@@ -537,7 +612,7 @@ export default function LessonPlayer({
           {message}
         </p>
       ) : null}
-      {exercise.type === "trace" && message && !result?.passed ? (
+      {exercise.type === "trace" && !parsons && message && !result?.passed ? (
         <button
           type="button"
           className="mt-2 text-sm text-accent"
@@ -556,7 +631,15 @@ export default function LessonPlayer({
                 }`
               : "Passed."}
           </p>
-          {exercise.simulated_output ? (
+          {exercise.type === "challenge" &&
+          (exercise.expected_output || exercise.simulated_output) ? (
+            <div className="mt-3">
+              <PredictReveal
+                key={exercise.id}
+                expected={exercise.expected_output || exercise.simulated_output}
+              />
+            </div>
+          ) : exercise.simulated_output ? (
             <SimulatedTerminal text={exercise.simulated_output} reduceMotion={reduce} />
           ) : null}
           {hasNextExercise ? (

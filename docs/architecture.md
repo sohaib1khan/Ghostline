@@ -20,6 +20,14 @@ The React app calls `/api` with cookies. Mutating requests send the double-submi
 
 Published lessons are what learners and the public demo can open. Drafts stay in the admin editor. An AI draft is saved only after the JSON validates, and it stays a draft until an admin publishes it.
 
+## Learning progression
+
+- **Checks** stay string-based in `services/check_engine.py` (optional partial credit for `must_contain_all`). Learner code never runs on the API.
+- **Spaced review** stores `next_review_at` / `ease` / `interval_days` on `exercise_progress`; `services/review.py` schedules; `GET /api/review/due` interleaves due items (journal struggles first).
+- **Mastery gates** live in `services/gating.py` and `module_progress`. The next module unlocks at 80% recall completion; a module boss (no hints, 70% pass) sets `mastered_at`. Certificates require every module boss on the track.
+- **Mistake journal** (`attempt_log`, 90-day retention) powers “usual slips” and prefers struggling items in review.
+- **Preferences** JSON on the user (and localStorage for demo) drives rem/`--ui-scale`, contrast themes, and editor comfort.
+
 ## What is cached in the browser
 
 The service worker keeps the app shell, fonts, sounds, and Pyodide files. It also keeps successful reads of the signed-in home page and of lessons that were opened. Answer checks are not cached and are not queued while offline.

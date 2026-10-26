@@ -12,6 +12,17 @@ export function readTheme() {
 export function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(THEME_KEY, theme);
+  // High-contrast preference overrides the calm palette when set.
+  try {
+    const prefs = JSON.parse(localStorage.getItem("ghostline-preferences") || "{}");
+    if (prefs.contrast === "high-dark" || prefs.contrast === "high-light") {
+      document.documentElement.dataset.contrast = prefs.contrast;
+    } else {
+      delete document.documentElement.dataset.contrast;
+    }
+  } catch {
+    delete document.documentElement.dataset.contrast;
+  }
   const color = THEME_COLORS[theme] || THEME_COLORS.dark;
   const nodes = document.querySelectorAll('meta[name="theme-color"]');
   if (nodes.length === 0) {

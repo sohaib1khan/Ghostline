@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
@@ -10,11 +11,26 @@ from app.models.track import Track
 from app.models.user import User
 from app.schemas.users import TrackOut
 from app.security.deps import current_user, require_track_access
-from app.services.content_store import ContentError, lesson_for_learner, outline_for, projects_for_user
+from app.services.content_store import (
+    ContentError,
+    lesson_for_learner,
+    outline_for,
+    projects_for_user,
+)
+from app.services.gating import boss_payload, submit_boss
 from app.services.progress import dashboard, lesson_states, progress_for_exercises
 from app.services.tracks import list_visible_tracks
 
 router = APIRouter(prefix="/learn", tags=["learn"])
+
+
+class BossResultIn(BaseModel):
+    exercise_id: UUID
+    passed: bool
+
+
+class BossSubmitIn(BaseModel):
+    results: list[BossResultIn] = Field(default_factory=list, max_length=20)
 
 
 def _track_out(track: Track) -> TrackOut:
@@ -68,10 +84,21 @@ async def outline(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
+    from app.services.gating import module_gate_state
+
     body = await outline_for(db, row)
     lesson_ids = [lesson["id"] for module in body["modules"] for lesson in module["lessons"]]
     states = await lesson_states(db, user.id, lesson_ids)
+    gates = {item["module_id"]: item for item in await module_gate_state(db, user, row.id)}
+    await db.commit()
     for module in body["modules"]:
+        gate = gates.get(module["id"]) or {}
+        module["unlocked"] = gate.get("unlocked", True)
+        module["mastered"] = gate.get("mastered", False)
+        module["lock_reason"] = gate.get("lock_reason")
+        module["recall_done"] = gate.get("recall_done", 0)
+        module["recall_total"] = gate.get("recall_total", 0)
+        module["needed"] = gate.get("needed", 0)
         for lesson in module["lessons"]:
             lesson["progress"] = states.get(lesson["id"], "new")
     return body
@@ -93,3 +120,33 @@ async def lesson(
     for item in payload["exercises"]:
         item["progress"] = states.get(item["id"])
     return payload
+
+
+@router.get("/modules/{module_id}/boss")
+async def module_boss(
+    module_id: UUID,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    try:
+        return await boss_payload(db, user, module_id)
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@router.post("/modules/{module_id}/boss")
+async def module_boss_submit(
+    module_id: UUID,
+    payload: BossSubmitIn,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    try:
+        return await submit_boss(
+            db,
+            user,
+            module_id,
+            results=[item.model_dump() for item in payload.results],
+        )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

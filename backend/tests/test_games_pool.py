@@ -61,7 +61,8 @@ def test_bug_hunt_public_round_hides_answer() -> None:
         lesson=lesson,
     )
     body = _public_round("bug_hunt", exercise, pool_size=3)
-    assert body["broken"] == "SELECT x"
+    assert body["broken"] == "SELCT 1"
+    assert body["broken"] != "SELECT 1"
     assert "code" not in body
-    assert body["prompt"].startswith("One character")
+    assert "wrong" in body["prompt"].lower()
     assert any("Do not copy" in hint for hint in body["hints"])

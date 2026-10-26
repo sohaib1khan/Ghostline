@@ -28,6 +28,8 @@ export default function UsersPage() {
   const { user: actor } = useOutletContext();
   const [users, setUsers] = useState([]);
   const [tracks, setTracks] = useState([]);
+  const [moduleOptions, setModuleOptions] = useState([]);
+  const [unlockModule, setUnlockModule] = useState({});
   const [selection, setSelection] = useState({});
   const [roles, setRoles] = useState({});
   const [passwords, setPasswords] = useState({});
@@ -50,9 +52,10 @@ export default function UsersPage() {
     let cancelled = false;
     async function load() {
       try {
-        const [trackRows, userRows] = await Promise.all([
+        const [trackRows, userRows, tree] = await Promise.all([
           api("/api/learn/tracks"),
           api("/api/admin/users"),
+          api("/api/admin/content/tree").catch(() => ({ tracks: [] })),
         ]);
         if (!cancelled) {
           const lists = listsFrom(userRows);
@@ -60,6 +63,14 @@ export default function UsersPage() {
           setUsers(userRows);
           setSelection(lists.selection);
           setRoles(lists.roles);
+          setModuleOptions(
+            (tree.tracks || []).flatMap((track) =>
+              (track.modules || []).map((module) => ({
+                id: module.id,
+                label: `${track.name} · ${module.title}`,
+              })),
+            ),
+          );
           setCreateForm((current) => ({
             ...current,
             tracks: trackRows.map((track) => track.slug),
@@ -150,7 +161,8 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
           <p className="mt-2 text-sm text-muted">
-            Create accounts, assign tracks, and remove access. Only the super admin manages users.
+            Create accounts, assign tracks, unlock modules past the mastery gate, and remove access.
+            Only the super admin manages users.
           </p>
         </div>
         <button
@@ -280,6 +292,45 @@ export default function UsersPage() {
                 selected={selection[row.id] || []}
                 onToggle={(slug) => toggleTrack(row.id, slug)}
               />
+              {moduleOptions.length ? (
+                <div className="mt-4 flex flex-wrap items-end gap-2">
+                  <label className="text-sm text-muted" htmlFor={`unlock-module-${row.id}`}>
+                    Unlock module (mastery override)
+                    <select
+                      id={`unlock-module-${row.id}`}
+                      value={unlockModule[row.id] || ""}
+                      onChange={(event) =>
+                        setUnlockModule((current) => ({
+                          ...current,
+                          [row.id]: event.target.value,
+                        }))
+                      }
+                      className="mt-1 block min-w-56 rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
+                    >
+                      <option value="">Choose a module…</option>
+                      {moduleOptions.map((module) => (
+                        <option key={module.id} value={module.id}>
+                          {module.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Action
+                    disabled={busy || !unlockModule[row.id]}
+                    onClick={() =>
+                      run(async () => {
+                        await api(
+                          `/api/admin/users/${row.id}/unlock-module/${unlockModule[row.id]}`,
+                          { method: "POST" },
+                        );
+                        setNotice("Module unlocked for this learner (audited).");
+                      })
+                    }
+                  >
+                    Unlock module
+                  </Action>
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 <Action
                   disabled={busy}

@@ -26,17 +26,23 @@ export default function ProgressPage() {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [slips, setSlips] = useState([]);
+  const [clearingJournal, setClearingJournal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    api("/api/learn/dashboard")
-      .then((data) => {
+    Promise.all([
+      api("/api/learn/dashboard"),
+      api("/api/journal/slips").catch(() => ({ slips: [] })),
+    ])
+      .then(([data, journal]) => {
         if (cancelled) {
           return;
         }
         const list = data.tracks || [];
         setTracks(list);
         setTrackSlug((current) => current || list[0]?.slug || "");
+        setSlips(journal.slips || []);
       })
       .catch((err) => {
         if (!cancelled) {
@@ -167,6 +173,22 @@ export default function ProgressPage() {
     }
   }
 
+  async function clearJournal() {
+    if (!window.confirm("Delete your mistake journal? This cannot be undone.")) {
+      return;
+    }
+    setClearingJournal(true);
+    try {
+      await api("/api/journal", { method: "DELETE" });
+      setSlips([]);
+      setNotice("Mistake journal cleared.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setClearingJournal(false);
+    }
+  }
+
   return (
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
       <h1 className="text-2xl font-semibold tracking-tight">Progress</h1>
@@ -174,6 +196,35 @@ export default function ProgressPage() {
         Reset lesson completion for a language, a step (Beginner / Intermediate / Advanced), a
         module, or one lesson — the same slices you see on the learning path.
       </p>
+
+      <div className="mt-6 rounded-xl border border-muted/20 p-4">
+        <h2 className="text-lg font-semibold">Your usual slips</h2>
+        <p className="mt-1 text-sm text-muted">
+          Patterns from the last 90 days of failed checks. Only you can see the raw attempts.
+        </p>
+        {slips.length ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {slips.map((slip) => (
+              <li key={slip.label} className="text-sm text-text">
+                {slip.label}{" "}
+                <span className="font-mono text-muted">
+                  ({slip.count} time{slip.count === 1 ? "" : "s"})
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-muted">No repeated slips yet — keep practicing.</p>
+        )}
+        <button
+          type="button"
+          className="mt-3 inline-flex min-h-11 items-center text-sm text-error disabled:opacity-50"
+          disabled={clearingJournal || !slips.length}
+          onClick={clearJournal}
+        >
+          {clearingJournal ? "Deleting…" : "Delete my journal"}
+        </button>
+      </div>
 
       <form className="mt-6 flex max-w-lg flex-col gap-5" onSubmit={onReset}>
         <fieldset className="flex flex-col gap-2 border-t border-muted/20 pt-4">

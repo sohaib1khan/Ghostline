@@ -190,3 +190,26 @@ async def revoke(
     except UserAdminError as exc:
         _raise(exc)
     return Response(status_code=204)
+
+
+@router.post("/{user_id}/unlock-module/{module_id}")
+async def unlock_module(
+    user_id: UUID,
+    module_id: UUID,
+    request: Request,
+    actor: User = Depends(require_super_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    from app.services.content_store import ContentError
+    from app.services.gating import admin_unlock_module
+
+    try:
+        return await admin_unlock_module(
+            db,
+            actor=actor,
+            user_id=user_id,
+            module_id=module_id,
+            ip=client_ip(request),
+        )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

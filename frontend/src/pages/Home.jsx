@@ -7,6 +7,7 @@ import {
 } from "../components/certificates/CertificateDocument.jsx";
 import TrackLogo from "../components/content/TrackLogo.jsx";
 import StreakFlame from "../components/feedback/StreakFlame.jsx";
+import { readDailyCounts } from "../lib/dailyGoal.js";
 import { readPrefs } from "../prefs.js";
 import { isStaff, isSuperAdmin } from "../roles.js";
 
@@ -115,19 +116,29 @@ export default function HomePage() {
   const { user } = useOutletContext();
   const [tracks, setTracks] = useState(null);
   const [stats, setStats] = useState(null);
+  const [reviewDue, setReviewDue] = useState(null);
   const [error, setError] = useState("");
-  const reduce = readPrefs().reduceMotion;
+  const prefs = readPrefs();
+  const reduce = prefs.reduceMotion;
+  const daily = readDailyCounts();
+  const goalReviews = prefs.dailyReviews;
+  const goalLessons = prefs.dailyLessons;
 
   useEffect(() => {
     if (!user) {
       return undefined;
     }
     let cancelled = false;
-    Promise.all([api("/api/learn/dashboard"), api("/api/me/stats")])
-      .then(([board, meStats]) => {
+    Promise.all([
+      api("/api/learn/dashboard"),
+      api("/api/me/stats"),
+      api("/api/review/due?limit=20").catch(() => null),
+    ])
+      .then(([board, meStats, review]) => {
         if (!cancelled) {
           setTracks(board);
           setStats(meStats);
+          setReviewDue(review);
           setError("");
         }
       })
@@ -396,6 +407,48 @@ export default function HomePage() {
         />
       </div>
 
+      {goalReviews > 0 || goalLessons > 0 ? (
+        <p className="mt-6 rounded-2xl border border-muted/20 bg-bg/70 px-4 py-3 text-sm" role="status">
+          <span className="font-medium text-text">
+            Daily goal:{" "}
+            {[
+              goalReviews > 0 ? `${goalReviews} review${goalReviews === 1 ? "" : "s"}` : null,
+              goalLessons > 0 ? `${goalLessons} new lesson${goalLessons === 1 ? "" : "s"}` : null,
+            ]
+              .filter(Boolean)
+              .join(" + ")}
+          </span>
+          <span className="ml-2 text-muted">
+            Today:{" "}
+            {[
+              goalReviews > 0 ? `${Math.min(daily.reviews, goalReviews)}/${goalReviews} reviews` : null,
+              goalLessons > 0 ? `${Math.min(daily.lessons, goalLessons)}/${goalLessons} lessons` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+        </p>
+      ) : null}
+
+      {reviewDue?.count > 0 ? (
+        <div className="mt-6 rounded-2xl border border-accent/30 bg-bg/70 p-4">
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">Review today</p>
+          <p className="mt-2 text-lg font-semibold text-text">
+            Review today ({reviewDue.count})
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            About {reviewDue.estimate_minutes || 1} minute
+            {(reviewDue.estimate_minutes || 1) === 1 ? "" : "s"} · keep the commands warm
+          </p>
+          <Link
+            to="/review"
+            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
+          >
+            Start reviews
+          </Link>
+        </div>
+      ) : null}
+
       {continueLessonId ? (
         <div className={`home-next mt-6 ${reduce ? "" : "practice-rise-delay"}`}>
           <div className="min-w-0">
@@ -507,6 +560,10 @@ export default function HomePage() {
                         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                           <span>
                             {track.completed} of {track.total} exercises practiced
+                            {track.review_due ? ` · ${track.review_due} due for review` : ""}
+                            {track.retention_pct != null
+                              ? ` · ${track.retention_pct}% retention`
+                              : ""}
                           </span>
                           <span className="font-mono">
                             {progress}% · {remaining} left

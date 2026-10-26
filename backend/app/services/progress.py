@@ -75,6 +75,7 @@ async def submit_check(
     wpm: int | None,
     accuracy: int | None,
     duration_seconds: int | None = None,
+    source: str = "lesson",
 ) -> dict:
     exercise = await _load_exercise(session, exercise_id)
     from app.security.roles import is_staff
@@ -131,10 +132,40 @@ async def submit_check(
         awarded = max(0, base - progress.hints_used * HINT_XP_COST)
         progress.status = "completed"
         progress.completed_at = datetime.now(UTC)
+    elif (
+        not outcome.passed
+        and not already
+        and outcome.partial_ratio
+        and outcome.partial_ratio > 0
+        and exercise.type in {"recall", "challenge"}
+    ):
+        # Partial credit XP for long recalls; full pass still required for completion.
+        base = int((exercise.data or {}).get("xp") or 0)
+        awarded = max(0, int(base * outcome.partial_ratio) - progress.hints_used * HINT_XP_COST)
+    # Schedule reviews once an exercise is completed (including later fail/pass reviews).
+    if progress.status == "completed":
+        from decimal import Decimal
+
+        from app.services.review import schedule_after_result
+
+        review = schedule_after_result(
+            interval_days=int(progress.interval_days or 0),
+            ease=progress.ease or Decimal("2.50"),
+            lapses=int(progress.lapses or 0),
+            passed=outcome.passed,
+            hints_used=int(hints_used or 0),
+            now=datetime.now(UTC),
+        )
+        progress.interval_days = review.interval_days
+        progress.ease = review.ease
+        progress.lapses = review.lapses
+        progress.last_result = review.last_result
+        progress.next_review_at = review.next_review_at
     stats = await _stats_for(session, user.id)
     stats.xp += awarded
     _touch_streak(stats, datetime.now(UTC).date())
     # Record every check so Leaderboard usage can sum typing time, not only passes.
+    journal_source = source if source in {"lesson", "review", "game", "boss"} else "lesson"
     session.add(
         PracticeEvent(
             user_id=user.id,
@@ -147,6 +178,19 @@ async def submit_check(
             xp_awarded=awarded,
         )
     )
+    # Mistake journal — keep the raw attempt for the learner's "usual slips" panel.
+    from app.models.attempt_log import AttemptLog
+
+    session.add(
+        AttemptLog(
+            user_id=user.id,
+            exercise_id=exercise.id,
+            submitted=(attempt or "")[:4000],
+            passed=outcome.passed,
+            failed_rule_hint=(outcome.hint[:500] if outcome.hint else None),
+            source=journal_source,
+        )
+    )
     await session.commit()
     return {
         "passed": outcome.passed,
@@ -155,6 +199,8 @@ async def submit_check(
         "xp_awarded": awarded,
         "xp_total": stats.xp,
         "status": progress.status,
+        "partial_ratio": outcome.partial_ratio,
+        "missing_pieces": list(outcome.missing_pieces or ()),
     }
 
 
@@ -256,6 +302,8 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
             "continue_lesson_id": None,
             "continue_lesson_title": None,
             "last_activity_at": None,
+            "retention_pct": None,
+            "review_due": 0,
         }
         for track in tracks
     }
@@ -270,6 +318,63 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
         elif item["continue_lesson_id"] is None:
             item["continue_lesson_id"] = lesson_id
             item["continue_lesson_title"] = lesson_title
+    # Mastery decay: share of reviews passed in the last 30 days per track.
+    since = datetime.now(UTC) - timedelta(days=30)
+    retention_rows = list(
+        (
+            await session.execute(
+                select(
+                    Module.track_id,
+                    ExerciseProgress.last_result,
+                )
+                .join(Exercise, Exercise.id == ExerciseProgress.exercise_id)
+                .join(Lesson, Lesson.id == Exercise.lesson_id)
+                .join(Module, Module.id == Lesson.module_id)
+                .where(
+                    ExerciseProgress.user_id == user.id,
+                    Module.track_id.in_(track_ids),
+                    ExerciseProgress.next_review_at.is_not(None),
+                    ExerciseProgress.updated_at >= since,
+                    ExerciseProgress.last_result.is_not(None),
+                )
+            )
+        ).all()
+    )
+    retention: dict[uuid.UUID, list[bool]] = {}
+    for track_id, last_result in retention_rows:
+        retention.setdefault(track_id, []).append(last_result in {"pass", "pass_hints"})
+    for track_id, outcomes in retention.items():
+        if track_id in grouped and outcomes:
+            grouped[track_id]["retention_pct"] = round(
+                100 * sum(1 for ok in outcomes if ok) / len(outcomes)
+            )
+        elif track_id in grouped:
+            grouped[track_id]["retention_pct"] = None
+
+    # Due review counts per track for the home/track cards.
+    now = datetime.now(UTC)
+    due_rows = list(
+        (
+            await session.execute(
+                select(Module.track_id, func.count())
+                .join(Lesson, Lesson.module_id == Module.id)
+                .join(Exercise, Exercise.lesson_id == Lesson.id)
+                .join(ExerciseProgress, ExerciseProgress.exercise_id == Exercise.id)
+                .where(
+                    Module.track_id.in_(track_ids),
+                    ExerciseProgress.user_id == user.id,
+                    ExerciseProgress.status == "completed",
+                    ExerciseProgress.next_review_at.is_not(None),
+                    ExerciseProgress.next_review_at <= now,
+                )
+                .group_by(Module.track_id)
+            )
+        ).all()
+    )
+    for track_id, count in due_rows:
+        if track_id in grouped:
+            grouped[track_id]["review_due"] = int(count)
+
     track_payload = [grouped[track.id] for track in tracks]
     return _dashboard_body(stats, track_payload, continue_at=_pick_continue(track_payload))
 
@@ -311,13 +416,18 @@ def _dashboard_body(
 async def lesson_states(
     session: AsyncSession, user_id: uuid.UUID, lesson_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, str]:
-    """Map each lesson to new, started, or done."""
+    """Map each lesson to new, practiced, started, or done.
+
+    Done requires recall/challenge completion; trace/fill alone is practiced.
+    """
+    from app.services.gating import lesson_progress_label
+
     if not lesson_ids:
         return {}
     rows = list(
         (
             await session.execute(
-                select(Exercise.lesson_id, Exercise.id, ExerciseProgress.status)
+                select(Exercise.lesson_id, Exercise.type, ExerciseProgress.status)
                 .join(
                     ExerciseProgress,
                     (ExerciseProgress.exercise_id == Exercise.id)
@@ -328,18 +438,14 @@ async def lesson_states(
             )
         ).all()
     )
-    buckets: dict[uuid.UUID, list[str | None]] = {lesson_id: [] for lesson_id in lesson_ids}
-    for lesson_id, _exercise_id, status in rows:
-        buckets.setdefault(lesson_id, []).append(status)
-    result = {}
-    for lesson_id, statuses in buckets.items():
-        if statuses and all(item == "completed" for item in statuses):
-            result[lesson_id] = "done"
-        elif any(item for item in statuses):
-            result[lesson_id] = "started"
-        else:
-            result[lesson_id] = "new"
-    return result
+    buckets: dict[uuid.UUID, list[tuple[str, str | None]]] = {
+        lesson_id: [] for lesson_id in lesson_ids
+    }
+    for lesson_id, etype, status in rows:
+        buckets.setdefault(lesson_id, []).append((etype, status))
+    return {
+        lesson_id: lesson_progress_label(pairs) for lesson_id, pairs in buckets.items()
+    }
 
 
 async def _exercise_ids_for_lessons(
@@ -422,9 +528,11 @@ async def _resolve_reset_exercise_ids(
             if module.get("level") == band
             for lesson in module["lessons"]
         ]
-        label = {"beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"}.get(
-            band, band
-        )
+        label = {
+            "beginner": "Beginner",
+            "intermediate": "Intermediate",
+            "advanced": "Advanced",
+        }.get(band, band)
         return await _exercise_ids_for_lessons(session, lesson_ids), f"{track.name} · {label}"
 
     if scope == "module":

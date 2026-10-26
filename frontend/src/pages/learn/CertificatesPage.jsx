@@ -21,7 +21,7 @@ function CertificateCard({ cert }) {
           </button>
         ) : (
           <p className="text-sm text-muted">
-            Finish every published exercise on this path to remove the watermark and unlock your
+            Pass every module boss on this path to remove the watermark and unlock your
             certificate ID.
           </p>
         )}
@@ -144,7 +144,7 @@ export default function CertificatesPage() {
                 <p className="mt-1 text-sm text-muted">
                   {item.earned
                     ? `Official award · ID ${item.code}`
-                    : `${item.completed}/${item.total} exercises · watermarked preview`}
+                    : `${item.completed}/${item.total} module bosses · watermarked preview`}
                 </p>
               </div>
               <Link
