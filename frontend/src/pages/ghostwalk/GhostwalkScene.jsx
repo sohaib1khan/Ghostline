@@ -33,6 +33,12 @@ const PALETTE = {
   cheek: "#ffb4c8",
   signRed: "#ff6b8a",
   signBlue: "#5eb0ff",
+  soil: "#6b4f2a",
+  seed: "#c4a574",
+  crop: "#7dcf6a",
+  cropLeaf: "#3d9a45",
+  barn: "#c07848",
+  barnRoof: "#8b3a2a",
 };
 
 function Island({ rows, cols }) {
@@ -267,6 +273,72 @@ function Sign({ row, col, color }) {
   );
 }
 
+function Soil({ row, col, kind }) {
+  const raised = kind === "crop" ? 0.22 : kind === "seed" ? 0.12 : 0.06;
+  return (
+    <group position={[col, 0, row]}>
+      <RoundedBox args={[0.88, 0.14, 0.88]} radius={0.05} position={[0, 0.1, 0]}>
+        <meshStandardMaterial color={PALETTE.soil} roughness={0.92} />
+      </RoundedBox>
+      {kind === "seed" ? (
+        <mesh position={[0, 0.22, 0]}>
+          <sphereGeometry args={[0.1, 10, 10]} />
+          <meshStandardMaterial color={PALETTE.seed} roughness={0.7} />
+        </mesh>
+      ) : null}
+      {kind === "crop" ? (
+        <group position={[0, raised, 0]}>
+          <mesh>
+            <sphereGeometry args={[0.16, 12, 12]} />
+            <meshStandardMaterial
+              color={PALETTE.crop}
+              emissive={PALETTE.cropLeaf}
+              emissiveIntensity={0.25}
+            />
+          </mesh>
+          <mesh position={[0.12, 0.08, 0.05]} rotation={[0.4, 0.2, 0.3]}>
+            <boxGeometry args={[0.18, 0.04, 0.1]} />
+            <meshStandardMaterial color={PALETTE.cropLeaf} />
+          </mesh>
+          <mesh position={[-0.1, 0.1, -0.06]} rotation={[-0.3, 0.4, -0.2]}>
+            <boxGeometry args={[0.16, 0.04, 0.1]} />
+            <meshStandardMaterial color={PALETTE.cropLeaf} />
+          </mesh>
+        </group>
+      ) : null}
+    </group>
+  );
+}
+
+function Barn({ row, col, reduceMotion }) {
+  return (
+    <group position={[col, 0, row]}>
+      <RoundedBox args={[0.7, 0.55, 0.55]} radius={0.04} position={[0, 0.4, 0]}>
+        <meshStandardMaterial color={PALETTE.barn} roughness={0.65} />
+      </RoundedBox>
+      <mesh position={[0, 0.78, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <coneGeometry args={[0.52, 0.36, 4]} />
+        <meshStandardMaterial color={PALETTE.barnRoof} roughness={0.55} />
+      </mesh>
+      <mesh position={[0, 0.28, 0.28]}>
+        <boxGeometry args={[0.22, 0.32, 0.04]} />
+        <meshStandardMaterial color="#3a2418" />
+      </mesh>
+      {!reduceMotion ? (
+        <Sparkles
+          count={8}
+          scale={[0.9, 1.1, 0.9]}
+          size={2}
+          speed={0.25}
+          opacity={0.5}
+          color="#ffd9a0"
+          position={[0, 0.9, 0]}
+        />
+      ) : null}
+    </group>
+  );
+}
+
 function Ghost({ row, col, facing, reduceMotion }) {
   const group = useRef();
   const yaw = { N: Math.PI, E: Math.PI / 2, S: 0, W: -Math.PI / 2 }[facing] || 0;
@@ -404,7 +476,11 @@ function WorldContents({ grid, hero, reduceMotion }) {
         else {
           list.push({ type: "floor", row, col });
           if (cell === "G") list.push({ type: "goal", row, col });
+          if (cell === "B") list.push({ type: "barn", row, col });
           if (cell === "*") list.push({ type: "gem", row, col });
+          if (cell === "~") list.push({ type: "soil", row, col, kind: "empty" });
+          if (cell === "s") list.push({ type: "soil", row, col, kind: "seed" });
+          if (cell === "c") list.push({ type: "soil", row, col, kind: "crop" });
           if (cell === "r") list.push({ type: "sign", row, col, color: "red" });
           if (cell === "b") list.push({ type: "sign", row, col, color: "blue" });
         }
@@ -436,6 +512,12 @@ function WorldContents({ grid, hero, reduceMotion }) {
         }
         if (cell.type === "gem") {
           return <Gem key={key} row={cell.row} col={cell.col} reduceMotion={reduceMotion} />;
+        }
+        if (cell.type === "soil") {
+          return <Soil key={key} row={cell.row} col={cell.col} kind={cell.kind} />;
+        }
+        if (cell.type === "barn") {
+          return <Barn key={key} row={cell.row} col={cell.col} reduceMotion={reduceMotion} />;
         }
         if (cell.type === "sign") {
           return <Sign key={key} row={cell.row} col={cell.col} color={cell.color} />;

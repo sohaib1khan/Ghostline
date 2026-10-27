@@ -44,6 +44,7 @@ class LevelIn(BaseModel):
     goal: dict = Field(default_factory=dict)
     max_steps: int = Field(default=500, ge=1, le=10_000)
     mode: str = Field(default="free")
+    language: str = Field(default="python", max_length=32)
     starter_code: str = Field(default="", max_length=12_000)
     solution: str = Field(default="", max_length=12_000)
     hints: list[str] = Field(default_factory=list)
@@ -68,10 +69,11 @@ async def get_world_py() -> str:
 
 @router.get("/levels")
 async def levels(
+    language: str | None = Query(default=None),
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    return await list_levels_for_user(db, user)
+    return await list_levels_for_user(db, user, language=language)
 
 
 @router.get("/levels/{slug}")

@@ -1,0 +1,709 @@
+# Extra Ghostwalk packs: other languages + Ghostfarm.
+# Seeded with only_missing=True so existing Python levels are left alone.
+levels:
+  # --- JavaScript ---
+  - slug: js-first-steps
+    order: 1
+    title: First steps (JS)
+    concept: Calling a method
+    language: javascript
+    intro_markdown: |
+      Your ghost follows your code. `hero.move()` moves one tile forward.
+      Reach the glowing goal tile.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.move()
+    solution: |
+      hero.move()
+      hero.move()
+      hero.move()
+      hero.move()
+    hints:
+      - Each hero.move() is one tile. You need four.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: js-turn-corner
+    order: 2
+    title: Turn the corner (JS)
+    concept: Sequence
+    language: javascript
+    intro_markdown: |
+      `hero.turn_left()` and `hero.turn_right()` turn on the spot.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.move()
+      hero.move()
+    solution: |
+      hero.move()
+      hero.move()
+      hero.turn_right()
+      hero.move()
+      hero.move()
+      hero.turn_left()
+      hero.move()
+    hints:
+      - Walk east, turn right, walk south, turn left, walk to the goal.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: js-loop-hall
+    order: 3
+    title: Loop hallway (JS)
+    concept: for loops
+    language: javascript
+    intro_markdown: |
+      Use a `for` loop instead of repeating `hero.move()`.
+
+      ```js
+      for (let i = 0; i < 3; i++) {
+        hero.move()
+      }
+      ```
+    grid:
+      - "###########"
+      - "#S.......G#"
+      - "###########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for (let i = 0; i < 3; i++) {
+        hero.move()
+      }
+    solution: |
+      for (let i = 0; i < 8; i++) {
+        hero.move()
+      }
+    hints:
+      - Count the empty tiles between S and G — that is eight moves.
+    par_lines: 3
+    xp: 25
+    status: published
+
+  # --- Bash ---
+  - slug: bash-first-steps
+    order: 1
+    title: First steps (Bash)
+    concept: Calling a function
+    language: bash
+    intro_markdown: |
+      In Ghostwalk Bash, call helpers like shell functions:
+
+      ```bash
+      hero_move()
+      ```
+
+      Each call moves one tile. Reach the goal.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero_move()
+    solution: |
+      hero_move()
+      hero_move()
+      hero_move()
+      hero_move()
+    hints:
+      - You need four hero_move() calls.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: bash-turn-corner
+    order: 2
+    title: Turn the corner (Bash)
+    concept: Sequence
+    language: bash
+    intro_markdown: |
+      `hero_turn_left()` and `hero_turn_right()` turn without moving.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero_move()
+      hero_move()
+    solution: |
+      hero_move()
+      hero_move()
+      hero_turn_right()
+      hero_move()
+      hero_move()
+      hero_turn_left()
+      hero_move()
+    hints:
+      - Facing east, turn_right faces south.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: bash-loop-hall
+    order: 3
+    title: Loop hallway (Bash)
+    concept: for loops
+    language: bash
+    intro_markdown: |
+      Repeat moves with a Bash-style loop:
+
+      ```bash
+      for _ in $(seq 3); do
+        hero_move()
+      done
+      ```
+    grid:
+      - "###########"
+      - "#S.......G#"
+      - "###########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for _ in $(seq 3); do
+        hero_move()
+      done
+    solution: |
+      for _ in $(seq 8); do
+        hero_move()
+      done
+    hints:
+      - Eight tiles to the goal — use seq 8.
+    par_lines: 3
+    xp: 25
+    status: published
+
+  # --- Go ---
+  - slug: go-first-steps
+    order: 1
+    title: First steps (Go)
+    concept: Calling a method
+    language: go
+    intro_markdown: |
+      Call methods on `hero` with Go-style names:
+
+      ```go
+      hero.Move()
+      ```
+
+      Reach the goal tile.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move()
+    solution: |
+      hero.Move()
+      hero.Move()
+      hero.Move()
+      hero.Move()
+    hints:
+      - Four Move() calls get you there.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: go-turn-corner
+    order: 2
+    title: Turn the corner (Go)
+    concept: Sequence
+    language: go
+    intro_markdown: |
+      `hero.TurnLeft()` and `hero.TurnRight()` turn in place.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move()
+      hero.Move()
+    solution: |
+      hero.Move()
+      hero.Move()
+      hero.TurnRight()
+      hero.Move()
+      hero.Move()
+      hero.TurnLeft()
+      hero.Move()
+    hints:
+      - East, then TurnRight to face south.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: go-loop-hall
+    order: 3
+    title: Loop hallway (Go)
+    concept: for loops
+    language: go
+    intro_markdown: |
+      Use a classic Go for-loop:
+
+      ```go
+      for i := 0; i < 3; i++ {
+          hero.Move()
+      }
+      ```
+    grid:
+      - "###########"
+      - "#S.......G#"
+      - "###########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for i := 0; i < 3; i++ {
+          hero.Move()
+      }
+    solution: |
+      for i := 0; i < 8; i++ {
+          hero.Move()
+      }
+    hints:
+      - Eight empty tiles between start and goal.
+    par_lines: 3
+    xp: 25
+    status: published
+
+  # --- SQL ---
+  - slug: sql-first-steps
+    order: 1
+    title: First steps (SQL)
+    concept: Calling procedures
+    language: sql
+    intro_markdown: |
+      Drive the ghost with procedure-style calls:
+
+      ```sql
+      CALL move();
+      ```
+
+      Reach the goal.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      CALL move();
+    solution: |
+      CALL move();
+      CALL move();
+      CALL move();
+      CALL move();
+    hints:
+      - Four CALL move(); statements.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: sql-turn-corner
+    order: 2
+    title: Turn the corner (SQL)
+    concept: Sequence
+    language: sql
+    intro_markdown: |
+      Use `CALL turn_left();` and `CALL turn_right();` to face a new direction.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      CALL move();
+      CALL move();
+    solution: |
+      CALL move();
+      CALL move();
+      CALL turn_right();
+      CALL move();
+      CALL move();
+      CALL turn_left();
+      CALL move();
+    hints:
+      - After two moves, turn_right, walk south, turn_left, finish east.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  # --- C# ---
+  - slug: csharp-first-steps
+    order: 1
+    title: First steps (C#)
+    concept: Calling a method
+    language: csharp
+    intro_markdown: |
+      Call PascalCase methods on `hero`:
+
+      ```csharp
+      hero.Move();
+      ```
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move();
+    solution: |
+      hero.Move();
+      hero.Move();
+      hero.Move();
+      hero.Move();
+    hints:
+      - Four Move() calls.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: csharp-turn-corner
+    order: 2
+    title: Turn the corner (C#)
+    concept: Sequence
+    language: csharp
+    intro_markdown: |
+      `hero.TurnLeft()` and `hero.TurnRight()` turn without stepping.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move();
+      hero.Move();
+    solution: |
+      hero.Move();
+      hero.Move();
+      hero.TurnRight();
+      hero.Move();
+      hero.Move();
+      hero.TurnLeft();
+      hero.Move();
+    hints:
+      - Sequence: east, south, east.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: csharp-loop-hall
+    order: 3
+    title: Loop hallway (C#)
+    concept: for loops
+    language: csharp
+    intro_markdown: |
+      ```csharp
+      for (int i = 0; i < 3; i++) {
+          hero.Move();
+      }
+      ```
+    grid:
+      - "###########"
+      - "#S.......G#"
+      - "###########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for (int i = 0; i < 3; i++) {
+          hero.Move();
+      }
+    solution: |
+      for (int i = 0; i < 8; i++) {
+          hero.Move();
+      }
+    hints:
+      - Loop eight times.
+    par_lines: 3
+    xp: 25
+    status: published
+
+  # --- Java ---
+  - slug: java-first-steps
+    order: 1
+    title: First steps (Java)
+    concept: Calling a method
+    language: java
+    intro_markdown: |
+      ```java
+      hero.Move();
+      ```
+
+      Reach the goal.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move();
+    solution: |
+      hero.Move();
+      hero.Move();
+      hero.Move();
+      hero.Move();
+    hints:
+      - Four Move() calls.
+    par_lines: 4
+    xp: 20
+    status: published
+
+  - slug: java-turn-corner
+    order: 2
+    title: Turn the corner (Java)
+    concept: Sequence
+    language: java
+    intro_markdown: |
+      `hero.TurnLeft()` and `hero.TurnRight()` change facing only.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.Move();
+      hero.Move();
+    solution: |
+      hero.Move();
+      hero.Move();
+      hero.TurnRight();
+      hero.Move();
+      hero.Move();
+      hero.TurnLeft();
+      hero.Move();
+    hints:
+      - East, south, east.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: java-loop-hall
+    order: 3
+    title: Loop hallway (Java)
+    concept: for loops
+    language: java
+    intro_markdown: |
+      ```java
+      for (int i = 0; i < 3; i++) {
+          hero.Move();
+      }
+      ```
+    grid:
+      - "###########"
+      - "#S.......G#"
+      - "###########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for (int i = 0; i < 3; i++) {
+          hero.Move();
+      }
+    solution: |
+      for (int i = 0; i < 8; i++) {
+          hero.Move();
+      }
+    hints:
+      - Eight steps in the loop.
+    par_lines: 3
+    xp: 25
+    status: published
+
+  # --- Ghostfarm (Python API, interactive mini-game) ---
+  - slug: farm-first-plot
+    order: 100
+    title: First plot
+    concept: Plant, water, harvest
+    language: python
+    intro_markdown: |
+      Welcome to **Ghostfarm**. Soil tiles are `~`. Plant a seed, water it until it
+      becomes a ripe crop `c`, harvest it, then walk to the barn `B`.
+
+      ```python
+      hero.plant()
+      hero.water()
+      hero.harvest()
+      ```
+    grid:
+      - "#####"
+      - "#S~B#"
+      - "#####"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, plant, water, harvest, on_soil, crops_held, at_goal]
+    goal: {reach_goal: true, collect_crops: 1}
+    max_steps: 500
+    mode: farm
+    starter_code: |
+      hero.move()
+      # plant, water, harvest, then walk to the barn
+    solution: |
+      hero.move()
+      hero.plant()
+      hero.water()
+      hero.harvest()
+      hero.move()
+    hints:
+      - Stand on soil (~), plant, water once, harvest, then move onto B.
+    par_lines: 5
+    xp: 25
+    status: published
+
+  - slug: farm-two-rows
+    order: 101
+    title: Two tidy rows
+    concept: Loops on the farm
+    language: python
+    intro_markdown: |
+      Two soil plots need crops before you deliver to the barn. A loop keeps the
+      planting pattern short.
+    grid:
+      - "########"
+      - "#S~~..B#"
+      - "########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right, plant, water, harvest, on_soil, crops_held, at_goal]
+    goal: {reach_goal: true, collect_crops: 2}
+    max_steps: 500
+    mode: farm
+    starter_code: |
+      for _ in range(2):
+          hero.move()
+          hero.plant()
+          hero.water()
+          hero.harvest()
+      # walk to the barn
+    solution: |
+      for _ in range(2):
+          hero.move()
+          hero.plant()
+          hero.water()
+          hero.harvest()
+      hero.move()
+      hero.move()
+      hero.move()
+    hints:
+      - Plant both soils before walking the rest of the way to B.
+      - You need collect_crops: 2 and to stand on the barn.
+    par_lines: 10
+    xp: 30
+    status: published
+
+  - slug: farm-garden-path
+    order: 102
+    title: Garden path
+    concept: Turning while farming
+    language: python
+    intro_markdown: |
+      The plot bends around a hedge. Plant the corner soil, harvest, then find the barn.
+    grid:
+      - "######"
+      - "#S.~.#"
+      - "###.B#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right, plant, water, harvest, on_soil, crops_held, at_goal]
+    goal: {reach_goal: true, collect_crops: 1}
+    max_steps: 500
+    mode: farm
+    starter_code: |
+      hero.move()
+      hero.move()
+    solution: |
+      hero.move()
+      hero.move()
+      hero.plant()
+      hero.water()
+      hero.harvest()
+      hero.move()
+      hero.turn_right()
+      hero.move()
+    hints:
+      - The soil is two steps east. After harvest, walk one more east, turn right, then into the barn.
+    par_lines: 8
+    xp: 30
+    status: published

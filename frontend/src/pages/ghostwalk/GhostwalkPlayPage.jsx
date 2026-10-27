@@ -4,6 +4,7 @@ import { api } from "../../api/client.js";
 import GhostEditor from "../../components/editor/GhostEditor.jsx";
 import { runGhostwalk } from "../../components/editor/sandbox.js";
 import MarkdownView from "../../components/content/MarkdownView.jsx";
+import { languageLabel } from "../../ghostwalk/languages.js";
 import { readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
 
@@ -119,7 +120,7 @@ export default function GhostwalkPlayPage() {
         goal: level.goal,
         max_steps: level.max_steps,
       };
-      const outcome = await runGhostwalk(levelPayload, draft);
+      const outcome = await runGhostwalk(levelPayload, draft, level.language || "python");
       setLoadingEngine(false);
       setActions(outcome.actions || []);
       const frames = outcome.trace || [];
@@ -257,7 +258,8 @@ export default function GhostwalkPlayPage() {
 
       <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
         <p className="font-mono text-sm uppercase tracking-wider text-accent">
-          Level {level.order} · {level.concept}
+          Level {level.order} · {languageLabel(level.language)} · {level.concept}
+          {level.mode === "farm" ? " · Ghostfarm" : ""}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">{level.title}</h1>
 

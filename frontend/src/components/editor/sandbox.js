@@ -8,9 +8,9 @@
 const PARENT_LIMIT_MS = 25000;
 
 /**
- * @param {string} runtime browser_js | pyodide | ghostwalk
+ * @param {string} runtime browser_js | pyodide | ghostwalk | ghostwalk_js
  * @param {string} code
- * @param {{ level?: object, worldSource?: string }} [extra]
+ * @param {{ level?: object, worldSource?: string, worldJsUrl?: string }} [extra]
  */
 export function runInSandbox(runtime, code, extra = {}) {
   return new Promise((resolve) => {
@@ -60,6 +60,7 @@ export function runInSandbox(runtime, code, extra = {}) {
           code,
           level: extra.level || null,
           worldSource: extra.worldSource || null,
+          worldJsUrl: extra.worldJsUrl || null,
         },
         "*",
       );
@@ -87,9 +88,7 @@ export async function loadGhostwalkWorld() {
   return cachedWorld;
 }
 
-export async function runGhostwalk(level, code) {
-  const worldSource = await loadGhostwalkWorld();
-  const ran = await runInSandbox("ghostwalk", code, { level, worldSource });
+function asGhostwalkResult(ran) {
   if (ran.error === "timeout") {
     return {
       ok: false,
@@ -102,7 +101,6 @@ export async function runGhostwalk(level, code) {
   if (ran.result && typeof ran.result === "object") {
     return ran.result;
   }
-  // Fallback: parse JSON from output
   try {
     return JSON.parse(ran.output || "{}");
   } catch {
@@ -114,4 +112,25 @@ export async function runGhostwalk(level, code) {
       actions: [],
     };
   }
+}
+
+export async function runGhostwalk(level, code, language = "python") {
+  const { transpileGhostwalk } = await import("../../ghostwalk/languages.js");
+  const prepared = transpileGhostwalk(language, code);
+  if (prepared.runtime === "ghostwalk") {
+    const worldSource = await loadGhostwalkWorld();
+    const ran = await runInSandbox("ghostwalk", prepared.code, { level, worldSource });
+    return asGhostwalkResult(ran);
+  }
+  const worldJs = await fetch("/ghostwalk/world.js").then((response) => {
+    if (!response.ok) {
+      throw new Error("Could not load Ghostwalk JS world engine.");
+    }
+    return response.text();
+  });
+  const ran = await runInSandbox("ghostwalk_js", prepared.code, {
+    level,
+    worldSource: worldJs,
+  });
+  return asGhostwalkResult(ran);
 }

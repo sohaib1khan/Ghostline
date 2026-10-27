@@ -23,8 +23,19 @@ KNOWN_COMMANDS = frozenset(
         "is_blocked",
         "on_gem",
         "read_sign",
+        # Ghostfarm
+        "plant",
+        "water",
+        "harvest",
+        "on_soil",
+        "crops_held",
     }
 )
+# ~ empty soil, s seeded, c crop ready; B barn treated like goal tile G
+FARM_SOIL = "~"
+FARM_SEED = "s"
+FARM_CROP = "c"
+FARM_BARN = "B"
 FACINGS = ("N", "E", "S", "W")
 DELTA = {"N": (-1, 0), "E": (0, 1), "S": (1, 0), "W": (0, -1)}
 MAX_CODE_CHARS = 12_000
@@ -42,6 +53,8 @@ class WorldState:
     facing: str
     gems_total: int
     gems_held: int = 0
+    crops_total: int = 0
+    crops_held: int = 0
     steps: int = 0
     max_steps: int = DEFAULT_MAX_STEPS
     goal: dict = field(default_factory=dict)
@@ -91,6 +104,15 @@ def _count_gems(grid: list[list[str]]) -> int:
     return sum(cell == "*" for row in grid for cell in row)
 
 
+def _count_soil(grid: list[list[str]]) -> int:
+    return sum(cell == FARM_SOIL for row in grid for cell in row)
+
+
+def _at_goal_cell(state: WorldState) -> bool:
+    cell = _cell(state.grid, state.row, state.col)
+    return cell in {"G", FARM_BARN}
+
+
 def _cell(grid: list[list[str]], row: int, col: int) -> str:
     if row < 0 or col < 0 or row >= len(grid) or col >= len(grid[0]):
         return "#"
@@ -108,6 +130,8 @@ def _snapshot(state: WorldState, *, line: int | None, message: str, kind: str) -
         "facing": state.facing,
         "gems_held": state.gems_held,
         "gems_total": state.gems_total,
+        "crops_held": state.crops_held,
+        "crops_total": state.crops_total,
         "steps": state.steps,
         "line": line,
         "message": message,
@@ -149,14 +173,17 @@ def build_state(level: dict) -> WorldState:
     allowed = {str(item) for item in (level.get("allowed") or []) if str(item) in KNOWN_COMMANDS}
     if not allowed:
         allowed = set(KNOWN_COMMANDS)
+    goal = dict(level.get("goal") or {"reach_goal": True})
+    crops_needed = int(goal.get("collect_crops") or 0)
     return WorldState(
         grid=grid,
         row=row,
         col=col,
         facing=facing,
         gems_total=_count_gems(grid),
+        crops_total=crops_needed or _count_soil(grid),
         max_steps=int(level.get("max_steps") or DEFAULT_MAX_STEPS),
-        goal=dict(level.get("goal") or {"reach_goal": True}),
+        goal=goal,
         allowed=allowed,
     )
 
@@ -220,7 +247,61 @@ def do_pick_up(state: WorldState, line: int | None = None) -> bool:
 def query_at_goal(state: WorldState, line: int | None = None) -> bool:
     if not _tick(state) or not _require(state, "at_goal", line):
         return False
-    return _cell(state.grid, state.row, state.col) == "G"
+    return _at_goal_cell(state)
+
+
+def do_plant(state: WorldState, line: int | None = None) -> bool:
+    if not _tick(state) or not _require(state, "plant", line):
+        return False
+    if _cell(state.grid, state.row, state.col) != FARM_SOIL:
+        _fail(state, "Plant only works on empty soil (~).", line)
+        return False
+    state.grid[state.row][state.col] = FARM_SEED
+    state.actions.append({"op": "plant", "line": line})
+    state.trace.append(
+        _snapshot(state, line=line, message="Planted a seed.", kind="plant")
+    )
+    return True
+
+
+def do_water(state: WorldState, line: int | None = None) -> bool:
+    if not _tick(state) or not _require(state, "water", line):
+        return False
+    if _cell(state.grid, state.row, state.col) != FARM_SEED:
+        _fail(state, "Water only works on a planted seed.", line)
+        return False
+    state.grid[state.row][state.col] = FARM_CROP
+    state.actions.append({"op": "water", "line": line})
+    state.trace.append(
+        _snapshot(state, line=line, message="Watered the seed — crop ready!", kind="water")
+    )
+    return True
+
+
+def do_harvest(state: WorldState, line: int | None = None) -> bool:
+    if not _tick(state) or not _require(state, "harvest", line):
+        return False
+    if _cell(state.grid, state.row, state.col) != FARM_CROP:
+        _fail(state, "Nothing ripe to harvest here.", line)
+        return False
+    state.grid[state.row][state.col] = FARM_SOIL
+    state.crops_held += 1
+    state.actions.append({"op": "harvest", "line": line})
+    msg = f"Harvested a crop ({state.crops_held}/{state.crops_total})"
+    state.trace.append(_snapshot(state, line=line, message=msg, kind="harvest"))
+    return True
+
+
+def query_on_soil(state: WorldState, line: int | None = None) -> bool:
+    if not _tick(state) or not _require(state, "on_soil", line):
+        return False
+    return _cell(state.grid, state.row, state.col) in {FARM_SOIL, FARM_SEED, FARM_CROP}
+
+
+def query_crops_held(state: WorldState, line: int | None = None) -> int:
+    if not _tick(state) or not _require(state, "crops_held", line):
+        return 0
+    return state.crops_held
 
 
 def query_is_blocked(state: WorldState, line: int | None = None) -> bool:
@@ -251,7 +332,10 @@ def goals_met(state: WorldState) -> bool:
     goal = state.goal or {}
     if goal.get("collect_all_gems") and state.gems_held < state.gems_total:
         return False
-    if goal.get("reach_goal", True) and _cell(state.grid, state.row, state.col) != "G":
+    need_crops = int(goal.get("collect_crops") or 0)
+    if need_crops and state.crops_held < need_crops:
+        return False
+    if goal.get("reach_goal", True) and not _at_goal_cell(state):
         return False
     return True
 
@@ -267,14 +351,21 @@ def _result(state: WorldState, *, ok: bool | None = None) -> dict[str, Any]:
         "steps": state.steps,
         "gems_held": state.gems_held,
         "gems_total": state.gems_total,
+        "crops_held": state.crops_held,
+        "crops_total": state.crops_total,
         "row": state.row,
         "col": state.col,
         "facing": state.facing,
     }
     if not success and state.error is None:
+        need_crops = int(state.goal.get("collect_crops") or 0)
         if state.goal.get("collect_all_gems") and state.gems_held < state.gems_total:
             out["error"] = (
                 f"Still missing gems ({state.gems_held}/{state.gems_total})."
+            )
+        elif need_crops and state.crops_held < need_crops:
+            out["error"] = (
+                f"Still missing crops ({state.crops_held}/{need_crops})."
             )
         else:
             out["error"] = "The ghost did not reach the goal."
@@ -337,7 +428,20 @@ def replay(level: dict, actions: list[dict] | list[str]) -> dict[str, Any]:
             do_turn(state, "right", line)
         elif op == "pick_up":
             do_pick_up(state, line)
-        elif op in {"at_goal", "is_blocked", "on_gem", "read_sign"}:
+        elif op == "plant":
+            do_plant(state, line)
+        elif op == "water":
+            do_water(state, line)
+        elif op == "harvest":
+            do_harvest(state, line)
+        elif op in {
+            "at_goal",
+            "is_blocked",
+            "on_gem",
+            "read_sign",
+            "on_soil",
+            "crops_held",
+        }:
             # Queries should not appear in submit action lists; ignore soft.
             continue
         else:
@@ -394,6 +498,33 @@ class _Hero:
 
     def read_sign(self) -> str | None:
         value = query_read_sign(self._state, self._ln())
+        if self._state.error:
+            raise RuntimeError(self._state.error)
+        return value
+
+    def plant(self) -> None:
+        do_plant(self._state, self._ln())
+        if self._state.error:
+            raise RuntimeError(self._state.error)
+
+    def water(self) -> None:
+        do_water(self._state, self._ln())
+        if self._state.error:
+            raise RuntimeError(self._state.error)
+
+    def harvest(self) -> None:
+        do_harvest(self._state, self._ln())
+        if self._state.error:
+            raise RuntimeError(self._state.error)
+
+    def on_soil(self) -> bool:
+        value = query_on_soil(self._state, self._ln())
+        if self._state.error:
+            raise RuntimeError(self._state.error)
+        return value
+
+    def crops_held(self) -> int:
+        value = query_crops_held(self._state, self._ln())
         if self._state.error:
             raise RuntimeError(self._state.error)
         return value

@@ -25,9 +25,16 @@ class GhostwalkLevel(IdMixin, TimestampMixin, Base):
     __tablename__ = "ghostwalk_levels"
     __table_args__ = (
         UniqueConstraint("slug", name="uq_ghostwalk_levels_slug"),
-        CheckConstraint("mode in ('guided', 'free')", name="ck_ghostwalk_levels_mode"),
+        CheckConstraint(
+            "mode in ('guided', 'free', 'farm')",
+            name="ck_ghostwalk_levels_mode",
+        ),
         CheckConstraint("status in ('draft', 'published')", name="ck_ghostwalk_levels_status"),
         CheckConstraint("par_lines >= 1", name="ck_ghostwalk_levels_par"),
+        CheckConstraint(
+            "language in ('python', 'javascript', 'bash', 'go', 'sql', 'csharp', 'java')",
+            name="ck_ghostwalk_levels_language",
+        ),
     )
 
     slug: Mapped[str] = mapped_column(String(80), nullable=False)
@@ -41,6 +48,7 @@ class GhostwalkLevel(IdMixin, TimestampMixin, Base):
     goal: Mapped[dict] = mapped_column(JSONB, nullable=False)
     max_steps: Mapped[int] = mapped_column(Integer, nullable=False, default=500)
     mode: Mapped[str] = mapped_column(String(16), nullable=False, default="free")
+    language: Mapped[str] = mapped_column(String(20), nullable=False, default="python")
     starter_code: Mapped[str] = mapped_column(Text, nullable=False, default="")
     solution: Mapped[str] = mapped_column(Text, nullable=False, default="")
     hints: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)

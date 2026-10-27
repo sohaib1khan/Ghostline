@@ -15,8 +15,10 @@ const EMPTY = {
   allowedText: "move",
   goalReach: true,
   goalGems: false,
+  goalCrops: 0,
   max_steps: 500,
   mode: "free",
+  language: "python",
   starter_code: "",
   solution: "",
   hintsText: "",
@@ -47,8 +49,10 @@ function toForm(level) {
     allowedText: (level.allowed || []).join(", "),
     goalReach: level.goal?.reach_goal !== false,
     goalGems: Boolean(level.goal?.collect_all_gems),
+    goalCrops: Number(level.goal?.collect_crops || 0),
     max_steps: level.max_steps || 500,
     mode: level.mode || "free",
+    language: level.language || "python",
     starter_code: level.starter_code || "",
     solution: level.solution || "",
     hintsText: (level.hints || []).join("\n"),
@@ -79,9 +83,11 @@ function toPayload(form) {
     goal: {
       reach_goal: Boolean(form.goalReach),
       collect_all_gems: Boolean(form.goalGems),
+      ...(Number(form.goalCrops) > 0 ? { collect_crops: Number(form.goalCrops) } : {}),
     },
     max_steps: Number(form.max_steps) || 500,
     mode: form.mode,
+    language: form.language || "python",
     starter_code: form.starter_code,
     solution: form.solution,
     hints: form.hintsText
@@ -110,6 +116,10 @@ function GridPreview({ gridText }) {
             if (cell === ".") mark = "·";
             if (cell === "*") mark = "◆";
             if (cell === "G") mark = "◎";
+            if (cell === "B") mark = "⌂";
+            if (cell === "~") mark = "≈";
+            if (cell === "s") mark = "·";
+            if (cell === "c") mark = "✿";
             if (cell === "S") mark = "S";
             return (
               <span key={`${col}-${cell}`} className="inline-block w-3 text-center">
@@ -338,8 +348,8 @@ export default function GhostwalkAdminPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Ghostwalk levels</h1>
           <p className="mt-2 text-sm text-muted">
-            Build mazes, test solutions in the sandbox, then publish. The server only accepts move
-            lists that replay cleanly.
+            Build mazes per language (Python, Bash, Go, JS, SQL, C#, Java) or Ghostfarm plots.
+            Import/export YAML like Content. The server only accepts move lists that replay cleanly.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -362,7 +372,8 @@ export default function GhostwalkAdminPage() {
               <button type="button" className="w-full text-left" onClick={() => editLevel(level)}>
                 <p className="font-medium">{level.title}</p>
                 <p className="text-xs text-muted">
-                  {level.slug} · {level.status} · #{level.order}
+                  {level.slug} · {level.language || "python"} · {level.status} · #{level.order}
+                  {level.mode === "farm" ? " · farm" : ""}
                 </p>
               </button>
               <div className="mt-2 flex gap-2">
@@ -468,7 +479,7 @@ export default function GhostwalkAdminPage() {
             value={form.allowedText}
             onChange={(value) => field("allowedText", value)}
           />
-          <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex flex-wrap items-end gap-4 text-sm">
             <label className="inline-flex min-h-11 items-center gap-2">
               <input
                 type="checkbox"
@@ -485,8 +496,32 @@ export default function GhostwalkAdminPage() {
               />
               Collect all gems
             </label>
+            <div className="min-w-[10rem]">
+              <Field
+                id="gw-crops"
+                label="Collect crops (0 = none)"
+                type="number"
+                value={String(form.goalCrops || 0)}
+                onChange={(value) => field("goalCrops", Number(value))}
+              />
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-4">
+            <label className="block text-sm text-muted" htmlFor="gw-language">
+              Language
+              <select
+                id="gw-language"
+                className="mt-1 w-full rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
+                value={form.language}
+                onChange={(event) => field("language", event.target.value)}
+              >
+                {["python", "javascript", "bash", "go", "sql", "csharp", "java"].map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="block text-sm text-muted" htmlFor="gw-mode">
               Mode
               <select
@@ -497,6 +532,7 @@ export default function GhostwalkAdminPage() {
               >
                 <option value="guided">guided</option>
                 <option value="free">free</option>
+                <option value="farm">farm</option>
               </select>
             </label>
             <label className="block text-sm text-muted" htmlFor="gw-status">

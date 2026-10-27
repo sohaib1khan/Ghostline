@@ -126,27 +126,60 @@ json.dumps(_result)
         `;
       }
 
+      function ghostwalkJsWorker() {
+        return `
+          self.onmessage = (event) => {
+            try {
+              const worldJs = String(event.data.worldSource || "");
+              const code = String(event.data.code || "");
+              const level = event.data.level || {};
+              // Load shared engine into this worker scope.
+              (0, eval)(worldJs);
+              if (!self.GhostwalkWorld || !self.GhostwalkWorld.runLearnerCode) {
+                throw new Error("Ghostwalk JS world failed to load.");
+              }
+              const result = self.GhostwalkWorld.runLearnerCode(level, code);
+              self.postMessage({ output: JSON.stringify(result), result });
+            } catch (error) {
+              self.postMessage({
+                output: String(error && error.message ? error.message : error),
+                error: "runtime",
+              });
+            }
+          };
+          self.postMessage({ ready: true });
+        `;
+      }
+
       window.addEventListener("message", (event) => {
         if (event.source !== parent) return;
         if (!event.data || event.data.source !== "ghostline-parent") return;
         if (!/^https?:\/\/[A-Za-z0-9.:-]+$/.test(event.origin)) return;
         const kind = event.data.runtime;
         const runtime =
-          kind === "ghostwalk" ? "ghostwalk" : kind === "pyodide" ? "pyodide" : "browser_js";
+          kind === "ghostwalk"
+            ? "ghostwalk"
+            : kind === "ghostwalk_js"
+              ? "ghostwalk_js"
+              : kind === "pyodide"
+                ? "pyodide"
+                : "browser_js";
         const indexURL = event.origin + "/pyodide/";
         const source =
           runtime === "ghostwalk"
             ? ghostwalkWorker(indexURL)
-            : runtime === "pyodide"
-              ? pythonWorker(indexURL)
-              : jsWorker();
+            : runtime === "ghostwalk_js"
+              ? ghostwalkJsWorker()
+              : runtime === "pyodide"
+                ? pythonWorker(indexURL)
+                : jsWorker();
         const blob = new Blob([source], { type: "text/javascript" });
         const url = URL.createObjectURL(blob);
         let worker;
         try {
           worker = new Worker(
             url,
-            runtime === "browser_js" ? undefined : { type: "module" },
+            runtime === "browser_js" || runtime === "ghostwalk_js" ? undefined : { type: "module" },
           );
         } catch (error) {
           URL.revokeObjectURL(url);
@@ -158,7 +191,8 @@ json.dumps(_result)
         }
         let settled = false;
         let timer = 0;
-        const runLimit = runtime === "ghostwalk" ? GHOSTWALK_RUN_MS : RUN_MS;
+        const runLimit =
+          runtime === "ghostwalk" || runtime === "ghostwalk_js" ? GHOSTWALK_RUN_MS : RUN_MS;
 
         function finish(payload) {
           if (settled) return;
@@ -179,6 +213,7 @@ json.dumps(_result)
               code: String(event.data.code || ""),
               level: event.data.level || null,
               worldSource: event.data.worldSource || null,
+              worldJsUrl: event.data.worldJsUrl || null,
             });
             return;
           }

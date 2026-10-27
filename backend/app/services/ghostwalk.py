@@ -21,6 +21,16 @@ MAX_ACTIONS = 2_000
 MAX_CODE_CHARS = 12_000
 WORLD_PATH = Path(__file__).resolve().parents[1] / "ghostwalk" / "world.py"
 SEED_PATH = Path(__file__).resolve().parents[1] / "seed" / "ghostwalk" / "levels.yaml"
+SEED_EXTRA_PATH = Path(__file__).resolve().parents[1] / "seed" / "ghostwalk" / "levels_multilang.yaml"
+GHOSTWALK_LANGUAGES = (
+    "python",
+    "javascript",
+    "bash",
+    "go",
+    "sql",
+    "csharp",
+    "java",
+)
 
 
 def level_dict(level: GhostwalkLevel) -> dict:
@@ -56,8 +66,23 @@ def validate_level_payload(data: dict) -> list[str]:
     flat = "".join("".join(row) if isinstance(row, list) else row for row in grid)
     if flat.count("S") != 1:
         errors.append("Grid needs exactly one S.")
-    if flat.count("G") != 1:
-        errors.append("Grid needs exactly one G.")
+    goals = flat.count("G") + flat.count("B")
+    if goals != 1:
+        errors.append("Grid needs exactly one goal tile (G or barn B).")
+    language = str(data.get("language") or "python").lower()
+    if language not in {
+        "python",
+        "javascript",
+        "bash",
+        "go",
+        "sql",
+        "csharp",
+        "java",
+    }:
+        errors.append("Unknown language.")
+    mode = data.get("mode") or "free"
+    if mode not in {"guided", "free", "farm"}:
+        errors.append("mode must be guided, free, or farm.")
     start = data.get("start") or {}
     try:
         sr, sc = int(start.get("row")), int(start.get("col"))
@@ -77,48 +102,62 @@ def validate_level_payload(data: dict) -> list[str]:
             errors.append(f"Unknown command `{item}`.")
     if int(data.get("par_lines") or 0) < 1:
         errors.append("par_lines must be at least 1.")
-    mode = data.get("mode") or "free"
-    if mode not in {"guided", "free"}:
-        errors.append("mode must be guided or free.")
     return errors
 
 
-async def seed_ghostwalk_levels(session: AsyncSession) -> int:
-    existing = await session.scalar(select(func.count()).select_from(GhostwalkLevel))
-    if existing:
+def _level_row_from_item(item: dict) -> GhostwalkLevel:
+    return GhostwalkLevel(
+        slug=str(item["slug"]),
+        position=int(item.get("order") or item.get("position") or 0),
+        title=str(item.get("title") or item["slug"]),
+        concept=str(item.get("concept") or ""),
+        intro_markdown=str(item.get("intro_markdown") or ""),
+        grid=item.get("grid") or [],
+        start=item.get("start") or {},
+        allowed=list(item.get("allowed") or []),
+        goal=dict(item.get("goal") or {"reach_goal": True}),
+        max_steps=int(item.get("max_steps") or 500),
+        mode=str(item.get("mode") or "free"),
+        language=str(item.get("language") or "python").lower(),
+        starter_code=str(item.get("starter_code") or ""),
+        solution=str(item.get("solution") or ""),
+        hints=list(item.get("hints") or []),
+        par_lines=int(item.get("par_lines") or 1),
+        xp=int(item.get("xp") or 20),
+        status=str(item.get("status") or "published"),
+        python_lesson_slug=item.get("python_lesson_slug"),
+    )
+
+
+async def _seed_from_path(session: AsyncSession, path: Path, *, only_missing: bool) -> int:
+    if not path.is_file():
         return 0
-    if not SEED_PATH.is_file():
-        return 0
-    loaded = yaml.safe_load(SEED_PATH.read_text(encoding="utf-8")) or {}
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     rows = loaded.get("levels") or []
     count = 0
     for item in rows:
         errors = validate_level_payload(item)
         if errors:
             continue
-        session.add(
-            GhostwalkLevel(
-                slug=str(item["slug"]),
-                position=int(item.get("order") or item.get("position") or 0),
-                title=str(item.get("title") or item["slug"]),
-                concept=str(item.get("concept") or ""),
-                intro_markdown=str(item.get("intro_markdown") or ""),
-                grid=item.get("grid") or [],
-                start=item.get("start") or {},
-                allowed=list(item.get("allowed") or []),
-                goal=dict(item.get("goal") or {"reach_goal": True}),
-                max_steps=int(item.get("max_steps") or 500),
-                mode=str(item.get("mode") or "free"),
-                starter_code=str(item.get("starter_code") or ""),
-                solution=str(item.get("solution") or ""),
-                hints=list(item.get("hints") or []),
-                par_lines=int(item.get("par_lines") or 1),
-                xp=int(item.get("xp") or 20),
-                status=str(item.get("status") or "published"),
-                python_lesson_slug=item.get("python_lesson_slug"),
+        slug = str(item.get("slug") or "")
+        if only_missing and slug:
+            exists = await session.scalar(
+                select(GhostwalkLevel.id).where(GhostwalkLevel.slug == slug)
             )
-        )
+            if exists:
+                continue
+        session.add(_level_row_from_item(item))
         count += 1
+    return count
+
+
+async def seed_ghostwalk_levels(session: AsyncSession) -> int:
+    existing = await session.scalar(select(func.count()).select_from(GhostwalkLevel))
+    count = 0
+    if not existing:
+        count += await _seed_from_path(session, SEED_PATH, only_missing=False)
+    # Always fill missing multi-language / farm packs by slug.
+    count += await _seed_from_path(session, SEED_EXTRA_PATH, only_missing=True)
     return count
 
 
@@ -126,16 +165,14 @@ def world_source() -> str:
     return WORLD_PATH.read_text(encoding="utf-8")
 
 
-async def _published_levels(session: AsyncSession) -> list[GhostwalkLevel]:
-    return list(
-        (
-            await session.scalars(
-                select(GhostwalkLevel)
-                .where(GhostwalkLevel.status == "published")
-                .order_by(GhostwalkLevel.position, GhostwalkLevel.slug)
-            )
-        ).all()
-    )
+async def _published_levels(
+    session: AsyncSession, *, language: str | None = None
+) -> list[GhostwalkLevel]:
+    stmt = select(GhostwalkLevel).where(GhostwalkLevel.status == "published")
+    if language:
+        stmt = stmt.where(GhostwalkLevel.language == language)
+    stmt = stmt.order_by(GhostwalkLevel.position, GhostwalkLevel.slug)
+    return list((await session.scalars(stmt)).all())
 
 
 async def _progress_map(
@@ -156,15 +193,63 @@ async def _progress_map(
     return {row.level_id: row for row in rows}
 
 
-async def list_levels_for_user(session: AsyncSession, user: User) -> dict:
-    levels = await _published_levels(session)
-    progress = await _progress_map(session, user.id, [level.id for level in levels])
+def _level_card(
+    level: GhostwalkLevel,
+    row: GhostwalkProgress | None,
+    *,
+    unlocked: bool,
+    lock_reason: str | None,
+) -> dict:
+    completed = bool(row and row.status == "completed")
+    return {
+        "id": level.id,
+        "slug": level.slug,
+        "order": level.position,
+        "title": level.title,
+        "concept": level.concept,
+        "mode": level.mode,
+        "language": level.language,
+        "par_lines": level.par_lines,
+        "xp": level.xp,
+        "unlocked": unlocked,
+        "lock_reason": lock_reason,
+        "stars": int(row.stars or 0) if row else 0,
+        "completed": completed,
+        "python_lesson_slug": level.python_lesson_slug,
+    }
+
+
+async def list_levels_for_user(
+    session: AsyncSession, user: User, *, language: str | None = None
+) -> dict:
+    lang = (language or "python").lower()
+    if lang not in GHOSTWALK_LANGUAGES:
+        lang = "python"
+    all_for_lang = await _published_levels(session, language=lang)
+    maze_levels = [level for level in all_for_lang if level.mode != "farm"]
+    farm_levels = list(
+        (
+            await session.scalars(
+                select(GhostwalkLevel)
+                .where(
+                    GhostwalkLevel.status == "published",
+                    GhostwalkLevel.mode == "farm",
+                )
+                .order_by(GhostwalkLevel.position, GhostwalkLevel.slug)
+            )
+        ).all()
+    )
+    progress = await _progress_map(
+        session,
+        user.id,
+        [level.id for level in maze_levels] + [level.id for level in farm_levels],
+    )
     cards = []
     prev_complete = True
     solved = 0
     stars_total = 0
     stars_earned = 0
-    for level in levels:
+    for index, level in enumerate(maze_levels):
         row = progress.get(level.id)
         unlocked = prev_complete
         completed = bool(row and row.status == "completed")
@@ -172,41 +257,64 @@ async def list_levels_for_user(session: AsyncSession, user: User) -> dict:
             solved += 1
             stars_earned += int(row.stars or 0)
         stars_total += 3
+        lock_reason = None
+        if not unlocked:
+            lock_reason = (
+                f"Solve {maze_levels[index - 1].title} first"
+                if index > 0
+                else "Locked"
+            )
         cards.append(
-            {
-                "id": level.id,
-                "slug": level.slug,
-                "order": level.position,
-                "title": level.title,
-                "concept": level.concept,
-                "mode": level.mode,
-                "par_lines": level.par_lines,
-                "xp": level.xp,
-                "unlocked": unlocked,
-                "lock_reason": None
-                if unlocked
-                else (
-                    f"Solve {levels[levels.index(level) - 1].title} first"
-                    if levels.index(level) > 0
-                    else "Locked"
-                ),
-                "stars": int(row.stars or 0) if row else 0,
-                "completed": completed,
-                "python_lesson_slug": level.python_lesson_slug,
-            }
+            _level_card(level, row, unlocked=unlocked, lock_reason=lock_reason)
         )
         prev_complete = completed
+
+    farm_cards = []
+    farm_solved = 0
+    farm_stars = 0
+    for level in farm_levels:
+        row = progress.get(level.id)
+        completed = bool(row and row.status == "completed")
+        if completed:
+            farm_solved += 1
+            farm_stars += int(row.stars or 0)
+        farm_cards.append(
+            _level_card(level, row, unlocked=True, lock_reason=None)
+        )
+
     continue_at = None
-    for card in cards:
+    for card in cards + farm_cards:
         if card["unlocked"] and not card["completed"]:
-            continue_at = {"slug": card["slug"], "title": card["title"], "order": card["order"]}
+            continue_at = {
+                "slug": card["slug"],
+                "title": card["title"],
+                "order": card["order"],
+                "language": card["language"],
+            }
             break
+    languages_present = list(
+        (
+            await session.scalars(
+                select(GhostwalkLevel.language)
+                .where(GhostwalkLevel.status == "published")
+                .distinct()
+                .order_by(GhostwalkLevel.language)
+            )
+        ).all()
+    )
     return {
+        "language": lang,
+        "languages": languages_present or ["python"],
         "levels": cards,
+        "farm": farm_cards,
         "solved": solved,
         "total": len(cards),
         "stars_earned": stars_earned,
         "stars_total": stars_total,
+        "farm_solved": farm_solved,
+        "farm_total": len(farm_cards),
+        "farm_stars_earned": farm_stars,
+        "farm_stars_total": len(farm_cards) * 3,
         "continue": continue_at,
     }
 
@@ -214,18 +322,21 @@ async def list_levels_for_user(session: AsyncSession, user: User) -> dict:
 async def get_level_for_user(
     session: AsyncSession, user: User, slug: str, *, memory_mode: bool = False
 ) -> dict:
-    levels = await _published_levels(session)
-    level = next((item for item in levels if item.slug == slug), None)
+    all_levels = await _published_levels(session)
+    level = next((item for item in all_levels if item.slug == slug), None)
     if level is None:
         raise ContentError(404, "Level not found")
+    levels = [item for item in all_levels if item.language == level.language]
     progress = await _progress_map(session, user.id, [item.id for item in levels])
-    # Lock check
-    for item in levels:
-        if item.slug == slug:
-            break
-        row = progress.get(item.id)
-        if not row or row.status != "completed":
-            raise ContentError(403, f"Solve {item.title} first")
+    if level.mode != "farm":
+        for item in levels:
+            if item.slug == slug:
+                break
+            if item.mode == "farm":
+                continue
+            row = progress.get(item.id)
+            if not row or row.status != "completed":
+                raise ContentError(403, f"Solve {item.title} first")
     row = progress.get(level.id)
     show_solution = level.mode == "guided" and not memory_mode
     return {
@@ -241,6 +352,7 @@ async def get_level_for_user(
         "goal": level.goal,
         "max_steps": level.max_steps,
         "mode": "free" if memory_mode else level.mode,
+        "language": level.language,
         "starter_code": "" if memory_mode else level.starter_code,
         "solution": level.solution if show_solution else None,
         "hints": level.hints or [],
@@ -302,18 +414,22 @@ async def submit_level(
         raise ContentError(400, "That program is too long.")
     if not isinstance(actions, list) or len(actions) > MAX_ACTIONS:
         raise ContentError(400, "Too many actions.")
-    levels = await _published_levels(session)
-    level = next((item for item in levels if item.slug == slug), None)
+    all_levels = await _published_levels(session)
+    level = next((item for item in all_levels if item.slug == slug), None)
     if level is None:
         raise ContentError(404, "Level not found")
-    # Enforce lock order
-    progress_map = await _progress_map(session, user.id, [item.id for item in levels])
-    for item in levels:
-        if item.slug == slug:
-            break
-        prior = progress_map.get(item.id)
-        if not prior or prior.status != "completed":
-            raise ContentError(403, f"Solve {item.title} first")
+    levels = [item for item in all_levels if item.language == level.language]
+    # Enforce lock order within the language path (farm levels are open).
+    if level.mode != "farm":
+        progress_map = await _progress_map(session, user.id, [item.id for item in levels])
+        for item in levels:
+            if item.slug == slug:
+                break
+            if item.mode == "farm":
+                continue
+            prior = progress_map.get(item.id)
+            if not prior or prior.status != "completed":
+                raise ContentError(403, f"Solve {item.title} first")
 
     outcome = replay(level_dict(level), actions)
     row = await _ensure_progress(session, user.id, level.id)
@@ -409,6 +525,7 @@ def _admin_level(level: GhostwalkLevel) -> dict:
         "goal": level.goal,
         "max_steps": level.max_steps,
         "mode": level.mode,
+        "language": level.language,
         "starter_code": level.starter_code,
         "solution": level.solution,
         "hints": level.hints,
@@ -466,6 +583,7 @@ async def admin_upsert_level(
     level.goal = dict(payload.get("goal") or {"reach_goal": True})
     level.max_steps = int(payload.get("max_steps") or 500)
     level.mode = str(payload.get("mode") or "free")
+    level.language = str(payload.get("language") or level.language or "python").lower()
     level.starter_code = str(payload.get("starter_code") or "")
     level.solution = str(payload.get("solution") or "")
     level.hints = list(payload.get("hints") or [])
@@ -586,9 +704,11 @@ async def admin_test_solution(session: AsyncSession, level_id: uuid.UUID) -> dic
     level = await session.get(GhostwalkLevel, level_id)
     if level is None:
         raise ContentError(404, "Level not found")
+    from app.ghostwalk.skins import skin_to_python
     from app.ghostwalk.world import run_learner_code
 
-    ran = run_learner_code(level_dict(level), level.solution or "")
+    source = skin_to_python(level.language or "python", level.solution or "")
+    ran = run_learner_code(level_dict(level), source)
     if not ran.get("ok"):
         return {"ok": False, "error": ran.get("error"), "actions": ran.get("actions") or []}
     checked = replay(level_dict(level), ran.get("actions") or [])
