@@ -9,7 +9,7 @@ import TrackLogo from "../components/content/TrackLogo.jsx";
 import StreakFlame from "../components/feedback/StreakFlame.jsx";
 import { readDailyCounts } from "../lib/dailyGoal.js";
 import { readPrefs } from "../prefs.js";
-import { isStaff, isSuperAdmin } from "../roles.js";
+import { isSuperAdmin } from "../roles.js";
 
 const TRACK_META = {
   bash: {
@@ -365,23 +365,62 @@ export default function HomePage() {
   const continueTrackName = resume?.track_name || nextTrack?.name || "";
   const continueTrackSlug = resume?.track_slug || nextTrack?.slug || "";
 
-  return (
-    <section className="home-shell rounded-2xl bg-surface p-6 shadow-[var(--shadow)] sm:p-8">
-      <div className={reduce ? undefined : "practice-rise"}>
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">Your practice</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-          Welcome back, {user.first_name}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
-          {board ? streakNote(board.current_streak_days) : "Loading your practice…"}
-        </p>
-        <p className="mt-1 text-xs text-muted">
-          {user.email} · {user.role.replace("_", " ")}
-          {isStaff(user.role) ? " · studio tools unlocked in the nav" : ""}
-        </p>
-      </div>
+  const reviewCount = reviewDue?.count || 0;
+  const reviewsDone = Math.min(daily.reviews, goalReviews || 0);
+  const lessonsDone = Math.min(daily.lessons, goalLessons || 0);
 
-      <div className={`home-stats mt-6 ${reduce ? "" : "practice-rise-delay"}`}>
+  return (
+    <section className="home-shell rounded-2xl bg-surface p-5 shadow-[var(--shadow)] sm:p-8">
+      <header className={`home-hero ${reduce ? "" : "practice-rise"}`}>
+        <div className="min-w-0">
+          <p className="home-kicker">Ghostline</p>
+          <h1 className="home-title">Welcome back, {user.first_name}</h1>
+          <p className="home-lead">
+            {board ? streakNote(board.current_streak_days) : "Loading your practice…"}
+          </p>
+        </div>
+        {goalReviews > 0 || goalLessons > 0 ? (
+          <div className="home-daily" role="status" aria-label="Daily goal progress">
+            <p className="home-daily-title">Today&apos;s goal</p>
+            <ul className="home-daily-meters">
+              {goalReviews > 0 ? (
+                <li>
+                  <div className="home-daily-row">
+                    <span>
+                      Reviews {reviewsDone}/{goalReviews}
+                    </span>
+                    <span className="font-mono">{pct(reviewsDone, goalReviews)}%</span>
+                  </div>
+                  <div className="home-progress" aria-hidden>
+                    <div
+                      className="home-progress-fill"
+                      style={{ width: `${pct(reviewsDone, goalReviews)}%` }}
+                    />
+                  </div>
+                </li>
+              ) : null}
+              {goalLessons > 0 ? (
+                <li>
+                  <div className="home-daily-row">
+                    <span>
+                      Lessons {lessonsDone}/{goalLessons}
+                    </span>
+                    <span className="font-mono">{pct(lessonsDone, goalLessons)}%</span>
+                  </div>
+                  <div className="home-progress" aria-hidden>
+                    <div
+                      className="home-progress-fill"
+                      style={{ width: `${pct(lessonsDone, goalLessons)}%` }}
+                    />
+                  </div>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        ) : null}
+      </header>
+
+      <div className={`home-stats ${reduce ? "" : "practice-rise-delay"}`} aria-label="Your stats">
         <StatChip
           label="XP"
           value={(board?.xp ?? stats?.xp ?? 0).toLocaleString()}
@@ -409,111 +448,91 @@ export default function HomePage() {
         />
       </div>
 
-      {goalReviews > 0 || goalLessons > 0 ? (
-        <p className="mt-6 rounded-2xl border border-muted/20 bg-bg/70 px-4 py-3 text-sm" role="status">
-          <span className="font-medium text-text">
-            Daily goal:{" "}
-            {[
-              goalReviews > 0 ? `${goalReviews} review${goalReviews === 1 ? "" : "s"}` : null,
-              goalLessons > 0 ? `${goalLessons} new lesson${goalLessons === 1 ? "" : "s"}` : null,
-            ]
-              .filter(Boolean)
-              .join(" + ")}
-          </span>
-          <span className="ml-2 text-muted">
-            Today:{" "}
-            {[
-              goalReviews > 0 ? `${Math.min(daily.reviews, goalReviews)}/${goalReviews} reviews` : null,
-              goalLessons > 0 ? `${Math.min(daily.lessons, goalLessons)}/${goalLessons} lessons` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </p>
-      ) : null}
+      <section className="home-jump" aria-labelledby="home-jump-title">
+        <div className="home-section-head">
+          <h2 id="home-jump-title" className="home-section-title">
+            Jump back in
+          </h2>
+          <p className="home-section-lead">Pick one path — reviews, a lesson, or Ghostwalk.</p>
+        </div>
+        <ul className="home-jump-grid">
+          {reviewCount > 0 ? (
+            <li className="home-jump-card home-jump-card-review">
+              <p className="home-jump-label">Review</p>
+              <p className="home-jump-heading">{reviewCount} due now</p>
+              <p className="home-jump-copy">
+                About {reviewDue.estimate_minutes || 1} min · keep commands warm
+              </p>
+              <Link to="/review" className="btn-primary home-jump-cta">
+                Start reviews
+              </Link>
+            </li>
+          ) : null}
 
-      {reviewDue?.count > 0 ? (
-        <div className="mt-6 rounded-2xl border border-accent/30 bg-bg/70 p-4">
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">Review today</p>
-          <p className="mt-2 text-lg font-semibold text-text">
-            Review today ({reviewDue.count})
+          {continueLessonId ? (
+            <li className="home-jump-card home-jump-card-lesson">
+              <p className="home-jump-label">Lesson</p>
+              <p className="home-jump-heading">
+                {continueTrackName}
+                {continueLessonTitle ? ` · ${continueLessonTitle}` : ""}
+              </p>
+              <p className="home-jump-copy font-mono">
+                {(TRACK_META[continueTrackSlug] || {}).sample || "Continue your published path"}
+              </p>
+              <Link to={`/learn/lessons/${continueLessonId}`} className="btn-primary home-jump-cta">
+                Continue lesson
+              </Link>
+            </li>
+          ) : null}
+
+          <li className="home-jump-card home-jump-card-ghostwalk">
+            <p className="home-jump-label">Ghostwalk</p>
+            <p className="home-jump-heading">
+              {ghostwalkContinue
+                ? ghostwalkContinue.label.replace(/^Ghostwalk · /, "")
+                : "Python maze levels"}
+            </p>
+            <p className="home-jump-copy">Guide the ghost with real Python in your browser.</p>
+            <Link
+              to={ghostwalkContinue ? `/ghostwalk/${ghostwalkContinue.slug}` : "/ghostwalk"}
+              className="btn-primary home-jump-cta"
+            >
+              {ghostwalkContinue ? "Continue Ghostwalk" : "Open Ghostwalk"}
+            </Link>
+          </li>
+        </ul>
+      </section>
+
+      <nav className="home-also" aria-label="Other practice tools">
+        <p className="home-also-label">Also</p>
+        <div className="home-also-links">
+          <Link to="/games" className="home-also-link">
+            Games
+          </Link>
+          <Link to="/playground" className="home-also-link">
+            Playground
+          </Link>
+          <Link to="/projects" className="home-also-link">
+            Projects
+          </Link>
+          <Link to="/ghostwalk" className="home-also-link">
+            Ghostwalk map
+          </Link>
+          {isSuperAdmin(user.role) ? (
+            <Link to="/admin/users" className="home-also-link">
+              Users
+            </Link>
+          ) : null}
+        </div>
+      </nav>
+
+      <div className="home-tracks">
+        <div className="home-section-head">
+          <h2 className="home-section-title">Practice tracks</h2>
+          <p className="home-section-lead">
+            Beginner → intermediate → advanced. Open a track to see modules and pick up where you
+            left off.
           </p>
-          <p className="mt-1 text-sm text-muted">
-            About {reviewDue.estimate_minutes || 1} minute
-            {(reviewDue.estimate_minutes || 1) === 1 ? "" : "s"} · keep the commands warm
-          </p>
-          <Link
-            to="/review"
-            className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
-          >
-            Start reviews
-          </Link>
-        </div>
-      ) : null}
-
-      {continueLessonId ? (
-        <div className={`home-next mt-6 ${reduce ? "" : "practice-rise-delay"}`}>
-          <div className="min-w-0">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">Pick up here</p>
-            <p className="mt-1 font-medium text-text">
-              {continueTrackName}
-              {continueLessonTitle ? ` · ${continueLessonTitle}` : ""}
-            </p>
-            <p className="mt-1 font-mono text-xs text-muted">
-              {(TRACK_META[continueTrackSlug] || {}).sample || "Continue your published path"}
-            </p>
-          </div>
-          <Link
-            to={`/learn/lessons/${continueLessonId}`}
-            className="btn-primary shrink-0"
-          >
-            Continue lesson
-          </Link>
-        </div>
-      ) : null}
-
-      {ghostwalkContinue ? (
-        <div className={`home-next mt-4 ${reduce ? "" : "practice-rise-delay"}`}>
-          <div className="min-w-0">
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">Ghostwalk</p>
-            <p className="mt-1 font-medium text-text">{ghostwalkContinue.label}</p>
-            <p className="mt-1 font-mono text-xs text-muted">Guide the ghost with Python</p>
-          </div>
-          <Link to={`/ghostwalk/${ghostwalkContinue.slug}`} className="btn-secondary shrink-0">
-            Continue Ghostwalk
-          </Link>
-        </div>
-      ) : null}
-
-      <div className="mt-6 flex flex-wrap gap-2">
-        <Link to="/ghostwalk" className="btn-secondary">
-          Ghostwalk
-        </Link>
-        <Link to="/games" className="btn-secondary">
-          Warm up in Games
-        </Link>
-        <Link to="/playground" className="btn-secondary">
-          Open Playground
-        </Link>
-        <Link to="/projects" className="btn-ghost">
-          Projects
-        </Link>
-        {isSuperAdmin(user.role) ? (
-          <Link to="/admin/users" className="btn-ghost">
-            Manage users
-          </Link>
-        ) : null}
-      </div>
-
-      <div className="mt-10">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Practice tracks</h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted">
-              Beginner basics → intermediate practice → advanced projects. Each card shows where you
-              left off and what the track is for.
-            </p>
-          </div>
         </div>
 
         {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
@@ -627,9 +646,9 @@ export default function HomePage() {
         ) : null}
       </div>
 
-      <p className="mt-8 border-t border-muted/15 pt-6 text-sm text-muted">
-        Games reuse the same published lines as lessons — hangman, output prediction, and drills keep
-        the streak warm without starting a new topic from scratch.
+      <p className="home-footnote">
+        Games reuse the same published lines as lessons — short drills keep the streak warm without
+        starting a new topic.
       </p>
     </section>
   );

@@ -104,7 +104,7 @@ export default function GhostwalkPlayPage() {
     return () => window.clearTimeout(timer);
   }, [trace, traceIndex, speed.ms, applyFrame]);
 
-  async function runCode({ stepOnly = false } = {}) {
+  async function runCode() {
     if (!level || running) return;
     setRunning(true);
     setLoadingEngine(true);
@@ -180,7 +180,7 @@ export default function GhostwalkPlayPage() {
         runCode();
       } else if (event.ctrlKey && event.key === ".") {
         event.preventDefault();
-        runCode({ stepOnly: true });
+        runCode();
       } else if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "r") {
         event.preventDefault();
         resetWorld();
@@ -329,7 +329,7 @@ export default function GhostwalkPlayPage() {
             type="button"
             className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-5 text-base font-medium disabled:opacity-50"
             disabled={running}
-            onClick={() => runCode({ stepOnly: true })}
+            onClick={() => runCode()}
           >
             Step
           </button>
