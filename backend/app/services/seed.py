@@ -168,4 +168,7 @@ async def seed_starter_content(session: AsyncSession) -> None:
     await _import_addons(session)
     await _label_module_levels(session)
     await _clear_challenge_timers(session)
+    from app.services.ghostwalk import seed_ghostwalk_levels
+
+    await seed_ghostwalk_levels(session)
     await session.commit()

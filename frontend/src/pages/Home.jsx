@@ -117,6 +117,7 @@ export default function HomePage() {
   const [tracks, setTracks] = useState(null);
   const [stats, setStats] = useState(null);
   const [reviewDue, setReviewDue] = useState(null);
+  const [ghostwalkContinue, setGhostwalkContinue] = useState(null);
   const [error, setError] = useState("");
   const prefs = readPrefs();
   const reduce = prefs.reduceMotion;
@@ -139,6 +140,7 @@ export default function HomePage() {
           setTracks(board);
           setStats(meStats);
           setReviewDue(review);
+          setGhostwalkContinue(board?.ghostwalk || null);
           setError("");
         }
       })
@@ -470,7 +472,23 @@ export default function HomePage() {
         </div>
       ) : null}
 
+      {ghostwalkContinue ? (
+        <div className={`home-next mt-4 ${reduce ? "" : "practice-rise-delay"}`}>
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">Ghostwalk</p>
+            <p className="mt-1 font-medium text-text">{ghostwalkContinue.label}</p>
+            <p className="mt-1 font-mono text-xs text-muted">Guide the ghost with Python</p>
+          </div>
+          <Link to={`/ghostwalk/${ghostwalkContinue.slug}`} className="btn-secondary shrink-0">
+            Continue Ghostwalk
+          </Link>
+        </div>
+      ) : null}
+
       <div className="mt-6 flex flex-wrap gap-2">
+        <Link to="/ghostwalk" className="btn-secondary">
+          Ghostwalk
+        </Link>
         <Link to="/games" className="btn-secondary">
           Warm up in Games
         </Link>

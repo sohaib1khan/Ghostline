@@ -19,6 +19,8 @@ from app.routers.certificates import router as certificates_router
 from app.routers.check import router as check_router
 from app.routers.demo import router as demo_router
 from app.routers.games import router as games_router
+from app.routers.ghostwalk import admin_router as ghostwalk_admin_router
+from app.routers.ghostwalk import router as ghostwalk_router
 from app.routers.health import router as health_router
 from app.routers.journal import router as journal_router
 from app.routers.learn import router as learn_router
@@ -71,6 +73,8 @@ def create_app() -> FastAPI:
     app.include_router(games_router, prefix="/api")
     app.include_router(review_router, prefix="/api")
     app.include_router(journal_router, prefix="/api")
+    app.include_router(ghostwalk_router, prefix="/api")
+    app.include_router(ghostwalk_admin_router, prefix="/api")
     app.include_router(playground_router, prefix="/api")
     app.include_router(admin_ai_router, prefix="/api")
     app.include_router(admin_users_router, prefix="/api")

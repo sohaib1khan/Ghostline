@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { api } from "./api/client.js";
 import AiPage from "./pages/admin/AiPage.jsx";
 import ContentPage from "./pages/admin/ContentPage.jsx";
+import GhostwalkAdminPage from "./pages/admin/GhostwalkAdminPage.jsx";
 import LeaderboardPage from "./pages/admin/LeaderboardPage.jsx";
 import LessonPreview from "./pages/admin/LessonPreview.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
@@ -18,6 +19,8 @@ import ProjectsPage from "./pages/learn/ProjectsPage.jsx";
 import BossPage from "./pages/learn/BossPage.jsx";
 import ReviewPage from "./pages/learn/ReviewPage.jsx";
 import TrackPage from "./pages/learn/TrackPage.jsx";
+import GhostwalkPage from "./pages/ghostwalk/GhostwalkPage.jsx";
+import GhostwalkPlayPage from "./pages/ghostwalk/GhostwalkPlayPage.jsx";
 import PlaygroundPage from "./pages/playground/PlaygroundPage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
 import SignupPage from "./pages/auth/SignupPage.jsx";
@@ -219,6 +222,7 @@ export default function App() {
           <Route path="/admin/ai" element={<AiPage />} />
         </Route>
         <Route path="/admin/content" element={<ContentPage />} />
+        <Route path="/admin/ghostwalk" element={<GhostwalkAdminPage />} />
         <Route path="/admin/preview/lessons/:lessonId" element={<LessonPreview />} />
         <Route path="/admin/leaderboard" element={<LeaderboardPage />} />
         <Route path="/admin/leadboard" element={<Navigate to="/admin/leaderboard" replace />} />
@@ -232,6 +236,8 @@ export default function App() {
         <Route path="/certificates" element={<CertificatesPage />} />
         <Route path="/certificates/:slug" element={<CertificateDetailPage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="/ghostwalk" element={<GhostwalkPage />} />
+        <Route path="/ghostwalk/:slug" element={<GhostwalkPlayPage />} />
         <Route path="/learn/tracks/:slug" element={<TrackPage />} />
         <Route path="/learn/lessons/:lessonId" element={<LessonPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

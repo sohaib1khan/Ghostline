@@ -8,7 +8,7 @@ Ghostline is a typing-first lesson app. The browser shows the next command or li
 browser  →  nginx (web)  →  FastAPI (backend)  →  Postgres (db)
 ```
 
-- **web** serves the React app, the service worker, fonts, sounds, and the self-hosted Pyodide files. The image starts from nginx 1.28.3 and upgrades Alpine packages that have a fixed advisory. `/api` is proxied to the backend. The sandbox page `/sandbox/runner.html` is the only frame allowed to use `eval` and WebAssembly. Learner JavaScript and Python run in a worker inside that frame, with `fetch` replaced, and a 3 second limit.
+- **web** serves the React app, the service worker, fonts, sounds, and the self-hosted Pyodide files. The image starts from nginx 1.28.3 and upgrades Alpine packages that have a fixed advisory. `/api` is proxied to the backend. The sandbox page `/sandbox/runner.html` is the only frame allowed to use `eval` and WebAssembly. Learner JavaScript and Python run in a worker inside that frame, with `fetch` replaced, and a 3 second limit (15 seconds for Ghostwalk runs).
 - **backend** is FastAPI on Python 3.12. The production image starts the virtualenv's uvicorn and does not include the `uv` binaries. Sessions are opaque random tokens stored as hashes. Passwords use Argon2id. Notification and AI secrets are Fernet-encrypted in `app_settings`. Alembic migrates the schema on startup, then starter lessons load if the lesson table is empty.
 - **db** is Postgres 16. It has no published host port.
 
@@ -27,6 +27,21 @@ Published lessons are what learners and the public demo can open. Drafts stay in
 - **Mastery gates** live in `services/gating.py` and `module_progress`. The next module unlocks at 80% recall completion; a module boss (no hints, 70% pass) sets `mastered_at`. Certificates require every module boss on the track.
 - **Mistake journal** (`attempt_log`, 90-day retention) powers “usual slips” and prefers struggling items in review.
 - **Preferences** JSON on the user (and localStorage for demo) drives rem/`--ui-scale`, contrast themes, and editor comfort.
+
+## Ghostwalk
+
+Maze levels teach Python sequencing with a shared pure-Python engine (`app/ghostwalk/world.py`).
+
+```text
+editor → sandbox (runtime: ghostwalk) → world.run_learner_code → actions
+      → POST /api/ghostwalk/levels/{slug}/submit → world.replay → progress / XP
+```
+
+- The API never executes learner source; it only replays the action list.
+- Tables: `ghostwalk_levels`, `ghostwalk_progress` (migration `0014_ghostwalk`).
+- Seed YAML: `backend/app/seed/ghostwalk/levels.yaml` when the levels table is empty.
+- Admin CRUD / reorder / YAML export under `/api/admin/ghostwalk`.
+- Struggle (3+ failed submits or 2+ hints) sets `next_review_at` for a free replay in `/review`.
 
 ## What is cached in the browser
 

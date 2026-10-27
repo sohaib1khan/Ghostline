@@ -64,8 +64,55 @@ async def due_reviews(
     now = datetime.now(UTC)
     tracks = await list_visible_tracks(db, user)
     track_ids = {track.id for track in tracks}
+    due: list[dict] = []
+
+    # Ghostwalk free replays scheduled after struggle (failed runs / hints).
+    from app.models.ghostwalk import GhostwalkLevel, GhostwalkProgress
+
+    gw_rows = list(
+        (
+            await db.execute(
+                select(GhostwalkProgress, GhostwalkLevel)
+                .join(GhostwalkLevel, GhostwalkLevel.id == GhostwalkProgress.level_id)
+                .where(
+                    GhostwalkProgress.user_id == user.id,
+                    GhostwalkProgress.next_review_at.is_not(None),
+                    GhostwalkProgress.next_review_at <= now,
+                    GhostwalkLevel.status == "published",
+                )
+                .order_by(GhostwalkProgress.next_review_at.asc())
+                .limit(limit)
+            )
+        ).all()
+    )
+    for progress, level in gw_rows:
+        due.append(
+            {
+                "id": str(progress.id),
+                "kind": "ghostwalk",
+                "type": "ghostwalk",
+                "slug": level.slug,
+                "title": level.title,
+                "prompt": f"Replay Ghostwalk · {level.title} from memory.",
+                "concept": level.concept,
+                "track_slug": "ghostwalk",
+                "track_name": "Ghostwalk",
+                "lesson_title": level.title,
+                "module_title": level.concept,
+                "next_review_at": (
+                    progress.next_review_at.isoformat() if progress.next_review_at else None
+                ),
+            }
+        )
+
     if not track_ids:
-        return {"due": [], "count": 0, "daily_cap": DEFAULT_DAILY_CAP, "estimate_minutes": 0}
+        estimate = max(1, round(len(due) * 0.5)) if due else 0
+        return {
+            "due": due[:limit],
+            "count": len(due[:limit]),
+            "daily_cap": DEFAULT_DAILY_CAP,
+            "estimate_minutes": estimate,
+        }
 
     result = await db.execute(
         select(ExerciseProgress, Exercise, Lesson, Module, Track)
@@ -109,9 +156,11 @@ async def due_reviews(
             if not bucket:
                 by_track.pop(slug, None)
 
-    due = []
     for progress, exercise, lesson, module, track in mixed:
+        if len(due) >= limit:
+            break
         item = _as_recall_payload(exercise, track, module, lesson)
+        item["kind"] = "exercise"
         item["next_review_at"] = (
             progress.next_review_at.isoformat() if progress.next_review_at else None
         )

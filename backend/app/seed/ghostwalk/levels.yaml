@@ -1,0 +1,393 @@
+levels:
+  - slug: first-steps
+    order: 1
+    title: First steps
+    concept: Calling a method
+    intro_markdown: |
+      Your ghost follows your code, one line at a time. `hero.move()` moves one tile forward.
+      Reach the glowing goal tile.
+    grid:
+      - "#######"
+      - "#S...G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.move()
+    solution: |
+      hero.move()
+      hero.move()
+      hero.move()
+      hero.move()
+    hints:
+      - Count the tiles between the ghost and the goal.
+      - Each hero.move() is one tile. You need four.
+    par_lines: 4
+    xp: 20
+    status: published
+    python_lesson_slug: methods
+
+  - slug: turn-the-corner
+    order: 2
+    title: Turn the corner
+    concept: Sequence
+    intro_markdown: |
+      `hero.turn_left()` and `hero.turn_right()` turn the ghost on the spot. They do not move it.
+      Turns are from the ghost's point of view, not yours.
+    grid:
+      - "######"
+      - "#S..##"
+      - "###.##"
+      - "###.G#"
+      - "######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      hero.move()
+      hero.move()
+    solution: |
+      hero.move()
+      hero.move()
+      hero.turn_right()
+      hero.move()
+      hero.move()
+      hero.turn_left()
+      hero.move()
+    hints:
+      - Walk to the end of the top row first.
+      - Facing east, turning right points the ghost south.
+      - After going down two tiles, turn left to face east again.
+    par_lines: 7
+    xp: 20
+    status: published
+
+  - slug: long-hallway
+    order: 3
+    title: Long hallway
+    concept: for loops
+    intro_markdown: |
+      Typing `hero.move()` nine times works, but a loop is shorter:
+
+      ```python
+      for _ in range(3):
+          hero.move()
+      ```
+
+      The indented line runs once per pass. `_` is a name for a value you do not need.
+    grid:
+      - "############"
+      - "#S........G#"
+      - "############"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: guided
+    starter_code: |
+      for _ in range(1):
+          hero.move()
+    solution: |
+      for _ in range(9):
+          hero.move()
+    hints:
+      - How many tiles are between the ghost and the goal?
+      - Change the number inside range().
+    par_lines: 2
+    xp: 25
+    status: published
+    python_lesson_slug: for-loops
+
+  - slug: staircase
+    order: 4
+    title: Staircase
+    concept: Loops with several steps
+    intro_markdown: |
+      A loop body can hold several lines. Everything indented under `for` repeats together.
+      Find the pattern of one stair, then repeat it.
+    grid:
+      - "#######"
+      - "#S.####"
+      - "##..###"
+      - "###..##"
+      - "####..#"
+      - "#####G#"
+      - "#######"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      for _ in range(4):
+          hero.move()
+    solution: |
+      for _ in range(4):
+          hero.move()
+          hero.turn_right()
+          hero.move()
+          hero.turn_left()
+    hints:
+      - "One stair is: forward, down, then face forward again."
+      - "Inside the loop: move, turn_right, move, turn_left."
+    par_lines: 5
+    xp: 25
+    status: published
+
+  - slug: gem-row
+    order: 5
+    title: Gem row
+    concept: Loops that do two things
+    intro_markdown: |
+      `hero.pick_up()` collects the gem on the ghost's tile. This level needs every gem
+      before the goal counts.
+    grid:
+      - "#########"
+      - "#S*****G#"
+      - "#########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, pick_up]
+    goal: {collect_all_gems: true, reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: ""
+    solution: |
+      for _ in range(5):
+          hero.move()
+          hero.pick_up()
+      hero.move()
+    hints:
+      - "Each pass: step onto a gem, then pick it up."
+      - There are 5 gems, then one more step to the goal.
+    par_lines: 4
+    xp: 30
+    status: published
+
+  - slug: mind-the-walls
+    order: 6
+    title: Mind the walls
+    concept: while loops and if
+    intro_markdown: |
+      You do not always know how far to walk. The ghost can check:
+
+      - `hero.at_goal()` is `True` on the goal tile.
+      - `hero.is_blocked()` is `True` when a wall is ahead.
+
+      `while` repeats until its condition is false. `if` / `else` picks one path.
+    grid:
+      - "#########"
+      - "#S......#"
+      - "#######.#"
+      - "#.....#.#"
+      - "#.###.#.#"
+      - "#.#G..#.#"
+      - "#.#####.#"
+      - "#.......#"
+      - "#########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_right, is_blocked, at_goal]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      while not hero.at_goal():
+          hero.move()
+    solution: |
+      while not hero.at_goal():
+          if hero.is_blocked():
+              hero.turn_right()
+          else:
+              hero.move()
+    hints:
+      - Moving into a wall stops the run. Check first.
+      - Every corner in this maze is a right turn.
+      - "Inside the loop: if blocked, turn right; else move."
+    par_lines: 5
+    xp: 35
+    status: published
+    python_lesson_slug: while-loops
+
+  - slug: some-gems
+    order: 7
+    title: Some gems
+    concept: if checks
+    intro_markdown: |
+      Not every tile has a gem, and picking up where there is none is a mistake.
+      `hero.on_gem()` is `True` when the ghost stands on a gem.
+    grid:
+      - "############"
+      - "#S.*..*.**G#"
+      - "############"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, pick_up, on_gem, at_goal]
+    goal: {collect_all_gems: true, reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      while not hero.at_goal():
+          hero.move()
+    solution: |
+      while not hero.at_goal():
+          hero.move()
+          if hero.on_gem():
+              hero.pick_up()
+    hints:
+      - Check for a gem after every step.
+      - "if hero.on_gem(): goes inside the loop, after move()."
+    par_lines: 4
+    xp: 35
+    status: published
+
+  - slug: define-a-hop
+    order: 8
+    title: Define a hop
+    concept: Functions
+    intro_markdown: |
+      Hopping a hurdle takes eight steps. Typing that three times is a lot.
+
+      Name it once with `def`, then call it like any other command:
+
+      ```python
+      def hop():
+          hero.turn_left()
+          ...
+
+      hop()
+      ```
+    grid:
+      - "############"
+      - "#..........#"
+      - "#S.#...#.#G#"
+      - "############"
+    start: {row: 2, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      def hop():
+          hero.turn_left()
+          hero.move()
+
+    solution: |
+      def hop():
+          hero.turn_left()
+          hero.move()
+          hero.turn_right()
+          hero.move()
+          hero.move()
+          hero.turn_right()
+          hero.move()
+          hero.turn_left()
+
+      hero.move()
+      hop()
+      hero.move()
+      hero.move()
+      hop()
+      hop()
+    hints:
+      - "A hop is: up, over two tiles, down, face forward."
+      - Up means turn_left then move. Over means turn_right then two moves.
+      - "Path: move, hop, move, move, hop, hop."
+    par_lines: 15
+    xp: 40
+    status: published
+    python_lesson_slug: functions
+
+  - slug: follow-the-plan
+    order: 9
+    title: Follow the plan
+    concept: Lists and nested loops
+    intro_markdown: |
+      The room is open, so walls cannot guide you. A plan can:
+      `plan = [4, 3, 2, 1]` means walk 4, turn left, walk 3, turn left, and so on.
+      Loop over the list, and use an inner loop for the steps.
+    grid:
+      - "#######"
+      - "#.....#"
+      - "#.....#"
+      - "#..G..#"
+      - "#.....#"
+      - "#S....#"
+      - "#######"
+    start: {row: 5, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      plan = [4, 3, 2, 1]
+
+      for steps in plan:
+          pass
+    solution: |
+      plan = [4, 3, 2, 1]
+
+      for steps in plan:
+          for _ in range(steps):
+              hero.move()
+          hero.turn_left()
+    hints:
+      - "for steps in plan: gives 4, then 3, then 2, then 1."
+      - "Inside it: for _ in range(steps): hero.move()"
+      - Turn left after each inner loop finishes.
+    par_lines: 5
+    xp: 45
+    status: published
+
+  - slug: read-the-signs
+    order: 10
+    title: Read the signs
+    concept: Dictionaries
+    intro_markdown: |
+      Colored signs on the floor tell the ghost where to turn. `hero.read_sign()` returns
+      `"red"`, `"blue"`, or `None`.
+
+      A dictionary maps each color to a turn:
+
+      ```python
+      turns = {"red": "left", "blue": "right"}
+      turns["red"]  # "left"
+      ```
+    grid:
+      - "#########"
+      - "#S..b...#"
+      - "#.....G.#"
+      - "#.......#"
+      - "#...r.r.#"
+      - "#.......#"
+      - "#########"
+    start: {row: 1, col: 1, facing: E}
+    allowed: [move, turn_left, turn_right, at_goal, read_sign]
+    goal: {reach_goal: true}
+    max_steps: 500
+    mode: free
+    starter_code: |
+      turns = {"red": "left", "blue": "right"}
+
+      while not hero.at_goal():
+          hero.move()
+    solution: |
+      turns = {"red": "left", "blue": "right"}
+
+      while not hero.at_goal():
+          hero.move()
+          color = hero.read_sign()
+          if color is not None:
+              if turns[color] == "left":
+                  hero.turn_left()
+              else:
+                  hero.turn_right()
+    hints:
+      - Read the sign after every step.
+      - "None means no sign: keep walking."
+      - turns[color] tells you which way to turn.
+    par_lines: 9
+    xp: 50
+    status: published

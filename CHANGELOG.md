@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 — 2026-10-26
+
+Ghostwalk maze mini-game.
+
+- Shared `world.py` engine for browser (Pyodide) runs and server-side action replay; unit tests for solutions, wall bumps, gems, and forged moves.
+- Levels and progress tables; ten seeded published levels; learner API (`/api/ghostwalk`) with lock order, hidden solutions on free levels, stars/XP on submit.
+- Play UI with R3F 3D/top-down scene, sandbox `ghostwalk` runtime, map + level routes, nav between Playground and Games.
+- Studio Ghostwalk editor with grid preview, solution test, publish gate, YAML export.
+- Review free replays, mistake journal (`source=ghostwalk`), Python lesson practice links, Home continue card.
+
 ## 1.1.0 — 2026-10-25
 
 Learning enforcement and low-vision UI.

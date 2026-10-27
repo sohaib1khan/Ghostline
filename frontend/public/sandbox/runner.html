@@ -11,6 +11,7 @@
       // worker below, after network calls are replaced. The parent page keeps
       // a script policy with no eval.
       const RUN_MS = 3000;
+      const GHOSTWALK_RUN_MS = 15000;
       const LOAD_MS = 20000;
 
       function reply(payload) {
@@ -80,18 +81,73 @@
         `;
       }
 
+      function ghostwalkWorker(indexURL) {
+        return `
+          import { loadPyodide } from "${indexURL}pyodide.mjs";
+          let pyodide;
+          try {
+            pyodide = await loadPyodide({ indexURL: "${indexURL}" });
+          } catch (error) {
+            self.postMessage({
+              output: String(error && error.message ? error.message : error),
+              error: "runtime",
+            });
+            throw error;
+          }
+          self.fetch = () => Promise.reject(new Error("Network is disabled"));
+          self.XMLHttpRequest = class {
+            open() { throw new Error("Network is disabled"); }
+          };
+          self.importScripts = () => { throw new Error("Network is disabled"); };
+          self.onmessage = (event) => {
+            try {
+              const worldSource = String(event.data.worldSource || "");
+              const code = String(event.data.code || "");
+              const levelJson = JSON.stringify(event.data.level || {});
+              pyodide.runPython(worldSource);
+              pyodide.globals.set("_gw_level_json", levelJson);
+              pyodide.globals.set("_gw_code", code);
+              const raw = pyodide.runPython(\`
+import json
+_level = json.loads(_gw_level_json)
+_result = run_learner_code(_level, _gw_code)
+json.dumps(_result)
+\`);
+              const text = String(raw);
+              self.postMessage({ output: text, result: JSON.parse(text) });
+            } catch (error) {
+              self.postMessage({
+                output: String(error && error.message ? error.message : error),
+                error: "runtime",
+              });
+            }
+          };
+          self.postMessage({ ready: true });
+        `;
+      }
+
       window.addEventListener("message", (event) => {
         if (event.source !== parent) return;
         if (!event.data || event.data.source !== "ghostline-parent") return;
         if (!/^https?:\/\/[A-Za-z0-9.:-]+$/.test(event.origin)) return;
-        const runtime = event.data.runtime === "pyodide" ? "pyodide" : "browser_js";
-        const indexURL = `${event.origin}/pyodide/`;
-        const source = runtime === "pyodide" ? pythonWorker(indexURL) : jsWorker();
+        const kind = event.data.runtime;
+        const runtime =
+          kind === "ghostwalk" ? "ghostwalk" : kind === "pyodide" ? "pyodide" : "browser_js";
+        const indexURL = event.origin + "/pyodide/";
+        const source =
+          runtime === "ghostwalk"
+            ? ghostwalkWorker(indexURL)
+            : runtime === "pyodide"
+              ? pythonWorker(indexURL)
+              : jsWorker();
         const blob = new Blob([source], { type: "text/javascript" });
         const url = URL.createObjectURL(blob);
         let worker;
         try {
-          worker = new Worker(url, runtime === "pyodide" ? { type: "module" } : undefined);
+          worker = new Worker(
+            url,
+            runtime === "browser_js" ? undefined : { type: "module" },
+          );
         } catch (error) {
           URL.revokeObjectURL(url);
           reply({
@@ -102,6 +158,7 @@
         }
         let settled = false;
         let timer = 0;
+        const runLimit = runtime === "ghostwalk" ? GHOSTWALK_RUN_MS : RUN_MS;
 
         function finish(payload) {
           if (settled) return;
@@ -117,21 +174,29 @@
           const data = message.data || {};
           if (data.ready) {
             window.clearTimeout(timer);
-            timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), RUN_MS);
-            worker.postMessage({ code: String(event.data.code || "") });
+            timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), runLimit);
+            worker.postMessage({
+              code: String(event.data.code || ""),
+              level: event.data.level || null,
+              worldSource: event.data.worldSource || null,
+            });
             return;
           }
-          finish({ output: data.output || "", error: data.error || null });
-        };
-        worker.onerror = (event) => {
           finish({
-            output: String(event && event.message ? event.message : "worker error"),
+            output: data.output || "",
+            error: data.error || null,
+            result: data.result || null,
+          });
+        };
+        worker.onerror = (errEvent) => {
+          finish({
+            output: String(errEvent && errEvent.message ? errEvent.message : "worker error"),
             error: "runtime",
           });
         };
         if (runtime === "browser_js") {
           window.clearTimeout(timer);
-          timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), RUN_MS);
+          timer = window.setTimeout(() => finish({ output: "", error: "timeout" }), runLimit);
           worker.postMessage({ code: String(event.data.code || "") });
         }
       });

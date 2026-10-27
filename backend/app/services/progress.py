@@ -165,7 +165,9 @@ async def submit_check(
     stats.xp += awarded
     _touch_streak(stats, datetime.now(UTC).date())
     # Record every check so Leaderboard usage can sum typing time, not only passes.
-    journal_source = source if source in {"lesson", "review", "game", "boss"} else "lesson"
+    journal_source = (
+        source if source in {"lesson", "review", "game", "boss", "ghostwalk"} else "lesson"
+    )
     session.add(
         PracticeEvent(
             user_id=user.id,
@@ -236,7 +238,11 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
     track_ids = [track.id for track in tracks]
     stats = await session.scalar(select(UserStats).where(UserStats.user_id == user.id))
     if not track_ids:
-        return _dashboard_body(stats, [])
+        body = _dashboard_body(stats, [])
+        from app.services.ghostwalk import home_continue
+
+        body["ghostwalk"] = await home_continue(session, user)
+        return body
     rows = list(
         (
             await session.execute(
@@ -376,7 +382,11 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
             grouped[track_id]["review_due"] = int(count)
 
     track_payload = [grouped[track.id] for track in tracks]
-    return _dashboard_body(stats, track_payload, continue_at=_pick_continue(track_payload))
+    body = _dashboard_body(stats, track_payload, continue_at=_pick_continue(track_payload))
+    from app.services.ghostwalk import home_continue
+
+    body["ghostwalk"] = await home_continue(session, user)
+    return body
 
 
 def _pick_continue(tracks: list[dict]) -> dict | None:

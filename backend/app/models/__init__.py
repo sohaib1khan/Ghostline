@@ -4,6 +4,7 @@ from app.models.attempt_log import AttemptLog
 from app.models.audit import AuditLog
 from app.models.base import Base
 from app.models.content import ContentRevision, Exercise, Lesson, Module
+from app.models.ghostwalk import GhostwalkLevel, GhostwalkProgress
 from app.models.module_progress import ModuleProgress
 from app.models.notification import NotificationChannel
 from app.models.practice import PracticeEvent
@@ -21,6 +22,8 @@ __all__ = [
     "ContentRevision",
     "Exercise",
     "ExerciseProgress",
+    "GhostwalkLevel",
+    "GhostwalkProgress",
     "Lesson",
     "Module",
     "ModuleProgress",

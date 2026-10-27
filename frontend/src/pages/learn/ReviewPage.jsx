@@ -112,6 +112,35 @@ export default function ReviewPage() {
     );
   }
 
+  if (item.kind === "ghostwalk" || item.type === "ghostwalk") {
+    return (
+      <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
+        <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">
+          {index + 1} of {queue.length} · Ghostwalk review
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{item.title}</h1>
+        <p className="mt-2 text-sm text-muted">{item.concept}</p>
+        <p className="mt-4">{item.prompt}</p>
+        <Link
+          to={`/ghostwalk/${item.slug}?memory=1`}
+          className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-accent px-4 text-sm font-medium text-on-accent"
+        >
+          Open free replay
+        </Link>
+        <button
+          type="button"
+          className="mt-3 ml-3 min-h-11 text-sm text-accent"
+          onClick={() => {
+            setIndex((value) => value + 1);
+            setMessage("");
+          }}
+        >
+          Skip for now
+        </button>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
       <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">

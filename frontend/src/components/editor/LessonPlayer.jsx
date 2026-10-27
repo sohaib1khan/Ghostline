@@ -76,6 +76,45 @@ function hydrateExerciseState(lessonId, exercise) {
   };
 }
 
+function GhostwalkPracticeLink({ lesson }) {
+  const [link, setLink] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    if ((lesson.track_slug || "").toLowerCase() !== "python") {
+      return undefined;
+    }
+    api("/api/ghostwalk/levels")
+      .then((board) => {
+        if (cancelled) return;
+        const title = String(lesson.title || "").toLowerCase();
+        const match = (board.levels || []).find((level) => {
+          const concept = String(level.concept || "").toLowerCase();
+          const slug = String(level.python_lesson_slug || "").toLowerCase();
+          return (
+            (concept && title.includes(concept.split(" ")[0])) ||
+            (slug && (title.includes(slug) || slug.includes(title.slice(0, 12))))
+          );
+        });
+        setLink(match || null);
+      })
+      .catch(() => {
+        if (!cancelled) setLink(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lesson.track_slug, lesson.title]);
+  if (!link) return null;
+  return (
+    <p className="mt-2 text-sm text-muted">
+      Practice this in{" "}
+      <Link to={`/ghostwalk/${link.slug}`} className="text-accent">
+        Ghostwalk · {link.title}
+      </Link>
+    </p>
+  );
+}
+
 export default function LessonPlayer({
   lesson,
   backTo,
@@ -273,6 +312,7 @@ export default function LessonPlayer({
           <p className="text-sm text-muted">{lesson.track_name}</p>
         )}
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{lesson.title}</h1>
+        <GhostwalkPracticeLink lesson={lesson} />
         <div className="mt-6 rounded-xl border border-accent/25 bg-bg/80 p-4">
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">Open session</p>
           <p className="mt-2 text-sm text-muted">
@@ -717,6 +757,7 @@ export default function LessonPlayer({
       <h1 className={`mt-2 text-2xl font-semibold tracking-tight ${reduce ? "" : "practice-rise"}`}>
         {lesson.title}
       </h1>
+      <GhostwalkPracticeLink lesson={lesson} />
       {lesson.level_label ? (
         <p className="mt-2 font-mono text-xs uppercase tracking-[0.16em] text-accent">
           {lesson.level_label}

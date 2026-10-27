@@ -35,4 +35,11 @@ export default [
       globals: { ...globals.node },
     },
   },
+  {
+    // R3F uses Three.js props (args, position, castShadow, …) that are not DOM attributes.
+    files: ["src/pages/ghostwalk/GhostwalkScene.jsx"],
+    rules: {
+      "react/no-unknown-property": "off",
+    },
+  },
 ];

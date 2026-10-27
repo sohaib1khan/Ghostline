@@ -21,6 +21,11 @@ const LEARN = [
     match: (path) => path.startsWith("/playground"),
   },
   {
+    to: "/ghostwalk",
+    label: "Ghostwalk",
+    match: (path) => path.startsWith("/ghostwalk"),
+  },
+  {
     to: "/games",
     label: "Games",
     match: (path) => path === "/games" || path.startsWith("/games/"),
@@ -40,6 +45,11 @@ const STUDIO_SUPER = [
     to: "/admin/content",
     label: "Content",
     match: (path) => path.startsWith("/admin/content") || path.startsWith("/admin/preview"),
+  },
+  {
+    to: "/admin/ghostwalk",
+    label: "Ghostwalk",
+    match: (path) => path.startsWith("/admin/ghostwalk"),
   },
   {
     to: "/admin/users",

@@ -72,10 +72,19 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 - **Spaced review** — due queue on Home and `/review`, with confidence ratings that feed the schedule.
 - **Mastery gates** — unlock the next module at 80% recall; module bosses; certificates need every boss.
 - **Accessibility** — Settings → Preferences for text/code scale, contrast, wrap, and more; layouts reflow at high zoom.
+- **Ghostwalk** — browser Python maze levels (`/ghostwalk`); learner code runs in Pyodide; the API only replays move lists with the shared `world.py` engine. Studio → Ghostwalk to edit levels.
 - **Games** — Speed Drill, Bug Hunt, Command Roulette, Fill Frenzy (published exercises only).
 - **Demo** — `/demo` for visitors without an account (rate-limited checks).
-- **Admin** — Content, Users, Notifications, AI drafts, Settings.
+- **Admin** — Content, Ghostwalk, Users, Notifications, AI drafts, Settings.
 - **PWA** — installable; offline re-read of lessons already opened (checks require network).
+
+## Ghostwalk
+
+Ten seeded levels live in `backend/app/seed/ghostwalk/levels.yaml` and load when the `ghostwalk_levels` table is empty.
+
+- Shared engine: `backend/app/ghostwalk/world.py` (also served at `GET /api/ghostwalk/world.py` and copied to `frontend/public/ghostwalk/world.py`).
+- Submit path: browser returns an action list → `POST /api/ghostwalk/levels/{slug}/submit` → server `replay()` must agree; stars from line count vs `par_lines`.
+- Add or edit levels in Studio → Ghostwalk (grid preview, Test solution, Publish). Export YAML from the same page.
 
 ## Playground
 
