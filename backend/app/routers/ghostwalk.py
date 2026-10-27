@@ -1,9 +1,10 @@
 """Ghostwalk learner and admin API."""
 
+import hashlib
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from fastapi.responses import PlainTextResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +19,7 @@ from app.services.ghostwalk import (
     admin_upsert_level,
     get_level_for_user,
     list_levels_for_user,
+    skins_source,
     submit_level,
     world_source,
 )
@@ -62,9 +64,39 @@ def _raise(exc: ContentError) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
 
 
+def _etag_for(text: str) -> str:
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+    return f'"{digest}"'
+
+
+def _runtime_text(request: Request, text: str, *, filename: str) -> Response:
+    etag = _etag_for(text)
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=60"})
+    return Response(
+        content=text,
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "ETag": etag,
+            "Cache-Control": "public, max-age=60",
+            "Content-Disposition": f'inline; filename="{filename}"',
+        },
+    )
+
+
 @router.get("/world.py", response_class=PlainTextResponse)
 async def get_world_py() -> str:
     return world_source()
+
+
+@router.get("/runtime/world.py")
+async def get_runtime_world(request: Request) -> Response:
+    return _runtime_text(request, world_source(), filename="world.py")
+
+
+@router.get("/runtime/skins.py")
+async def get_runtime_skins(request: Request) -> Response:
+    return _runtime_text(request, skins_source(), filename="skins.py")
 
 
 @router.get("/levels")
@@ -186,6 +218,7 @@ async def admin_export(
                     "goal": item["goal"],
                     "max_steps": item["max_steps"],
                     "mode": item["mode"],
+                    "language": item.get("language") or "python",
                     "starter_code": item["starter_code"],
                     "solution": item["solution"],
                     "hints": item["hints"],

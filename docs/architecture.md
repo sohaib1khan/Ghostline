@@ -30,18 +30,22 @@ Published lessons are what learners and the public demo can open. Drafts stay in
 
 ## Ghostwalk
 
-Maze levels teach Python sequencing with a shared pure-Python engine (`app/ghostwalk/world.py`).
+Each language is its own game (theme + idioms). Shared maze rules live in `app/ghostwalk/world.py`. Bash, Go, C#, Java, and SQL are translated by `app/ghostwalk/skins.py` into Python (with a line map) and run in Pyodide. JavaScript runs on `world.js` with camelCase aliases.
 
 ```text
-editor → sandbox (runtime: ghostwalk) → world.run_learner_code → actions
+editor → sandbox
+  python / skins langs → runtime ghostwalk → skins.run / run_learner_code → actions
+  javascript           → runtime ghostwalk_js → world.js → actions
       → POST /api/ghostwalk/levels/{slug}/submit → world.replay → progress / XP
 ```
 
 - The API never executes learner source; it only replays the action list.
-- Tables: `ghostwalk_levels`, `ghostwalk_progress` (migration `0014_ghostwalk`).
-- Seed YAML: `backend/app/seed/ghostwalk/levels.yaml` when the levels table is empty.
-- Admin CRUD / reorder / YAML export under `/api/admin/ghostwalk`.
+- Runtime sources: `GET /api/ghostwalk/runtime/world.py` and `/skins.py` (ETag); legacy `/api/ghostwalk/world.py` remains.
+- Tables: `ghostwalk_levels` (+ `language`, `mode=farm`), `ghostwalk_progress` (migrations `0014`, `0015`).
+- Seeds: `levels.yaml` (Python) + `levels_multilang.yaml` (other languages + Ghostfarm).
+- Admin CRUD / reorder / YAML export (includes `language`) under `/api/admin/ghostwalk`.
 - Struggle (3+ failed submits or 2+ hints) sets `next_review_at` for a free replay in `/review`.
+- Details and syntax subsets: [ghostwalk-languages.md](./ghostwalk-languages.md).
 
 ## What is cached in the browser
 

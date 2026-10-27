@@ -531,17 +531,11 @@ class _Hero:
 
 
 def _instrument_lines(tree: ast.AST, tracker_name: str) -> ast.AST:
-    """Inject line tracker updates before each statement for error_line reporting."""
+    """Inject line tracker updates before every statement, including statements
+    nested inside loops, ifs, and functions, so highlighting and error_line point
+    at the line that actually ran."""
 
     class Transformer(ast.NodeTransformer):
-        def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
-            self.generic_visit(node)
-            return node
-
-        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
-            self.generic_visit(node)
-            return node
-
         def _mark(self, node: ast.stmt) -> list[ast.stmt]:
             assign = ast.Assign(
                 targets=[
@@ -556,15 +550,21 @@ def _instrument_lines(tree: ast.AST, tracker_name: str) -> ast.AST:
             ast.copy_location(assign, node)
             return [assign, node]
 
-        def visit_Module(self, node: ast.Module) -> ast.Module:
-            body: list[ast.stmt] = []
-            for stmt in node.body:
-                stmt = self.visit(stmt)
-                if isinstance(stmt, ast.stmt):
-                    body.extend(self._mark(stmt))
-                elif isinstance(stmt, list):
-                    body.extend(stmt)
-            node.body = body
+        def _mark_list(self, stmts: list[ast.stmt]) -> list[ast.stmt]:
+            out: list[ast.stmt] = []
+            for stmt in stmts:
+                visited = self.visit(stmt)
+                for item in visited if isinstance(visited, list) else [visited]:
+                    out.extend(self._mark(item))
+            return out
+
+        def generic_visit(self, node: ast.AST) -> ast.AST:
+            for name in ("body", "orelse", "finalbody"):
+                value = getattr(node, name, None)
+                if isinstance(value, list) and value and isinstance(value[0], ast.stmt):
+                    setattr(node, name, self._mark_list(value))
+            for handler in getattr(node, "handlers", []) or []:
+                handler.body = self._mark_list(handler.body)
             return node
 
     return Transformer().visit(tree)

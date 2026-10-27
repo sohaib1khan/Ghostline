@@ -10,7 +10,7 @@ const PARENT_LIMIT_MS = 25000;
 /**
  * @param {string} runtime browser_js | pyodide | ghostwalk | ghostwalk_js
  * @param {string} code
- * @param {{ level?: object, worldSource?: string, worldJsUrl?: string }} [extra]
+ * @param {{ level?: object, worldSource?: string, skinsSource?: string, language?: string, worldJsUrl?: string }} [extra]
  */
 export function runInSandbox(runtime, code, extra = {}) {
   return new Promise((resolve) => {
@@ -59,7 +59,9 @@ export function runInSandbox(runtime, code, extra = {}) {
           runtime,
           code,
           level: extra.level || null,
+          language: extra.language || "python",
           worldSource: extra.worldSource || null,
+          skinsSource: extra.skinsSource || null,
           worldJsUrl: extra.worldJsUrl || null,
         },
         "*",
@@ -69,23 +71,51 @@ export function runInSandbox(runtime, code, extra = {}) {
   });
 }
 
-let cachedWorld = null;
+const runtimeCache = { world: null, skins: null, worldJs: null };
+
+async function fetchRuntimeText(url, fallbackUrl) {
+  const response = await fetch(url, { credentials: "include" });
+  if (response.ok) {
+    return response.text();
+  }
+  if (fallbackUrl) {
+    const fallback = await fetch(fallbackUrl);
+    if (fallback.ok) {
+      return fallback.text();
+    }
+  }
+  throw new Error(`Could not load ${url}`);
+}
 
 export async function loadGhostwalkWorld() {
-  if (cachedWorld) {
-    return cachedWorld;
+  if (runtimeCache.world) {
+    return runtimeCache.world;
   }
-  const response = await fetch("/api/ghostwalk/world.py", { credentials: "include" });
+  runtimeCache.world = await fetchRuntimeText(
+    "/api/ghostwalk/runtime/world.py",
+    "/ghostwalk/world.py",
+  );
+  return runtimeCache.world;
+}
+
+export async function loadGhostwalkSkins() {
+  if (runtimeCache.skins) {
+    return runtimeCache.skins;
+  }
+  runtimeCache.skins = await fetchRuntimeText("/api/ghostwalk/runtime/skins.py");
+  return runtimeCache.skins;
+}
+
+async function loadGhostwalkWorldJs() {
+  if (runtimeCache.worldJs) {
+    return runtimeCache.worldJs;
+  }
+  const response = await fetch("/ghostwalk/world.js");
   if (!response.ok) {
-    const fallback = await fetch("/ghostwalk/world.py");
-    if (!fallback.ok) {
-      throw new Error("Could not load Ghostwalk world engine.");
-    }
-    cachedWorld = await fallback.text();
-    return cachedWorld;
+    throw new Error("Could not load Ghostwalk JS world engine.");
   }
-  cachedWorld = await response.text();
-  return cachedWorld;
+  runtimeCache.worldJs = await response.text();
+  return runtimeCache.worldJs;
 }
 
 function asGhostwalkResult(ran) {
@@ -115,22 +145,27 @@ function asGhostwalkResult(ran) {
 }
 
 export async function runGhostwalk(level, code, language = "python") {
-  const { transpileGhostwalk } = await import("../../ghostwalk/languages.js");
-  const prepared = transpileGhostwalk(language, code);
-  if (prepared.runtime === "ghostwalk") {
-    const worldSource = await loadGhostwalkWorld();
-    const ran = await runInSandbox("ghostwalk", prepared.code, { level, worldSource });
+  const { ghostwalkRuntime } = await import("../../ghostwalk/languages.js");
+  const lang = String(language || "python").toLowerCase();
+  const runtime = ghostwalkRuntime(lang);
+  if (runtime === "ghostwalk_js") {
+    const worldJs = await loadGhostwalkWorldJs();
+    const ran = await runInSandbox("ghostwalk_js", code, {
+      level,
+      language: lang,
+      worldSource: worldJs,
+    });
     return asGhostwalkResult(ran);
   }
-  const worldJs = await fetch("/ghostwalk/world.js").then((response) => {
-    if (!response.ok) {
-      throw new Error("Could not load Ghostwalk JS world engine.");
-    }
-    return response.text();
-  });
-  const ran = await runInSandbox("ghostwalk_js", prepared.code, {
+  const [worldSource, skinsSource] = await Promise.all([
+    loadGhostwalkWorld(),
+    lang === "python" ? Promise.resolve("") : loadGhostwalkSkins(),
+  ]);
+  const ran = await runInSandbox("ghostwalk", code, {
     level,
-    worldSource: worldJs,
+    language: lang,
+    worldSource,
+    skinsSource,
   });
   return asGhostwalkResult(ran);
 }

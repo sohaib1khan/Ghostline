@@ -285,7 +285,33 @@
   }
 
   function makeHero(state) {
-    const line = () => state._line || null;
+    // Which learner line called the hero? new Function code appears in stack traces as
+    // "<anonymous>:LINE" (Chrome/Node) or "> Function:LINE" (Firefox). The wrapper adds
+    // two header lines plus the "use strict" line, so subtract 3.
+    // Prefer the frame that called the hero method so we ignore host anonymous scripts.
+    // Lookbehind avoids matching host frames like "evalmachine.<anonymous>:N".
+    const line = () => {
+      const frameRe = /(?:> Function|(?<![\w.])<anonymous>):(\d+):\d+/;
+      const frames = (new Error().stack || "").split("\n");
+      const heroIdx = frames.findIndex((frame) =>
+        /(?:^|\s)at Object\.(?:move|turn_left|turn_right|pick_up|plant|water|harvest|at_goal|is_blocked|on_gem|on_soil|crops_held|read_sign)\b/.test(
+          frame,
+        ),
+      );
+      const read = (frame) => {
+        const match = frameRe.exec(frame || "");
+        return match ? Math.max(1, Number(match[1]) - 3) : null;
+      };
+      if (heroIdx >= 0) {
+        const fromCaller = read(frames[heroIdx + 1]);
+        if (fromCaller != null) return fromCaller;
+      }
+      for (const frame of frames) {
+        const value = read(frame);
+        if (value != null) return value;
+      }
+      return null;
+    };
     const boom = () => {
       if (state.error) throw new Error(state.error);
     };
@@ -365,6 +391,10 @@
     }
     state.trace.push(snapshot(state, null, "Ready.", "start"));
     const hero = makeHero(state);
+    for (const key of Object.keys(hero)) {
+      const camel = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      if (camel !== key) hero[camel] = hero[key];
+    }
     try {
       // eslint-disable-next-line no-new-func
       const runner = new Function(

@@ -5,6 +5,8 @@ import GhostEditor from "../../components/editor/GhostEditor.jsx";
 import { runGhostwalk } from "../../components/editor/sandbox.js";
 import MarkdownView from "../../components/content/MarkdownView.jsx";
 import { languageLabel } from "../../ghostwalk/languages.js";
+import { syntaxFor } from "../../ghostwalk/syntax.js";
+import { gameMeta, themeFor, themeMoveMessage } from "../../ghostwalk/themes.js";
 import { readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
 
@@ -38,6 +40,7 @@ export default function GhostwalkPlayPage() {
   const [draft, setDraft] = useState("");
   const [hintsShown, setHintsShown] = useState(0);
   const [introOpen, setIntroOpen] = useState(true);
+  const [syntaxOpen, setSyntaxOpen] = useState(false);
   // Top-down is easier to read when zoomed; keep as default for comfort.
   const [topDown, setTopDown] = useState(true);
   const [speedId, setSpeedId] = useState(reduce ? "instant" : "slow");
@@ -81,14 +84,27 @@ export default function GhostwalkPlayPage() {
     };
   }, [slug, memory]);
 
-  const applyFrame = useCallback((frame) => {
-    if (!frame) return;
-    setHero({ row: frame.row, col: frame.col, facing: frame.facing });
-    if (frame.grid) setGrid(frame.grid);
-    if (frame.message) {
-      setMoves((current) => [...current, frame.message]);
-    }
-  }, []);
+  const theme = useMemo(
+    () =>
+      themeFor(level?.language || "python", {
+        farm: level?.mode === "farm",
+        contrast: prefs.contrast,
+      }),
+    [level?.language, level?.mode, prefs.contrast],
+  );
+
+  const applyFrame = useCallback(
+    (frame) => {
+      if (!frame) return;
+      setHero({ row: frame.row, col: frame.col, facing: frame.facing });
+      if (frame.grid) setGrid(frame.grid);
+      const themed = themeMoveMessage(theme, frame);
+      if (themed) {
+        setMoves((current) => [...current, themed]);
+      }
+    },
+    [theme],
+  );
 
   useEffect(() => {
     if (!trace.length || traceIndex >= trace.length) return undefined;
@@ -216,7 +232,14 @@ export default function GhostwalkPlayPage() {
     <section className="ghostwalk-play flex flex-col gap-5">
       <div className="ghostwalk-world min-h-[18rem] h-[min(48vh,26rem)] sm:h-[min(52vh,32rem)]">
         <Suspense fallback={<p className="p-4 text-base text-muted">Loading world…</p>}>
-          <GhostwalkScene grid={grid} hero={hero} topDown={topDown} reduceMotion={reduce} />
+          <GhostwalkScene
+            grid={grid}
+            hero={hero}
+            topDown={topDown}
+            reduceMotion={reduce}
+            language={level.language || "python"}
+            mode={level.mode || "free"}
+          />
         </Suspense>
       </div>
 
@@ -258,10 +281,13 @@ export default function GhostwalkPlayPage() {
 
       <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
         <p className="font-mono text-sm uppercase tracking-wider text-accent">
-          Level {level.order} · {languageLabel(level.language)} · {level.concept}
+          {gameMeta(level.language).game} · {gameMeta(level.language).ghost} · Level {level.order}
           {level.mode === "farm" ? " · Ghostfarm" : ""}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">{level.title}</h1>
+        <p className="mt-1 text-base text-muted">
+          {languageLabel(level.language)} · {level.concept}
+        </p>
 
         <div className="mt-4 rounded-xl border-2 border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-bg/60 p-4">
           <button
@@ -280,6 +306,26 @@ export default function GhostwalkPlayPage() {
                 <span className="font-mono text-accent">{unlockedCmds || "none"}</span>
               </p>
             </div>
+          ) : null}
+        </div>
+
+        <div className="mt-3 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_18%,transparent)] bg-bg/40 p-4">
+          <button
+            type="button"
+            className="min-h-12 text-base font-semibold text-accent"
+            onClick={() => setSyntaxOpen((value) => !value)}
+            aria-expanded={syntaxOpen}
+          >
+            {syntaxOpen ? "Hide syntax this game understands" : "Syntax this game understands"}
+          </button>
+          {syntaxOpen ? (
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-base leading-relaxed text-text">
+              {syntaxFor(level.language || "python").map((line) => (
+                <li key={line}>
+                  <code className="whitespace-pre-wrap font-mono text-sm text-accent">{line}</code>
+                </li>
+              ))}
+            </ul>
           ) : null}
         </div>
 

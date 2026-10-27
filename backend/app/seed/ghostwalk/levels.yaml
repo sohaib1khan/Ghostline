@@ -1,393 +1,573 @@
 levels:
-  - slug: first-steps
-    order: 1
-    title: First steps
-    concept: Calling a method
-    intro_markdown: |
-      Your ghost follows your code, one line at a time. `hero.move()` moves one tile forward.
-      Reach the glowing goal tile.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.move()
-    solution: |
-      hero.move()
-      hero.move()
-      hero.move()
-      hero.move()
-    hints:
-      - Count the tiles between the ghost and the goal.
-      - Each hero.move() is one tile. You need four.
-    par_lines: 4
-    xp: 20
-    status: published
-    python_lesson_slug: methods
+- slug: first-steps
+  order: 1
+  title: Wake up, Wisp
+  concept: Calling a method
+  intro_markdown: '*High in the attic of Hollow House, a small ghost named Wisp wakes
+    up from a very long nap and has completely forgotten how to float. Luckily, Wisp
+    does exactly what your code says.*
 
-  - slug: turn-the-corner
-    order: 2
-    title: Turn the corner
-    concept: Sequence
-    intro_markdown: |
-      `hero.turn_left()` and `hero.turn_right()` turn the ghost on the spot. They do not move it.
-      Turns are from the ghost's point of view, not yours.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.move()
-      hero.move()
-    solution: |
-      hero.move()
-      hero.move()
-      hero.turn_right()
-      hero.move()
-      hero.move()
-      hero.turn_left()
-      hero.move()
-    hints:
-      - Walk to the end of the top row first.
-      - Facing east, turning right points the ghost south.
-      - After going down two tiles, turn left to face east again.
-    par_lines: 7
-    xp: 20
-    status: published
 
-  - slug: long-hallway
-    order: 3
-    title: Long hallway
-    concept: for loops
-    intro_markdown: |
-      Typing `hero.move()` nine times works, but a loop is shorter:
+    `hero.move()` floats Wisp one tile forward.
 
-      ```python
-      for _ in range(3):
-          hero.move()
-      ```
 
-      The indented line runs once per pass. `_` is a name for a value you do not need.
-    grid:
-      - "############"
-      - "#S........G#"
-      - "############"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for _ in range(1):
-          hero.move()
-    solution: |
-      for _ in range(9):
-          hero.move()
-    hints:
-      - How many tiles are between the ghost and the goal?
-      - Change the number inside range().
-    par_lines: 2
-    xp: 25
-    status: published
-    python_lesson_slug: for-loops
+    Guide Wisp to the glowing lantern tile.
 
-  - slug: staircase
-    order: 4
-    title: Staircase
-    concept: Loops with several steps
-    intro_markdown: |
-      A loop body can hold several lines. Everything indented under `for` repeats together.
-      Find the pattern of one stair, then repeat it.
-    grid:
-      - "#######"
-      - "#S.####"
-      - "##..###"
-      - "###..##"
-      - "####..#"
-      - "#####G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      for _ in range(4):
-          hero.move()
-    solution: |
-      for _ in range(4):
-          hero.move()
-          hero.turn_right()
-          hero.move()
-          hero.turn_left()
-    hints:
-      - "One stair is: forward, down, then face forward again."
-      - "Inside the loop: move, turn_right, move, turn_left."
-    par_lines: 5
-    xp: 25
-    status: published
+    '
+  grid:
+  - '########'
+  - '#S....G#'
+  - '########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move()
 
-  - slug: gem-row
-    order: 5
-    title: Gem row
-    concept: Loops that do two things
-    intro_markdown: |
-      `hero.pick_up()` collects the gem on the ghost's tile. This level needs every gem
-      before the goal counts.
-    grid:
-      - "#########"
-      - "#S*****G#"
-      - "#########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, pick_up]
-    goal: {collect_all_gems: true, reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: ""
-    solution: |
-      for _ in range(5):
-          hero.move()
-          hero.pick_up()
-      hero.move()
-    hints:
-      - "Each pass: step onto a gem, then pick it up."
-      - There are 5 gems, then one more step to the goal.
-    par_lines: 4
-    xp: 30
-    status: published
+    '
+  solution: 'hero.move()
 
-  - slug: mind-the-walls
-    order: 6
-    title: Mind the walls
-    concept: while loops and if
-    intro_markdown: |
-      You do not always know how far to walk. The ghost can check:
+    hero.move()
 
-      - `hero.at_goal()` is `True` on the goal tile.
-      - `hero.is_blocked()` is `True` when a wall is ahead.
+    hero.move()
 
-      `while` repeats until its condition is false. `if` / `else` picks one path.
-    grid:
-      - "#########"
-      - "#S......#"
-      - "#######.#"
-      - "#.....#.#"
-      - "#.###.#.#"
-      - "#.#G..#.#"
-      - "#.#####.#"
-      - "#.......#"
-      - "#########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_right, is_blocked, at_goal]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      while not hero.at_goal():
-          hero.move()
-    solution: |
-      while not hero.at_goal():
-          if hero.is_blocked():
-              hero.turn_right()
-          else:
-              hero.move()
-    hints:
-      - Moving into a wall stops the run. Check first.
-      - Every corner in this maze is a right turn.
-      - "Inside the loop: if blocked, turn right; else move."
-    par_lines: 5
-    xp: 35
-    status: published
-    python_lesson_slug: while-loops
+    hero.move()
 
-  - slug: some-gems
-    order: 7
-    title: Some gems
-    concept: if checks
-    intro_markdown: |
-      Not every tile has a gem, and picking up where there is none is a mistake.
-      `hero.on_gem()` is `True` when the ghost stands on a gem.
-    grid:
-      - "############"
-      - "#S.*..*.**G#"
-      - "############"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, pick_up, on_gem, at_goal]
-    goal: {collect_all_gems: true, reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      while not hero.at_goal():
-          hero.move()
-    solution: |
-      while not hero.at_goal():
-          hero.move()
-          if hero.on_gem():
-              hero.pick_up()
-    hints:
-      - Check for a gem after every step.
-      - "if hero.on_gem(): goes inside the loop, after move()."
-    par_lines: 4
-    xp: 35
-    status: published
+    hero.move()
 
-  - slug: define-a-hop
-    order: 8
-    title: Define a hop
-    concept: Functions
-    intro_markdown: |
-      Hopping a hurdle takes eight steps. Typing that three times is a lot.
+    '
+  hints:
+  - Wisp floats one tile for every hero.move().
+  - 'Count the floorboards: five tiles to the lantern.'
+  par_lines: 5
+  xp: 20
+  status: published
+  python_lesson_slug: methods
+  language: python
+- slug: turn-the-corner
+  order: 2
+  title: Around the wardrobe
+  concept: Sequence
+  intro_markdown: '*A huge wardrobe blocks the attic. Wisp could float straight through
+    it, if Wisp remembered how. For now, the long way round.*
 
-      Name it once with `def`, then call it like any other command:
 
-      ```python
-      def hop():
-          hero.turn_left()
-          ...
+    `hero.turn_left()` and `hero.turn_right()` spin Wisp on the spot without moving.
 
-      hop()
-      ```
-    grid:
-      - "############"
-      - "#..........#"
-      - "#S.#...#.#G#"
-      - "############"
-    start: {row: 2, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      def hop():
-          hero.turn_left()
-          hero.move()
 
-    solution: |
-      def hop():
-          hero.turn_left()
-          hero.move()
-          hero.turn_right()
-          hero.move()
-          hero.move()
-          hero.turn_right()
-          hero.move()
-          hero.turn_left()
+    Turns are from Wisp''s point of view, not yours. Imagine you are the ghost.
 
-      hero.move()
-      hop()
-      hero.move()
-      hero.move()
-      hop()
-      hop()
-    hints:
-      - "A hop is: up, over two tiles, down, face forward."
-      - Up means turn_left then move. Over means turn_right then two moves.
-      - "Path: move, hop, move, move, hop, hop."
-    par_lines: 15
-    xp: 40
-    status: published
-    python_lesson_slug: functions
+    '
+  grid:
+  - '#######'
+  - '#S...##'
+  - '####.##'
+  - '#G...##'
+  - '#######'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move()
 
-  - slug: follow-the-plan
-    order: 9
-    title: Follow the plan
-    concept: Lists and nested loops
-    intro_markdown: |
-      The room is open, so walls cannot guide you. A plan can:
-      `plan = [4, 3, 2, 1]` means walk 4, turn left, walk 3, turn left, and so on.
-      Loop over the list, and use an inner loop for the steps.
-    grid:
-      - "#######"
-      - "#.....#"
-      - "#.....#"
-      - "#..G..#"
-      - "#.....#"
-      - "#S....#"
-      - "#######"
-    start: {row: 5, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      plan = [4, 3, 2, 1]
+    hero.move()
 
-      for steps in plan:
-          pass
-    solution: |
-      plan = [4, 3, 2, 1]
+    hero.move()
 
-      for steps in plan:
-          for _ in range(steps):
-              hero.move()
-          hero.turn_left()
-    hints:
-      - "for steps in plan: gives 4, then 3, then 2, then 1."
-      - "Inside it: for _ in range(steps): hero.move()"
-      - Turn left after each inner loop finishes.
-    par_lines: 5
-    xp: 45
-    status: published
+    '
+  solution: 'hero.move()
 
-  - slug: read-the-signs
-    order: 10
-    title: Read the signs
-    concept: Dictionaries
-    intro_markdown: |
-      Colored signs on the floor tell the ghost where to turn. `hero.read_sign()` returns
-      `"red"`, `"blue"`, or `None`.
+    hero.move()
 
-      A dictionary maps each color to a turn:
+    hero.move()
 
-      ```python
-      turns = {"red": "left", "blue": "right"}
-      turns["red"]  # "left"
-      ```
-    grid:
-      - "#########"
-      - "#S..b...#"
-      - "#.....G.#"
-      - "#.......#"
-      - "#...r.r.#"
-      - "#.......#"
-      - "#########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right, at_goal, read_sign]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: free
-    starter_code: |
-      turns = {"red": "left", "blue": "right"}
+    hero.turn_right()
 
-      while not hero.at_goal():
-          hero.move()
-    solution: |
-      turns = {"red": "left", "blue": "right"}
+    hero.move()
 
-      while not hero.at_goal():
-          hero.move()
-          color = hero.read_sign()
-          if color is not None:
-              if turns[color] == "left":
-                  hero.turn_left()
-              else:
-                  hero.turn_right()
-    hints:
-      - Read the sign after every step.
-      - "None means no sign: keep walking."
-      - turns[color] tells you which way to turn.
-    par_lines: 9
-    xp: 50
-    status: published
+    hero.move()
+
+    hero.turn_right()
+
+    hero.move()
+
+    hero.move()
+
+    hero.move()
+
+    '
+  hints:
+  - Float to the end of the top row first.
+  - Facing east, a right turn points Wisp south (down the screen).
+  - At the bottom, turn right again to face west, toward the lantern.
+  par_lines: 10
+  xp: 20
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: long-hallway
+  order: 3
+  title: The hallway of staring portraits
+  concept: for loops
+  intro_markdown: "*The portraits in this hallway follow Wisp with their eyes. One\
+    \ of them just winked. Best not to linger.*\n\nTyping `hero.move()` eleven times\
+    \ works, but a loop is faster:\n\n```python\nfor _ in range(3):\n    hero.move()\n\
+    ```\n\nThe indented line runs once per pass. `_` is a name for a number you do\
+    \ not need.\n"
+  grid:
+  - '##############'
+  - '#S..........G#'
+  - '##############'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "for _ in range(1):\n    hero.move()\n"
+  solution: "for _ in range(11):\n    hero.move()\n"
+  hints:
+  - Count the tiles to the lantern, and try not to look at the portraits.
+  - Eleven tiles. Change the number inside range().
+  par_lines: 2
+  xp: 25
+  status: published
+  python_lesson_slug: for-loops
+  language: python
+- slug: staircase
+  order: 4
+  title: The grand staircase
+  concept: Loops with several steps
+  intro_markdown: '*The grand staircase creaks the same way on every step: creak forward,
+    creak down. Wisp is trying very hard not to wake anyone.*
+
+
+    A loop body can hold several lines. Everything indented under `for` repeats together.
+
+
+    Find the pattern of one stair, then repeat it.
+
+    '
+  grid:
+  - '########'
+  - '#S.#####'
+  - '##..####'
+  - '###..###'
+  - '####..##'
+  - '#####..#'
+  - '######G#'
+  - '########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "for _ in range(5):\n    hero.move()\n"
+  solution: "for _ in range(5):\n    hero.move()\n    hero.turn_right()\n    hero.move()\n\
+    \    hero.turn_left()\n"
+  hints:
+  - 'One stair: forward, down, then face forward again.'
+  - 'Inside the loop: move, turn_right, move, turn_left.'
+  - There are five stairs.
+  par_lines: 5
+  xp: 25
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: gem-row
+  order: 5
+  title: The glowstone trail
+  concept: Loops that do two things
+  intro_markdown: '*Someone left a trail of glowstones down the corridor. Wisp''s
+    lantern will only light if Wisp brings every single one.*
+
+
+    `hero.pick_up()` picks up the glowstone (the gem) on Wisp''s tile.
+
+
+    The lantern counts only when every glowstone is collected.
+
+    '
+  grid:
+  - '##########'
+  - '#S******G#'
+  - '##########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: ''
+  solution: "for _ in range(6):\n    hero.move()\n    hero.pick_up()\nhero.move()\n"
+  hints:
+  - 'Each pass: float onto a glowstone, then pick it up.'
+  - Six glowstones, then one more float to the lantern.
+  par_lines: 4
+  xp: 30
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: mind-the-walls
+  order: 6
+  title: The hedge maze
+  concept: while loops and if
+  intro_markdown: '*Out in the moonlit garden, the hedge maze spirals inward. Wisp
+    cannot see over the hedges, but Wisp can feel them.*
+
+
+    You will not always know how far to float. Wisp can check:
+
+
+    - `hero.at_goal()` is `True` on the lantern tile.
+
+    - `hero.is_blocked()` is `True` when a hedge is straight ahead.
+
+
+    `while` repeats until its condition is false. `if` / `else` picks one path.
+
+    '
+  grid:
+  - '#########'
+  - '#S......#'
+  - '#######.#'
+  - '#.....#.#'
+  - '#.###.#.#'
+  - '#.#G..#.#'
+  - '#.#####.#'
+  - '#.......#'
+  - '#########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_right
+  - is_blocked
+  - at_goal
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "while not hero.at_goal():\n    hero.move()\n"
+  solution: "while not hero.at_goal():\n    if hero.is_blocked():\n        hero.turn_right()\n\
+    \    else:\n        hero.move()\n"
+  hints:
+  - Floating into a hedge stops the run. Feel for it first.
+  - Every corner of this maze turns right.
+  - 'In the loop: if blocked, turn right; otherwise move.'
+  par_lines: 5
+  xp: 35
+  status: published
+  python_lesson_slug: while-loops
+  language: python
+- slug: some-gems
+  order: 7
+  title: The flooded cellar
+  concept: if checks
+  intro_markdown: '*The cellar flooded years ago, and glowstones washed into odd corners.
+    Grabbing where there is no glowstone just gets Wisp a handful of cold water.*
+
+
+    `hero.on_gem()` is `True` when Wisp floats over a glowstone.
+
+
+    This cellar winds like the hedge maze, so combine both ideas: follow the walls,
+    and only pick up when there is something to pick up.
+
+    '
+  grid:
+  - '###########'
+  - '#S.*....*.#'
+  - '#########.#'
+  - '#.*.....#.#'
+  - '#.#####.#*#'
+  - '#.#G.*..#.#'
+  - '#.#######.#'
+  - '#...*.....#'
+  - '###########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_right
+  - is_blocked
+  - at_goal
+  - on_gem
+  - pick_up
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "while not hero.at_goal():\n    if hero.is_blocked():\n        hero.turn_right()\n\
+    \    else:\n        hero.move()\n"
+  solution: "while not hero.at_goal():\n    if hero.is_blocked():\n        hero.turn_right()\n\
+    \    else:\n        hero.move()\n        if hero.on_gem():\n            hero.pick_up()\n"
+  hints:
+  - Start from your hedge maze code. It already finds the way.
+  - Check for a glowstone right after each move.
+  - 'Inside the else: move, then if hero.on_gem(): pick it up.'
+  par_lines: 7
+  xp: 35
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: define-a-hop
+  order: 8
+  title: Tiptoe through the crypt
+  concept: Functions
+  intro_markdown: "*Three skeletons are napping in the crypt, and their coffins are\
+    \ right in Wisp's path. Float over each one. Quietly.*\n\nHopping one coffin takes\
+    \ eight steps. Typing that three times is a lot, and one typo wakes a skeleton.\n\
+    \nName the hop once with `def`, then call it like any other command:\n\n```python\n\
+    def hop():\n    hero.turn_left()\n    ...\n\nhop()\n```\n"
+  grid:
+  - '############'
+  - '#..........#'
+  - '#S.#...#.#G#'
+  - '############'
+  start:
+    col: 1
+    row: 2
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "def hop():\n    hero.turn_left()\n    hero.move()\n\n"
+  solution: "def hop():\n    hero.turn_left()\n    hero.move()\n    hero.turn_right()\n\
+    \    hero.move()\n    hero.move()\n    hero.turn_right()\n    hero.move()\n  \
+    \  hero.turn_left()\n\nhero.move()\nhop()\nhero.move()\nhero.move()\nhop()\nhop()\n"
+  hints:
+  - 'A hop: up, over two tiles, down, then face forward again.'
+  - Up is turn_left then move. Over is turn_right then two moves. Down is turn_right,
+    move, turn_left.
+  - 'The whole trip: move, hop, move, move, hop, hop.'
+  par_lines: 15
+  xp: 40
+  status: published
+  python_lesson_slug: functions
+  language: python
+- slug: follow-the-plan
+  order: 9
+  title: The ghostly waltz
+  concept: Lists and nested loops
+  intro_markdown: '*In the ballroom, the ghosts are dancing a waltz that spirals into
+    the middle of the floor. Wisp has the dance card and two left feet.*
+
+
+    The ballroom is wide open, so walls cannot guide Wisp. The dance card can:
+
+
+    `dance = [6, 6, 6, 5, 5, 4]` means glide 6, turn left, glide 6, turn left, and
+    so on.
+
+
+    Loop over the list, and use an inner loop for the steps.
+
+    '
+  grid:
+  - '#########'
+  - '#.......#'
+  - '#.....G.#'
+  - '#.......#'
+  - '#.......#'
+  - '#.......#'
+  - '#.......#'
+  - '#S......#'
+  - '#########'
+  start:
+    col: 1
+    row: 7
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "dance = [6, 6, 6, 5, 5, 4]\n\nfor steps in dance:\n    pass\n"
+  solution: "dance = [6, 6, 6, 5, 5, 4]\n\nfor steps in dance:\n    for _ in range(steps):\n\
+    \        hero.move()\n    hero.turn_left()\n"
+  hints:
+  - 'for steps in dance: gives 6, then 6, then 6, then 5, and so on.'
+  - 'Inside it: for _ in range(steps): hero.move()'
+  - Turn left after each inner loop, like a waltz turn.
+  par_lines: 5
+  xp: 45
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: read-the-signs
+  order: 10
+  title: Follow the candles
+  concept: Dictionaries
+  intro_markdown: '*Candles flicker on the library floor, left by a helpful ghost
+    librarian. Red means turn left, blue means turn right. They lead to the secret
+    door behind the bookcase.*
+
+
+    `hero.read_sign()` returns `"red"`, `"blue"`, or `None` for the tile Wisp is on.
+
+
+    A dictionary maps each color to a turn:
+
+
+    ```python
+
+    turns = {"red": "left", "blue": "right"}
+
+    turns["red"]  # "left"
+
+    ```
+
+    '
+  grid:
+  - '###########'
+  - '#S......b.#'
+  - '#.........#'
+  - '#.........#'
+  - '#.........#'
+  - '#..r....b.#'
+  - '#.........#'
+  - '#..r..G...#'
+  - '###########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "turns = {\"red\": \"left\", \"blue\": \"right\"}\n\nwhile not hero.at_goal():\n\
+    \    hero.move()\n"
+  solution: "turns = {\"red\": \"left\", \"blue\": \"right\"}\n\nwhile not hero.at_goal():\n\
+    \    hero.move()\n    color = hero.read_sign()\n    if color is not None:\n  \
+    \      if turns[color] == \"left\":\n            hero.turn_left()\n        else:\n\
+    \            hero.turn_right()\n"
+  hints:
+  - Look at the floor after every step.
+  - 'None means no candle here: keep floating.'
+  - turns[color] tells you which way to turn.
+  par_lines: 9
+  xp: 50
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: home-to-the-lantern
+  order: 11
+  title: Home to the lantern
+  concept: Putting it all together
+  intro_markdown: '*The last room is a maze that nobody has ever mapped, and somewhere
+    at the end is the great lantern of Hollow House. Good news: one simple rule escapes
+    this kind of maze. Keep your right hand on the wall.*
+
+
+    Each step:
+
+
+    1. Turn right.
+
+    2. While a wall is ahead, turn left.
+
+    3. Move one tile.
+
+
+    Repeat until Wisp is home, and grab every glowstone on the way. Tip: wrap the
+    rule in a `def` to keep the main loop tidy.
+
+    '
+  grid:
+  - '#############'
+  - '#S....#.....#'
+  - '#####.###.###'
+  - '#...#...#...#'
+  - '#*#####.#.#.#'
+  - '#.....#*#.#.#'
+  - '#####.#.###.#'
+  - '#..*..#.#...#'
+  - '#.#####.#.#.#'
+  - '#.#.....#.#.#'
+  - '#.#*#####.#.#'
+  - '#........*#G#'
+  - '#############'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - pick_up
+  - is_blocked
+  - at_goal
+  - on_gem
+  - read_sign
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "def step():\n    hero.turn_right()\n\nwhile not hero.at_goal():\n\
+    \    step()\n"
+  solution: "def step():\n    hero.turn_right()\n    while hero.is_blocked():\n  \
+    \      hero.turn_left()\n    hero.move()\n\nwhile not hero.at_goal():\n    step()\n\
+    \    if hero.on_gem():\n        hero.pick_up()\n"
+  hints:
+  - 'Inside step(): turn right first, as if reaching for the wall.'
+  - 'while hero.is_blocked(): keep turning left until the way is clear, then move.'
+  - In the main loop, after step(), pick up if hero.on_gem().
+  par_lines: 10
+  xp: 60
+  status: published
+  python_lesson_slug: null
+  language: python

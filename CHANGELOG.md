@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 — 2026-10-27
+
+Ghostwalk languages, skins, and Ghostfarm.
+
+- Real language skins (`skins.py`) for Bash, Go, C#, Java, and SQL with learner line maps; JavaScript stays on `world.js` with camelCase and stack-based line numbers.
+- Nested Python instrumentation so `error_line` / trace lines point at statements inside loops and functions.
+- Six themed games on the level map (Hollow House, Night Shift, Midnight Archive, Lantern Mines, Starship Spectre, Midnight Roastery, Starlight Arcade) plus Ghostfarm plots.
+- Seed packs: Python house levels + multilang YAML (45 language levels + farm); Studio export keeps `language`.
+- Runtime endpoints with ETag for `world.py` / `skins.py`; syntax panel and docs.
+
 ## 1.2.0 — 2026-10-26
 
 Ghostwalk maze mini-game.

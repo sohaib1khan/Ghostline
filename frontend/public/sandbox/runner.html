@@ -102,15 +102,28 @@
           self.onmessage = (event) => {
             try {
               const worldSource = String(event.data.worldSource || "");
+              const skinsSource = String(event.data.skinsSource || "");
               const code = String(event.data.code || "");
+              const language = String(event.data.language || "python");
               const levelJson = JSON.stringify(event.data.level || {});
               pyodide.runPython(worldSource);
+              if (skinsSource) {
+                pyodide.runPython(skinsSource);
+              }
               pyodide.globals.set("_gw_level_json", levelJson);
               pyodide.globals.set("_gw_code", code);
+              pyodide.globals.set("_gw_language", language);
+              pyodide.globals.set("_gw_use_skins", Boolean(skinsSource));
               const raw = pyodide.runPython(\`
 import json
+import types
 _level = json.loads(_gw_level_json)
-_result = run_learner_code(_level, _gw_code)
+_language = str(_gw_language or "python")
+if _language == "python" or not _gw_use_skins:
+    _result = run_learner_code(_level, _gw_code)
+else:
+    _world = types.SimpleNamespace(run_learner_code=run_learner_code)
+    _result = run(_world, _level, _language, _gw_code)
 json.dumps(_result)
 \`);
               const text = String(raw);
@@ -212,7 +225,9 @@ json.dumps(_result)
             worker.postMessage({
               code: String(event.data.code || ""),
               level: event.data.level || null,
+              language: event.data.language || "python",
               worldSource: event.data.worldSource || null,
+              skinsSource: event.data.skinsSource || null,
               worldJsUrl: event.data.worldJsUrl || null,
             });
             return;

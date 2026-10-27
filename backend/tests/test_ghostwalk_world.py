@@ -76,3 +76,27 @@ def test_infinite_loop_budget() -> None:
     )
     assert result["ok"] is False
     assert "too long" in (result["error"] or "").lower()
+
+
+def test_nested_loop_error_line_points_at_body() -> None:
+    """Moves inside a while must report the body line, not the while header."""
+    # Dead-end corridor: move-only cannot reach G; the third move hits a wall.
+    level = {
+        "grid": ["######", "#S..##", "##G###", "######"],
+        "start": {"row": 1, "col": 1, "facing": "E"},
+        "allowed": ["move", "at_goal"],
+        "goal": {"reach_goal": True},
+        "max_steps": 500,
+    }
+    # Line 1: while …  Line 2: hero.move()
+    code = "while not hero.at_goal():\n    hero.move()\n"
+    result = run_learner_code(level, code)
+    assert result["ok"] is False
+    assert result["error_line"] == 2
+    move_lines = [
+        frame.get("line")
+        for frame in (result.get("trace") or [])
+        if frame.get("kind") == "move"
+    ]
+    assert move_lines
+    assert all(line == 2 for line in move_lines)

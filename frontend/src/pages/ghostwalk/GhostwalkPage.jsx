@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
-import { GHOSTWALK_LANGUAGES, languageLabel } from "../../ghostwalk/languages.js";
+import { GHOSTWALK_LANGUAGES } from "../../ghostwalk/languages.js";
+import { GHOSTWALK_GAMES, gameMeta } from "../../ghostwalk/themes.js";
 
 function LevelCard({ level, badge }) {
   return (
@@ -13,11 +14,6 @@ function LevelCard({ level, badge }) {
           </p>
           <h2 className="mt-1 text-lg font-semibold">{level.title}</h2>
           <p className="mt-1 text-sm text-muted">{level.concept}</p>
-          {level.python_lesson_slug ? (
-            <p className="mt-1 text-xs text-muted">
-              Practices Python · {level.python_lesson_slug}
-            </p>
-          ) : null}
         </div>
         <p className="font-mono text-sm" aria-label={`${level.stars} of 3 stars`}>
           {"★".repeat(level.stars)}
@@ -50,14 +46,10 @@ export default function GhostwalkPage() {
     setError("");
     api(`/api/ghostwalk/levels?language=${encodeURIComponent(language)}`)
       .then((data) => {
-        if (!cancelled) {
-          setBoard(data);
-        }
+        if (!cancelled) setBoard(data);
       })
       .catch((err) => {
-        if (!cancelled) {
-          setError(err.message);
-        }
+        if (!cancelled) setError(err.message);
       });
     return () => {
       cancelled = true;
@@ -67,56 +59,76 @@ export default function GhostwalkPage() {
   const available = GHOSTWALK_LANGUAGES.filter(
     (item) => !board?.languages?.length || board.languages.includes(item.id),
   );
+  const meta = gameMeta(language);
 
   return (
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
       <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">Ghostwalk</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Level map</h1>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Choose a game</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted">
-        Guide a friendly ghost through coding mazes in Python, Bash, Go, and more. Code runs in
-        your browser; the server only replays your moves. Ghostfarm is an interactive plot mini-game.
+        Each language is its own world — ghost, story, and idioms. Code runs in your browser; the
+        server only replays your moves.
       </p>
 
-      <div
-        className="mt-5 flex flex-wrap gap-2"
-        role="tablist"
-        aria-label="Ghostwalk language"
-      >
-        {available.map((item) => {
-          const active = language === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={[
-                "min-h-11 rounded-xl border-2 px-3 text-sm font-medium",
-                active
-                  ? "border-accent bg-accent text-on-accent"
-                  : "border-muted/30 bg-bg text-text",
-              ].join(" ")}
-              onClick={() => setLanguage(item.id)}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Ghostwalk games">
+        {GHOSTWALK_GAMES.filter((game) => available.some((item) => item.id === game.id)).map(
+          (game) => {
+            const active = language === game.id;
+            const solved =
+              board && board.language === game.id
+                ? `${board.solved} of ${board.total} solved`
+                : active && board
+                  ? `${board.solved} of ${board.total} solved`
+                  : "Open path";
+            return (
+              <li key={game.id}>
+                <button
+                  type="button"
+                  aria-pressed={active}
+                  className={[
+                    "flex min-h-[7.5rem] w-full flex-col rounded-2xl border-2 p-4 text-left transition",
+                    active
+                      ? "border-accent bg-accent/15"
+                      : "border-muted/25 bg-bg/40 hover:border-accent/50",
+                  ].join(" ")}
+                  onClick={() => setLanguage(game.id)}
+                >
+                  <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
+                    {GHOSTWALK_LANGUAGES.find((item) => item.id === game.id)?.label || game.id}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold">{game.game}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    Ghost: {game.ghost} · {game.blurb}
+                  </p>
+                  <p className="mt-auto pt-3 font-mono text-xs text-muted">
+                    {active && board ? solved : "Select to load progress"}
+                  </p>
+                </button>
+              </li>
+            );
+          },
+        )}
+      </ul>
 
       {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
       {!board && !error ? <p className="mt-4 text-sm text-muted">Loading levels…</p> : null}
       {board ? (
         <>
-          <p className="mt-4 font-mono text-sm text-muted" role="status">
-            {languageLabel(board.language)} · {board.solved} of {board.total} solved ·{" "}
-            {board.stars_earned} of {board.stars_total} stars
-          </p>
-          <ol className="mt-6 grid gap-3 sm:grid-cols-2">
-            {(board.levels || []).map((level) => (
-              <LevelCard key={level.slug} level={level} />
-            ))}
-          </ol>
+          <div className="mt-10">
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">
+              {meta.game} · {meta.ghost}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight">Level map</h2>
+            <p className="mt-2 font-mono text-sm text-muted" role="status">
+              {board.solved} of {board.total} solved · {board.stars_earned} of {board.stars_total}{" "}
+              stars
+            </p>
+            <ol className="mt-4 grid gap-3 sm:grid-cols-2">
+              {(board.levels || []).map((level) => (
+                <LevelCard key={level.slug} level={level} />
+              ))}
+            </ol>
+          </div>
 
           {(board.farm || []).length ? (
             <div className="mt-10">
@@ -124,7 +136,6 @@ export default function GhostwalkPage() {
               <h2 className="mt-2 text-xl font-semibold tracking-tight">Interactive farm plots</h2>
               <p className="mt-2 max-w-2xl text-sm text-muted">
                 Plant on soil (~), water seeds, harvest ripe crops, and deliver to the barn (B).
-                Unlocked for every language path.
               </p>
               <p className="mt-3 font-mono text-sm text-muted" role="status">
                 {board.farm_solved} of {board.farm_total} plots · {board.farm_stars_earned} of{" "}

@@ -20,6 +20,7 @@ from app.services.content_store import ContentError
 MAX_ACTIONS = 2_000
 MAX_CODE_CHARS = 12_000
 WORLD_PATH = Path(__file__).resolve().parents[1] / "ghostwalk" / "world.py"
+SKINS_PATH = Path(__file__).resolve().parents[1] / "ghostwalk" / "skins.py"
 SEED_PATH = Path(__file__).resolve().parents[1] / "seed" / "ghostwalk" / "levels.yaml"
 SEED_EXTRA_PATH = Path(__file__).resolve().parents[1] / "seed" / "ghostwalk" / "levels_multilang.yaml"
 GHOSTWALK_LANGUAGES = (
@@ -163,6 +164,10 @@ async def seed_ghostwalk_levels(session: AsyncSession) -> int:
 
 def world_source() -> str:
     return WORLD_PATH.read_text(encoding="utf-8")
+
+
+def skins_source() -> str:
+    return SKINS_PATH.read_text(encoding="utf-8")
 
 
 async def _published_levels(
@@ -704,13 +709,26 @@ async def admin_test_solution(session: AsyncSession, level_id: uuid.UUID) -> dic
     level = await session.get(GhostwalkLevel, level_id)
     if level is None:
         raise ContentError(404, "Level not found")
-    from app.ghostwalk.skins import skin_to_python
-    from app.ghostwalk.world import run_learner_code
+    from app.ghostwalk import skins, world as world_mod
+    from app.ghostwalk.skins import SkinError
 
-    source = skin_to_python(level.language or "python", level.solution or "")
-    ran = run_learner_code(level_dict(level), source)
+    language = (level.language or "python").lower()
+    if language == "javascript":
+        raise ContentError(
+            400,
+            "JavaScript solutions are tested in the browser with world.js.",
+        )
+    try:
+        ran = skins.run(world_mod, level_dict(level), language, level.solution or "")
+    except SkinError as exc:
+        return {"ok": False, "error": exc.message, "actions": [], "error_line": exc.line}
     if not ran.get("ok"):
-        return {"ok": False, "error": ran.get("error"), "actions": ran.get("actions") or []}
+        return {
+            "ok": False,
+            "error": ran.get("error"),
+            "actions": ran.get("actions") or [],
+            "error_line": ran.get("error_line"),
+        }
     checked = replay(level_dict(level), ran.get("actions") or [])
     return {
         "ok": bool(checked.get("ok")),

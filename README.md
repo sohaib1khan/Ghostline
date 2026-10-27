@@ -72,7 +72,7 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 - **Spaced review** — due queue on Home and `/review`, with confidence ratings that feed the schedule.
 - **Mastery gates** — unlock the next module at 80% recall; module bosses; certificates need every boss.
 - **Accessibility** — Settings → Preferences for text/code scale, contrast, wrap, and more; layouts reflow at high zoom.
-- **Ghostwalk** — browser Python maze levels (`/ghostwalk`); learner code runs in Pyodide; the API only replays move lists with the shared `world.py` engine. Studio → Ghostwalk to edit levels.
+- **Ghostwalk** — six language games (Python Hollow House, Bash Night Shift, SQL Midnight Archive, Go Lantern Mines, C# Starship Spectre, Java Midnight Roastery, JS Starlight Arcade) plus Ghostfarm; code runs in the browser; the API only replays move lists. Studio → Ghostwalk to edit/import YAML.
 - **Games** — Speed Drill, Bug Hunt, Command Roulette, Fill Frenzy (published exercises only).
 - **Demo** — `/demo` for visitors without an account (rate-limited checks).
 - **Admin** — Content, Ghostwalk, Users, Notifications, AI drafts, Settings.
@@ -80,11 +80,12 @@ Open the app → `/setup`. Enter the token, your name, email, and a password (12
 
 ## Ghostwalk
 
-Ten seeded levels live in `backend/app/seed/ghostwalk/levels.yaml` and load when the `ghostwalk_levels` table is empty.
+Python + Ghostfarm seeds live in `backend/app/seed/ghostwalk/levels.yaml`; other languages in `levels_multilang.yaml` (filled by slug on seed). See [docs/ghostwalk-languages.md](docs/ghostwalk-languages.md).
 
-- Shared engine: `backend/app/ghostwalk/world.py` (also served at `GET /api/ghostwalk/world.py` and copied to `frontend/public/ghostwalk/world.py`).
+- Engine: `backend/app/ghostwalk/world.py` + language skins in `skins.py` (served from `GET /api/ghostwalk/runtime/…` with ETag). JavaScript uses `frontend/public/ghostwalk/world.js` natively.
+- Nested Python statements and JS hero calls report the learner’s real `error_line` for editor highlighting.
 - Submit path: browser returns an action list → `POST /api/ghostwalk/levels/{slug}/submit` → server `replay()` must agree; stars from line count vs `par_lines`.
-- Add or edit levels in Studio → Ghostwalk (grid preview, Test solution, Publish). Export / upload YAML on the same page (matching slugs update; new slugs create).
+- Studio → Ghostwalk: per-language levels, farm mode, YAML import/export (includes `language`).
 
 ## Playground
 

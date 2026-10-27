@@ -9,37 +9,12 @@ import {
   Stars,
 } from "@react-three/drei";
 import { useMemo, useRef } from "react";
+import { themeFor } from "../../ghostwalk/themes.js";
 import { readPrefs } from "../../prefs.js";
 
-const PALETTE = {
-  void: "#0c1424",
-  fog: "#152238",
-  island: "#243552",
-  islandRim: "#3a5578",
-  grass: "#2f4a3c",
-  floor: "#edf4ff",
-  floorInset: "#c5d8f0",
-  floorGlow: "#9ec5ff",
-  wall: "#3d5f96",
-  wallMid: "#5a7fb8",
-  wallCap: "#a8d0ff",
-  goal: "#5dffb0",
-  goalCore: "#12b886",
-  gem: "#ffd166",
-  gemCore: "#ff8c42",
-  ghost: "#f8fbff",
-  ghostShade: "#d7e7f8",
-  ghostRim: "#8ec8ff",
-  cheek: "#ffb4c8",
-  signRed: "#ff6b8a",
-  signBlue: "#5eb0ff",
-  soil: "#6b4f2a",
-  seed: "#c4a574",
-  crop: "#7dcf6a",
-  cropLeaf: "#3d9a45",
-  barn: "#c07848",
-  barnRoof: "#8b3a2a",
-};
+/** Active theme palette — set by GhostwalkScene before each Canvas render. */
+let PALETTE = themeFor("python").palette;
+let THEME_SHAPES = themeFor("python").shapes;
 
 function Island({ rows, cols }) {
   const width = cols + 3.4;
@@ -220,27 +195,28 @@ function Goal({ row, col, reduceMotion }) {
   );
 }
 
+function GemShape() {
+  const shape = THEME_SHAPES?.gem || "octahedron";
+  if (shape === "cube") return <boxGeometry args={[0.42, 0.42, 0.42]} />;
+  if (shape === "card") return <boxGeometry args={[0.5, 0.08, 0.36]} />;
+  if (shape === "nugget") return <dodecahedronGeometry args={[0.28, 0]} />;
+  if (shape === "capsule") return <capsuleGeometry args={[0.16, 0.28, 6, 12]} />;
+  if (shape === "bean") return <sphereGeometry args={[0.22, 10, 8]} />;
+  if (shape === "disc") return <cylinderGeometry args={[0.28, 0.28, 0.08, 24]} />;
+  return <octahedronGeometry args={[0.32, 0]} />;
+}
+
 function Gem({ row, col, reduceMotion }) {
   const inner = (
     <group position={[col, 0.55, row]}>
       <mesh castShadow>
-        <octahedronGeometry args={[0.32, 0]} />
+        <GemShape />
         <meshStandardMaterial
           color={PALETTE.gem}
           emissive={PALETTE.gemCore}
           emissiveIntensity={0.55}
           metalness={0.55}
           roughness={0.15}
-        />
-      </mesh>
-      <mesh>
-        <octahedronGeometry args={[0.18, 0]} />
-        <meshStandardMaterial
-          color="#fff6d8"
-          emissive={PALETTE.gem}
-          emissiveIntensity={0.8}
-          transparent
-          opacity={0.85}
         />
       </mesh>
       <pointLight intensity={0.45} color={PALETTE.gem} distance={2.5} />
@@ -256,6 +232,8 @@ function Gem({ row, col, reduceMotion }) {
 
 function Sign({ row, col, color }) {
   const fill = color === "red" ? PALETTE.signRed : PALETTE.signBlue;
+  // Always show a left/right arrow as well as color (color alone is not enough).
+  const arrow = color === "red" ? "←" : "→";
   return (
     <group position={[col, 0, row]}>
       <RoundedBox args={[0.72, 0.1, 0.72]} radius={0.04} position={[0, 0.12, 0]}>
@@ -269,6 +247,12 @@ function Sign({ row, col, color }) {
         <boxGeometry args={[0.42, 0.28, 0.06]} />
         <meshStandardMaterial color={fill} emissive={fill} emissiveIntensity={0.35} />
       </mesh>
+      {/* Direction notch: red = left chevron block, blue = right */}
+      <mesh position={[color === "red" ? -0.12 : 0.12, 0.78, 0.04]} rotation={[0, 0, color === "red" ? 0.6 : -0.6]}>
+        <boxGeometry args={[0.16, 0.08, 0.04]} />
+        <meshStandardMaterial color="#fff" />
+      </mesh>
+      <mesh visible={false} userData={{ arrow }} />
     </group>
   );
 }
@@ -578,24 +562,41 @@ export default function GhostwalkScene({
   hero,
   topDown = false,
   reduceMotion = false,
+  language = "python",
+  mode = "free",
 }) {
   const prefs = readPrefs();
   const quiet = reduceMotion || prefs.reduceMotion;
+  const theme = themeFor(language, {
+    farm: mode === "farm",
+    contrast: prefs.contrast,
+  });
+  PALETTE = theme.palette;
+  THEME_SHAPES = theme.shapes;
   const rows = grid?.length || 3;
   const cols = (typeof grid?.[0] === "string" ? grid[0].length : grid?.[0]?.length) || 3;
   const framing = cameraForGrid(rows, cols, topDown);
+  const borderGlow = theme.palette.floorGlow || "#7eb6ff";
 
   return (
-    <div className="ghostwalk-canvas h-full min-h-[16rem] w-full overflow-hidden rounded-2xl border-2 border-[color-mix(in_srgb,#7eb6ff_55%,transparent)] bg-[#0c1424] shadow-[0_0_0_1px_rgba(126,182,255,0.18),0_18px_50px_rgba(6,12,28,0.55)]">
+    <div
+      className="ghostwalk-canvas h-full min-h-[16rem] w-full overflow-hidden rounded-2xl border-2 shadow-[0_0_0_1px_rgba(126,182,255,0.18),0_18px_50px_rgba(6,12,28,0.55)]"
+      style={{
+        background: theme.palette.void,
+        borderColor: `color-mix(in srgb, ${borderGlow} 55%, transparent)`,
+      }}
+    >
       <Canvas
-        key={topDown ? "top" : "persp"}
+        key={`${topDown ? "top" : "persp"}-${language}-${mode}`}
         shadows
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: false }}
         orthographic={topDown}
         camera={framing.camera}
-        aria-label="Ghostwalk 3D world"
+        aria-label={`${theme.id} Ghostwalk 3D world`}
       >
+        <color attach="background" args={[theme.palette.void]} />
+        <fog attach="fog" args={[theme.palette.fog, 12, 42]} />
         <WorldContents grid={grid} hero={hero} reduceMotion={quiet} />
         <OrbitControls
           enablePan={false}

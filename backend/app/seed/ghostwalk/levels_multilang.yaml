@@ -1,709 +1,2211 @@
-# Extra Ghostwalk packs: other languages + Ghostfarm.
-# Seeded with only_missing=True so existing Python levels are left alone.
 levels:
-  # --- JavaScript ---
-  - slug: js-first-steps
-    order: 1
-    title: First steps (JS)
-    concept: Calling a method
-    language: javascript
-    intro_markdown: |
-      Your ghost follows your code. `hero.move()` moves one tile forward.
-      Reach the glowing goal tile.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.move()
-    solution: |
-      hero.move()
-      hero.move()
-      hero.move()
-      hero.move()
-    hints:
-      - Each hero.move() is one tile. You need four.
-    par_lines: 4
-    xp: 20
-    status: published
+- slug: bash-first-steps
+  order: 1
+  title: Boot sequence
+  concept: Running commands
+  language: bash
+  intro_markdown: '*3 a.m. in the data center. The fans hum, the LEDs blink, and a
+    small ghost named **Cron** wakes up on schedule, as always. Cron only understands
+    shell commands.*
 
-  - slug: js-turn-corner
-    order: 2
-    title: Turn the corner (JS)
-    concept: Sequence
-    language: javascript
-    intro_markdown: |
-      `hero.turn_left()` and `hero.turn_right()` turn on the spot.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.move()
-      hero.move()
-    solution: |
-      hero.move()
-      hero.move()
-      hero.turn_right()
-      hero.move()
-      hero.move()
-      hero.turn_left()
-      hero.move()
-    hints:
-      - Walk east, turn right, walk south, turn left, walk to the goal.
-    par_lines: 7
-    xp: 20
-    status: published
 
-  - slug: js-loop-hall
-    order: 3
-    title: Loop hallway (JS)
-    concept: for loops
-    language: javascript
-    intro_markdown: |
-      Use a `for` loop instead of repeating `hero.move()`.
+    In Bash you run a command by typing its name. No parentheses, no semicolons needed:
 
-      ```js
-      for (let i = 0; i < 3; i++) {
-        hero.move()
-      }
-      ```
-    grid:
-      - "###########"
-      - "#S.......G#"
-      - "###########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for (let i = 0; i < 3; i++) {
-        hero.move()
-      }
-    solution: |
-      for (let i = 0; i < 8; i++) {
-        hero.move()
-      }
-    hints:
-      - Count the empty tiles between S and G — that is eight moves.
-    par_lines: 3
-    xp: 25
-    status: published
 
-  # --- Bash ---
-  - slug: bash-first-steps
-    order: 1
-    title: First steps (Bash)
-    concept: Calling a function
-    language: bash
-    intro_markdown: |
-      In Ghostwalk Bash, call helpers like shell functions:
+    ```bash
 
-      ```bash
-      hero_move()
-      ```
+    move
 
-      Each call moves one tile. Reach the goal.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero_move()
-    solution: |
-      hero_move()
-      hero_move()
-      hero_move()
-      hero_move()
-    hints:
-      - You need four hero_move() calls.
-    par_lines: 4
-    xp: 20
-    status: published
+    ```
 
-  - slug: bash-turn-corner
-    order: 2
-    title: Turn the corner (Bash)
-    concept: Sequence
-    language: bash
-    intro_markdown: |
-      `hero_turn_left()` and `hero_turn_right()` turn without moving.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero_move()
-      hero_move()
-    solution: |
-      hero_move()
-      hero_move()
-      hero_turn_right()
-      hero_move()
-      hero_move()
-      hero_turn_left()
-      hero_move()
-    hints:
-      - Facing east, turn_right faces south.
-    par_lines: 7
-    xp: 20
-    status: published
 
-  - slug: bash-loop-hall
-    order: 3
-    title: Loop hallway (Bash)
-    concept: for loops
-    language: bash
-    intro_markdown: |
-      Repeat moves with a Bash-style loop:
+    A `;` lets you put two commands on one line: `move; move`.
 
-      ```bash
-      for _ in $(seq 3); do
-        hero_move()
-      done
-      ```
-    grid:
-      - "###########"
-      - "#S.......G#"
-      - "###########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for _ in $(seq 3); do
-        hero_move()
-      done
-    solution: |
-      for _ in $(seq 8); do
-        hero_move()
-      done
-    hints:
-      - Eight tiles to the goal — use seq 8.
-    par_lines: 3
-    xp: 25
-    status: published
 
-  # --- Go ---
-  - slug: go-first-steps
-    order: 1
-    title: First steps (Go)
-    concept: Calling a method
-    language: go
-    intro_markdown: |
-      Call methods on `hero` with Go-style names:
+    Float Cron down the aisle to the console port.
 
-      ```go
-      hero.Move()
-      ```
+    '
+  grid:
+  - '#########'
+  - '#S.....G#'
+  - '#########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'move
 
-      Reach the goal tile.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move()
-    solution: |
-      hero.Move()
-      hero.Move()
-      hero.Move()
-      hero.Move()
-    hints:
-      - Four Move() calls get you there.
-    par_lines: 4
-    xp: 20
-    status: published
+    '
+  solution: 'move
 
-  - slug: go-turn-corner
-    order: 2
-    title: Turn the corner (Go)
-    concept: Sequence
-    language: go
-    intro_markdown: |
-      `hero.TurnLeft()` and `hero.TurnRight()` turn in place.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move()
-      hero.Move()
-    solution: |
-      hero.Move()
-      hero.Move()
-      hero.TurnRight()
-      hero.Move()
-      hero.Move()
-      hero.TurnLeft()
-      hero.Move()
-    hints:
-      - East, then TurnRight to face south.
-    par_lines: 7
-    xp: 20
-    status: published
+    move
 
-  - slug: go-loop-hall
-    order: 3
-    title: Loop hallway (Go)
-    concept: for loops
-    language: go
-    intro_markdown: |
-      Use a classic Go for-loop:
+    move; move
 
-      ```go
-      for i := 0; i < 3; i++ {
-          hero.Move()
-      }
-      ```
-    grid:
-      - "###########"
-      - "#S.......G#"
-      - "###########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for i := 0; i < 3; i++ {
-          hero.Move()
-      }
-    solution: |
-      for i := 0; i < 8; i++ {
-          hero.Move()
-      }
-    hints:
-      - Eight empty tiles between start and goal.
-    par_lines: 3
-    xp: 25
-    status: published
+    move; move
 
-  # --- SQL ---
-  - slug: sql-first-steps
-    order: 1
-    title: First steps (SQL)
-    concept: Calling procedures
-    language: sql
-    intro_markdown: |
-      Drive the ghost with procedure-style calls:
+    '
+  hints:
+  - Each move is one tile. You need six.
+  - 'Try two commands on one line: move; move'
+  par_lines: 4
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: bash-turn-corner
+  order: 2
+  title: Hot aisle, cold aisle
+  concept: Sequence
+  language: bash
+  intro_markdown: '*Server racks stand in rows. Hot air on one side, cold on the other.
+    Cron weaves between them.*
 
-      ```sql
-      CALL move();
-      ```
 
-      Reach the goal.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      CALL move();
-    solution: |
-      CALL move();
-      CALL move();
-      CALL move();
-      CALL move();
-    hints:
-      - Four CALL move(); statements.
-    par_lines: 4
-    xp: 20
-    status: published
+    `turn_left` and `turn_right` spin Cron in place. They never move Cron forward.
 
-  - slug: sql-turn-corner
-    order: 2
-    title: Turn the corner (SQL)
-    concept: Sequence
-    language: sql
-    intro_markdown: |
-      Use `CALL turn_left();` and `CALL turn_right();` to face a new direction.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      CALL move();
-      CALL move();
-    solution: |
-      CALL move();
-      CALL move();
-      CALL turn_right();
-      CALL move();
-      CALL move();
-      CALL turn_left();
-      CALL move();
-    hints:
-      - After two moves, turn_right, walk south, turn_left, finish east.
-    par_lines: 7
-    xp: 20
-    status: published
+    '
+  grid:
+  - '#########'
+  - '#S...####'
+  - '####.####'
+  - '####...G#'
+  - '#########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed: &id001
+  - move
+  - turn_left
+  - turn_right
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'move; move; move
 
-  # --- C# ---
-  - slug: csharp-first-steps
-    order: 1
-    title: First steps (C#)
-    concept: Calling a method
-    language: csharp
-    intro_markdown: |
-      Call PascalCase methods on `hero`:
+    '
+  solution: 'move; move; move
 
-      ```csharp
-      hero.Move();
-      ```
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move();
-    solution: |
-      hero.Move();
-      hero.Move();
-      hero.Move();
-      hero.Move();
-    hints:
-      - Four Move() calls.
-    par_lines: 4
-    xp: 20
-    status: published
+    turn_right
 
-  - slug: csharp-turn-corner
-    order: 2
-    title: Turn the corner (C#)
-    concept: Sequence
-    language: csharp
-    intro_markdown: |
-      `hero.TurnLeft()` and `hero.TurnRight()` turn without stepping.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move();
-      hero.Move();
-    solution: |
-      hero.Move();
-      hero.Move();
-      hero.TurnRight();
-      hero.Move();
-      hero.Move();
-      hero.TurnLeft();
-      hero.Move();
-    hints:
-      - Sequence: east, south, east.
-    par_lines: 7
-    xp: 20
-    status: published
+    move; move
 
-  - slug: csharp-loop-hall
-    order: 3
-    title: Loop hallway (C#)
-    concept: for loops
-    language: csharp
-    intro_markdown: |
-      ```csharp
-      for (int i = 0; i < 3; i++) {
-          hero.Move();
-      }
-      ```
-    grid:
-      - "###########"
-      - "#S.......G#"
-      - "###########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for (int i = 0; i < 3; i++) {
-          hero.Move();
-      }
-    solution: |
-      for (int i = 0; i < 8; i++) {
-          hero.Move();
-      }
-    hints:
-      - Loop eight times.
-    par_lines: 3
-    xp: 25
-    status: published
+    turn_left
 
-  # --- Java ---
-  - slug: java-first-steps
-    order: 1
-    title: First steps (Java)
-    concept: Calling a method
-    language: java
-    intro_markdown: |
-      ```java
-      hero.Move();
-      ```
+    move; move; move
 
-      Reach the goal.
-    grid:
-      - "#######"
-      - "#S...G#"
-      - "#######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move();
-    solution: |
-      hero.Move();
-      hero.Move();
-      hero.Move();
-      hero.Move();
-    hints:
-      - Four Move() calls.
-    par_lines: 4
-    xp: 20
-    status: published
+    '
+  hints:
+  - Three tiles east first.
+  - turn_right points Cron down the screen.
+  - Then turn_left and three more tiles.
+  par_lines: 5
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: bash-loop-hall
+  order: 3
+  title: Brace expansion
+  concept: for loops
+  language: bash
+  intro_markdown: "*The longest aisle in the building: ten racks, all humming the\
+    \ same note.*\n\nBash expands `{1..10}` into the numbers 1 to 10, so this loop\
+    \ runs ten times:\n\n```bash\nfor i in {1..10}; do\n  move\ndone\n```\n\n`do`\
+    \ starts the loop body. `done` ends it. `$(seq 10)` works too.\n"
+  grid:
+  - '#############'
+  - '#S.........G#'
+  - '#############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "for i in {1..3}; do\n  move\ndone\n"
+  solution: "for i in {1..10}; do\n  move\ndone\n"
+  hints:
+  - 'Count the tiles: ten.'
+  - Change {1..3} to {1..10}.
+  par_lines: 3
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: bash-exit-codes
+  order: 4
+  title: Exit codes
+  concept: until, if, and exit status
+  language: bash
+  intro_markdown: '*The old server room is a spiral of cages, and the lights are off.
+    Cron has to feel the way.*
 
-  - slug: java-turn-corner
-    order: 2
-    title: Turn the corner (Java)
-    concept: Sequence
-    language: java
-    intro_markdown: |
-      `hero.TurnLeft()` and `hero.TurnRight()` change facing only.
-    grid:
-      - "######"
-      - "#S..##"
-      - "###.##"
-      - "###.G#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      hero.Move();
-      hero.Move();
-    solution: |
-      hero.Move();
-      hero.Move();
-      hero.TurnRight();
-      hero.Move();
-      hero.Move();
-      hero.TurnLeft();
-      hero.Move();
-    hints:
-      - East, south, east.
-    par_lines: 7
-    xp: 20
-    status: published
 
-  - slug: java-loop-hall
-    order: 3
-    title: Loop hallway (Java)
-    concept: for loops
-    language: java
-    intro_markdown: |
-      ```java
-      for (int i = 0; i < 3; i++) {
-          hero.Move();
-      }
-      ```
-    grid:
-      - "###########"
-      - "#S.......G#"
-      - "###########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move]
-    goal: {reach_goal: true}
-    max_steps: 500
-    mode: guided
-    starter_code: |
-      for (int i = 0; i < 3; i++) {
-          hero.Move();
-      }
-    solution: |
-      for (int i = 0; i < 8; i++) {
-          hero.Move();
-      }
-    hints:
-      - Eight steps in the loop.
-    par_lines: 3
-    xp: 25
-    status: published
+    In Bash, every command finishes with an **exit status**: success or failure. `if`
+    and loops test that status, not a true/false value:
 
-  # --- Ghostfarm (Python API, interactive mini-game) ---
-  - slug: farm-first-plot
-    order: 100
-    title: First plot
-    concept: Plant, water, harvest
-    language: python
-    intro_markdown: |
-      Welcome to **Ghostfarm**. Soil tiles are `~`. Plant a seed, water it until it
-      becomes a ripe crop `c`, harvest it, then walk to the barn `B`.
 
-      ```python
-      hero.plant()
-      hero.water()
-      hero.harvest()
-      ```
-    grid:
-      - "#####"
-      - "#S~B#"
-      - "#####"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, plant, water, harvest, on_soil, crops_held, at_goal]
-    goal: {reach_goal: true, collect_crops: 1}
-    max_steps: 500
-    mode: farm
-    starter_code: |
-      hero.move()
-      # plant, water, harvest, then walk to the barn
-    solution: |
-      hero.move()
-      hero.plant()
-      hero.water()
-      hero.harvest()
-      hero.move()
-    hints:
-      - Stand on soil (~), plant, water once, harvest, then move onto B.
-    par_lines: 5
-    xp: 25
-    status: published
+    - `blocked` succeeds when a wall is ahead.
 
-  - slug: farm-two-rows
-    order: 101
-    title: Two tidy rows
-    concept: Loops on the farm
-    language: python
-    intro_markdown: |
-      Two soil plots need crops before you deliver to the barn. A loop keeps the
-      planting pattern short.
-    grid:
-      - "########"
-      - "#S~~..B#"
-      - "########"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right, plant, water, harvest, on_soil, crops_held, at_goal]
-    goal: {reach_goal: true, collect_crops: 2}
-    max_steps: 500
-    mode: farm
-    starter_code: |
-      for _ in range(2):
-          hero.move()
-          hero.plant()
-          hero.water()
-          hero.harvest()
-      # walk to the barn
-    solution: |
-      for _ in range(2):
-          hero.move()
-          hero.plant()
-          hero.water()
-          hero.harvest()
-      hero.move()
-      hero.move()
-      hero.move()
-    hints:
-      - Plant both soils before walking the rest of the way to B.
-      - You need collect_crops: 2 and to stand on the barn.
-    par_lines: 10
-    xp: 30
-    status: published
+    - `at_goal` succeeds on the console port.
 
-  - slug: farm-garden-path
-    order: 102
-    title: Garden path
-    concept: Turning while farming
-    language: python
-    intro_markdown: |
-      The plot bends around a hedge. Plant the corner soil, harvest, then find the barn.
-    grid:
-      - "######"
-      - "#S.~.#"
-      - "###.B#"
-      - "######"
-    start: {row: 1, col: 1, facing: E}
-    allowed: [move, turn_left, turn_right, plant, water, harvest, on_soil, crops_held, at_goal]
-    goal: {reach_goal: true, collect_crops: 1}
-    max_steps: 500
-    mode: farm
-    starter_code: |
-      hero.move()
-      hero.move()
-    solution: |
-      hero.move()
-      hero.move()
-      hero.plant()
-      hero.water()
-      hero.harvest()
-      hero.move()
-      hero.turn_right()
-      hero.move()
-    hints:
-      - The soil is two steps east. After harvest, walk one more east, turn right, then into the barn.
-    par_lines: 8
-    xp: 30
-    status: published
+
+    `until at_goal; do ... done` repeats until `at_goal` succeeds. `if blocked; then
+    ... else ... fi` picks a branch. (`fi` is `if` backwards.)
+
+    '
+  grid:
+  - '#########'
+  - '#S#.....#'
+  - '#.#.###.#'
+  - '#.#.#G#.#'
+  - '#.#.#.#.#'
+  - '#.#...#.#'
+  - '#.#####.#'
+  - '#.......#'
+  - '#########'
+  start:
+    row: 1
+    col: 1
+    facing: S
+  allowed:
+  - move
+  - turn_left
+  - is_blocked
+  - at_goal
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "until at_goal; do\n  move\ndone\n"
+  solution: "until at_goal; do\n  if blocked; then\n    turn_left\n  else\n    move\n\
+    \  fi\ndone\n"
+  hints:
+  - Moving into a cage wall stops the run. Check first.
+  - Every corner in here turns left.
+  - 'Inside the loop: if blocked; then turn_left; else move; fi'
+  par_lines: 7
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: bash-short-circuit
+  order: 5
+  title: Dropped packets
+  concept: '&& short-circuit'
+  language: bash
+  intro_markdown: '*Someone tripped over a cable and packets spilled all over the
+    floor. Cron is collecting them before anyone notices.*
+
+
+    `&&` runs the second command only if the first one succeeds:
+
+
+    ```bash
+
+    on_gem && pick_up
+
+    ```
+
+
+    That is the shell way of saying *if there is a packet here, pick it up*.
+
+    '
+  grid:
+  - '##############'
+  - '#S.*.**..*.*G#'
+  - '##############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  - on_gem
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "until at_goal; do\n  move\ndone\n"
+  solution: "until at_goal; do\n  move\n  on_gem && pick_up\ndone\n"
+  hints:
+  - Picking up on an empty tile is an error.
+  - 'After each move: on_gem && pick_up'
+  par_lines: 4
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: bash-functions
+  order: 6
+  title: Over the cable trays
+  concept: Functions
+  language: bash
+  intro_markdown: "*Cable trays cross the floor, and stepping on them is very much\
+    \ against policy. Cron hops over.*\n\nA Bash function is a new command you name\
+    \ yourself:\n\n```bash\nhop() {\n  turn_left; move\n  ...\n}\n```\n\nCall it like\
+    \ any other command: `hop`. No parentheses when you call it.\n"
+  grid:
+  - '#############'
+  - '#...........#'
+  - '#S..#.#...#G#'
+  - '#############'
+  start:
+    row: 2
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "hop() {\n  turn_left; move\n}\n\nmove; move\n"
+  solution: "hop() {\n  turn_left; move\n  turn_right; move; move\n  turn_right; move\n\
+    \  turn_left\n}\n\nmove; move\nhop\nhop\nmove; move\nhop\n"
+  hints:
+  - 'A hop: up, over two tiles, down, then face forward again.'
+  - Up is turn_left; move. Over is turn_right; move; move. Down is turn_right; move;
+    turn_left.
+  - 'The trip: move; move, hop, hop, move; move, hop.'
+  par_lines: 11
+  xp: 40
+  status: published
+  python_lesson_slug: null
+- slug: bash-arrays
+  order: 7
+  title: The route table
+  concept: Arrays
+  language: bash
+  intro_markdown: "*The network team left a route table taped to the wall. Cron follows\
+    \ it, one hop at a time.*\n\nA Bash array holds a list of values. `\"${route[@]}\"\
+    ` expands to every item:\n\n```bash\nroute=(5 3 4 2)\nfor n in \"${route[@]}\"\
+    ; do\n  echo \"$n\"\ndone\n```\n\nWalk each distance, then turn right. A C-style\
+    \ loop counts the steps: `for ((i = 0; i < n; i++)); do`.\n"
+  grid:
+  - '#########'
+  - '#S......#'
+  - '#.G.....#'
+  - '#.......#'
+  - '#.......#'
+  - '#.......#'
+  - '#########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "route=(5 3 4 2)\n\nfor n in \"${route[@]}\"; do\n  turn_right\ndone\n"
+  solution: "route=(5 3 4 2)\n\nfor n in \"${route[@]}\"; do\n  for ((i = 0; i < n;\
+    \ i++)); do\n    move\n  done\n  turn_right\ndone\n"
+  hints:
+  - The outer loop gives 5, then 3, then 4, then 2.
+  - 'Inside it: for ((i = 0; i < n; i++)); do move; done'
+  - Turn right after each inner loop.
+  par_lines: 7
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: bash-case-leds
+  order: 8
+  title: Blinking status lights
+  concept: case
+  language: bash
+  intro_markdown: "*Every rack has a status light. Red means turn left, blue means\
+    \ turn right. Follow them to the night-shift console and Cron's shift is done.*\n\
+    \n`read_sign` prints the color of the light under Cron, and `$(read_sign)` captures\
+    \ it. `case` matches it against patterns:\n\n```bash\ncase $(read_sign) in\n \
+    \ red)  echo \"left\" ;;\n  blue) echo \"right\" ;;\nesac\n```\n\n`;;` ends each\
+    \ branch, and `esac` is `case` backwards.\n"
+  grid:
+  - '##########'
+  - '#S....b..#'
+  - '#........#'
+  - '#........#'
+  - '#.r...b..#'
+  - '#........#'
+  - '#.r....G.#'
+  - '##########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "until at_goal; do\n  move\ndone\n"
+  solution: "until at_goal; do\n  move\n  case $(read_sign) in\n    red)  turn_left\
+    \ ;;\n    blue) turn_right ;;\n  esac\ndone\n"
+  hints:
+  - Check the light after every move.
+  - case $(read_sign) in ... esac
+  - red) turn_left ;; and blue) turn_right ;;
+  par_lines: 7
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: sql-first-steps
+  order: 1
+  title: CALL to order
+  concept: Calling procedures
+  language: sql
+  intro_markdown: '*At midnight the Grand Archive closes, and its keeper wakes: a
+    careful ghost named **Ledger**, who has never once lost a record. Tonight''s job
+    is to reach the commit desk.*
+
+
+    In PostgreSQL, a procedure is run with `CALL`. Every statement ends with `;`:
+
+
+    ```sql
+
+    CALL move();
+
+    ```
+
+    '
+  grid:
+  - '#######'
+  - '#S...G#'
+  - '#######'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'CALL move();
+
+    '
+  solution: 'CALL move();
+
+    CALL move();
+
+    CALL move();
+
+    CALL move();
+
+    '
+  hints:
+  - Four tiles to the commit desk.
+  - Four CALL move(); statements.
+  par_lines: 4
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: sql-turn-corner
+  order: 2
+  title: Between the stacks
+  concept: Sequence
+  language: sql
+  intro_markdown: '*Ledger starts at the foot of a shelf and has to go up, across,
+    and back down.*
+
+
+    `CALL turn_left();` and `CALL turn_right();` change the direction Ledger faces
+    without moving.
+
+    '
+  grid:
+  - '######'
+  - '#....#'
+  - '#.##.#'
+  - '#S##G#'
+  - '######'
+  start:
+    row: 3
+    col: 1
+    facing: N
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'CALL move();
+
+    CALL move();
+
+    '
+  solution: 'CALL move();
+
+    CALL move();
+
+    CALL turn_right();
+
+    CALL move();
+
+    CALL move();
+
+    CALL move();
+
+    CALL turn_right();
+
+    CALL move();
+
+    CALL move();
+
+    '
+  hints:
+  - Up two tiles first. Ledger starts facing north.
+  - Facing north, turn_right faces east.
+  - Across three tiles, turn right again, then down two.
+  par_lines: 9
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: sql-loop-hall
+  order: 3
+  title: The DO block
+  concept: FOR loops in PL/pgSQL
+  language: sql
+  intro_markdown: "*The reading room corridor is nine tiles of creaky parquet.*\n\n\
+    Loops live inside a `DO` block, written in PL/pgSQL, PostgreSQL's procedural language:\n\
+    \n```sql\nDO $$\nBEGIN\n  FOR i IN 1..3 LOOP\n    CALL move();\n  END LOOP;\n\
+    END $$;\n```\n\n`1..3` includes both ends.\n"
+  grid:
+  - '############'
+  - '#S........G#'
+  - '############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "DO $$\nBEGIN\n  FOR i IN 1..3 LOOP\n    CALL move();\n  END LOOP;\n\
+    END $$;\n"
+  solution: "DO $$\nBEGIN\n  FOR i IN 1..9 LOOP\n    CALL move();\n  END LOOP;\nEND\
+    \ $$;\n"
+  hints:
+  - Nine tiles to the desk.
+  - FOR i IN 1..9 LOOP
+  par_lines: 6
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: sql-while-not
+  order: 4
+  title: The card catalog
+  concept: WHILE and IF
+  language: sql
+  intro_markdown: "*The card catalog is a maze of drawers that spirals inward. Ledger\
+    \ has to feel along the drawers.*\n\n- `at_goal()` is true at the commit desk.\n\
+    - `is_blocked()` is true when a drawer is straight ahead.\n\n```sql\nWHILE NOT\
+    \ at_goal() LOOP\n  IF is_blocked() THEN\n    ...\n  ELSE\n    ...\n  END IF;\n\
+    END LOOP;\n```\n"
+  grid:
+  - '###########'
+  - '#.......#S#'
+  - '#.#####.#.#'
+  - '#.#..G#.#.#'
+  - '#.#.###.#.#'
+  - '#.#.....#.#'
+  - '#.#######.#'
+  - '#.........#'
+  - '###########'
+  start:
+    row: 1
+    col: 9
+    facing: S
+  allowed:
+  - move
+  - turn_right
+  - is_blocked
+  - at_goal
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "DO $$\nBEGIN\n  WHILE NOT at_goal() LOOP\n    CALL move();\n  END\
+    \ LOOP;\nEND $$;\n"
+  solution: "DO $$\nBEGIN\n  WHILE NOT at_goal() LOOP\n    IF is_blocked() THEN\n\
+    \      CALL turn_right();\n    ELSE\n      CALL move();\n    END IF;\n  END LOOP;\n\
+    END $$;\n"
+  hints:
+  - Bumping a drawer stops the run.
+  - Every corner of the catalog turns right.
+  - IF is_blocked() THEN turn right ELSE move END IF;
+  par_lines: 10
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: sql-exit-when
+  order: 5
+  title: Recovering lost records
+  concept: LOOP and EXIT WHEN
+  language: sql
+  intro_markdown: "*Records slipped out of their folders and lie scattered along the\
+    \ corridor. Ledger collects them all.*\n\nA bare `LOOP` runs forever until an\
+    \ `EXIT` stops it:\n\n```sql\nLOOP\n  CALL move();\n  EXIT WHEN at_goal();\nEND\
+    \ LOOP;\n```\n\n`on_gem()` is true when a lost record is under Ledger.\n"
+  grid:
+  - '##############'
+  - '#S..*.*..**.G#'
+  - '##############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  - on_gem
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "DO $$\nBEGIN\n  LOOP\n    CALL move();\n    EXIT WHEN at_goal();\n\
+    \  END LOOP;\nEND $$;\n"
+  solution: "DO $$\nBEGIN\n  LOOP\n    CALL move();\n    IF on_gem() THEN\n      CALL\
+    \ pick_up();\n    END IF;\n    EXIT WHEN at_goal();\n  END LOOP;\nEND $$;\n"
+  hints:
+  - Picking up where there is no record is an error.
+  - 'After each move: IF on_gem() THEN CALL pick_up(); END IF;'
+  par_lines: 10
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: sql-foreach
+  order: 6
+  title: Reshelving
+  concept: Arrays and FOREACH
+  language: sql
+  intro_markdown: "*The reshelving cart has a list of distances: walk, turn left,\
+    \ walk again. Tonight's list is `ARRAY[6, 3, 4, 1]`.*\n\nDeclare variables in\
+    \ a `DECLARE` section, then loop over the array:\n\n```sql\nDO $$\nDECLARE\n \
+    \ shelves int[] := ARRAY[6, 3, 4, 1];\n  n int;\nBEGIN\n  FOREACH n IN ARRAY shelves\
+    \ LOOP\n    ...\n  END LOOP;\nEND $$;\n```\n"
+  grid:
+  - '#########'
+  - '#.......#'
+  - '#.......#'
+  - '#.......#'
+  - '#..G....#'
+  - '#.......#'
+  - '#S......#'
+  - '#########'
+  start:
+    row: 6
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "DO $$\nDECLARE\n  shelves int[] := ARRAY[6, 3, 4, 1];\n  n int;\n\
+    BEGIN\n  FOREACH n IN ARRAY shelves LOOP\n    CALL turn_left();\n  END LOOP;\n\
+    END $$;\n"
+  solution: "DO $$\nDECLARE\n  shelves int[] := ARRAY[6, 3, 4, 1];\n  n int;\nBEGIN\n\
+    \  FOREACH n IN ARRAY shelves LOOP\n    FOR i IN 1..n LOOP\n      CALL move();\n\
+    \    END LOOP;\n    CALL turn_left();\n  END LOOP;\nEND $$;\n"
+  hints:
+  - FOREACH gives 6, then 3, then 4, then 1.
+  - 'Inside it: FOR i IN 1..n LOOP CALL move(); END LOOP;'
+  - Turn left after each inner loop.
+  par_lines: 13
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: sql-case-closed
+  order: 7
+  title: Case closed
+  concept: CASE
+  language: sql
+  intro_markdown: "*Colored bookmarks on the floor lead to the commit desk: red means\
+    \ turn left, blue means turn right.*\n\n`read_sign()` returns `'red'`, `'blue'`,\
+    \ or `NULL`. A `CASE` statement picks what to do:\n\n```sql\nCASE read_sign()\n\
+    \  WHEN 'red' THEN CALL turn_left();\n  WHEN 'blue' THEN CALL turn_right();\n\
+    \  ELSE NULL;\nEND CASE;\n```\n\n**Careful:** in PL/pgSQL, a `CASE` with no matching\
+    \ `WHEN` and no `ELSE` raises an error. `ELSE NULL;` means *do nothing*.\n"
+  grid:
+  - '#########'
+  - '#b.....b#'
+  - '#.......#'
+  - '#...r..b#'
+  - '#.......#'
+  - '#S..G...#'
+  - '#########'
+  start:
+    row: 5
+    col: 1
+    facing: N
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "DO $$\nBEGIN\n  WHILE NOT at_goal() LOOP\n    CALL move();\n  END\
+    \ LOOP;\nEND $$;\n"
+  solution: "DO $$\nBEGIN\n  WHILE NOT at_goal() LOOP\n    CALL move();\n    CASE\
+    \ read_sign()\n      WHEN 'red' THEN CALL turn_left();\n      WHEN 'blue' THEN\
+    \ CALL turn_right();\n      ELSE NULL;\n    END CASE;\n  END LOOP;\nEND $$;\n"
+  hints:
+  - Check the bookmark after every move.
+  - Most tiles have no bookmark. Without ELSE, CASE fails there.
+  - Add ELSE NULL; before END CASE;
+  par_lines: 11
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: go-first-steps
+  order: 1
+  title: Down the shaft
+  concept: Calling a method
+  language: go
+  intro_markdown: '*Deep under Hollow Hill there is an abandoned lantern mine, and
+    a ghost miner named **Burrow** still works the night shift. First job: ride the
+    shaft down to the lift.*
+
+
+    Go methods that other packages can use start with a capital letter:
+
+
+    ```go
+
+    hero.Move()
+
+    ```
+
+    '
+  grid:
+  - '###'
+  - '#S#'
+  - '#.#'
+  - '#.#'
+  - '#.#'
+  - '#G#'
+  - '###'
+  start:
+    row: 1
+    col: 1
+    facing: S
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.Move()
+
+    '
+  solution: 'hero.Move()
+
+    hero.Move()
+
+    hero.Move()
+
+    hero.Move()
+
+    '
+  hints:
+  - Burrow already faces down the shaft.
+  - Four Move() calls.
+  par_lines: 4
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: go-turn-corner
+  order: 2
+  title: The cart track bend
+  concept: Sequence
+  language: go
+  intro_markdown: '*An old cart track loops around a pillar of rock. Burrow follows
+    it.*
+
+
+    `hero.TurnLeft()` and `hero.TurnRight()` turn in place.
+
+    '
+  grid:
+  - '#####'
+  - '#S..#'
+  - '###.#'
+  - '###.#'
+  - '#G..#'
+  - '#####'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.Move()
+
+    hero.Move()
+
+    '
+  solution: 'hero.Move()
+
+    hero.Move()
+
+    hero.TurnRight()
+
+    hero.Move()
+
+    hero.Move()
+
+    hero.Move()
+
+    hero.TurnRight()
+
+    hero.Move()
+
+    hero.Move()
+
+    '
+  hints:
+  - East two, then down three, then back west two.
+  - Both turns are right turns.
+  par_lines: 9
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: go-loop-hall
+  order: 3
+  title: Counting carts
+  concept: The classic for loop
+  language: go
+  intro_markdown: "*Nine empty carts sit on the main track. Burrow counts them on\
+    \ the way past.*\n\nGo has exactly one loop keyword: `for`. Its classic form looks\
+    \ like C:\n\n```go\nfor i := 0; i < 3; i++ {\n\thero.Move()\n}\n```\n\nNo parentheses\
+    \ around the header, and the `{` must be on the same line.\n"
+  grid:
+  - '############'
+  - '#S........G#'
+  - '############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "for i := 0; i < 3; i++ {\n\thero.Move()\n}\n"
+  solution: "for i := 0; i < 9; i++ {\n\thero.Move()\n}\n"
+  hints:
+  - 'Count the tiles: nine.'
+  - Change i < 3 to i < 9.
+  par_lines: 3
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: go-range-int
+  order: 4
+  title: Every other nugget
+  concept: range over an integer
+  language: go
+  intro_markdown: "*Gold nuggets glint in the wall, one every other step.*\n\nSince\
+    \ Go 1.22, you can range over a number. This runs four times:\n\n```go\nfor range\
+    \ 4 {\n\thero.Move()\n}\n```\n\n`hero.PickUp()` collects the nugget under Burrow.\n"
+  grid:
+  - '############'
+  - '#S.*.*.*.*G#'
+  - '############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "for range 4 {\n\thero.Move()\n}\n"
+  solution: "for range 4 {\n\thero.Move()\n\thero.Move()\n\thero.PickUp()\n}\nhero.Move()\n"
+  hints:
+  - 'The pattern is: step, step, pick up.'
+  - Four nuggets, then one more step to the lift.
+  par_lines: 6
+  xp: 30
+  status: published
+  python_lesson_slug: null
+- slug: go-only-loop
+  order: 5
+  title: One loop to dig them all
+  concept: for as while
+  language: go
+  intro_markdown: "*The deep tunnel winds around itself, and nuggets are scattered\
+    \ along it.*\n\nWith only a condition, Go's `for` works like `while` in other\
+    \ languages:\n\n```go\nfor !hero.AtGoal() {\n\tif hero.IsBlocked() {\n\t\t...\n\
+    \t} else {\n\t\t...\n\t}\n}\n```\n\n`hero.OnGem()` is true when Burrow stands\
+    \ on a nugget.\n"
+  grid:
+  - '###########'
+  - '#...*....S#'
+  - '#.#########'
+  - '#.#..*....#'
+  - '#*#.#####.#'
+  - '#.#...G##*#'
+  - '#.#######.#'
+  - '#.....*...#'
+  - '###########'
+  start:
+    row: 1
+    col: 9
+    facing: W
+  allowed:
+  - move
+  - turn_left
+  - is_blocked
+  - at_goal
+  - on_gem
+  - pick_up
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "for !hero.AtGoal() {\n\thero.Move()\n}\n"
+  solution: "for !hero.AtGoal() {\n\tif hero.IsBlocked() {\n\t\thero.TurnLeft()\n\t\
+    } else {\n\t\thero.Move()\n\t\tif hero.OnGem() {\n\t\t\thero.PickUp()\n\t\t}\n\
+    \t}\n}\n"
+  hints:
+  - Every corner of this tunnel turns left.
+  - Check for a nugget right after each move.
+  - 'Inside else: Move, then if OnGem, PickUp.'
+  par_lines: 10
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: go-closures
+  order: 6
+  title: Under the support beams
+  concept: Closures
+  language: go
+  intro_markdown: "*Low wooden beams cross the tunnel. Burrow ducks below each one.*\n\
+    \nYour code already runs inside `main()`, so name a reusable step with a closure:\n\
+    \n```go\nduck := func() {\n\thero.TurnRight()\n\t...\n}\n\nduck()\n```\n"
+  grid:
+  - '###########'
+  - '#S#.#..#.G#'
+  - '#.........#'
+  - '###########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "duck := func() {\n\thero.TurnRight()\n\thero.Move()\n}\n\n"
+  solution: "duck := func() {\n\thero.TurnRight()\n\thero.Move()\n\thero.TurnLeft()\n\
+    \thero.Move()\n\thero.Move()\n\thero.TurnLeft()\n\thero.Move()\n\thero.TurnRight()\n\
+    }\n\nduck()\nduck()\nhero.Move()\nduck()\nhero.Move()\n"
+  hints:
+  - 'A duck: down, along two tiles, back up, then face forward.'
+  - Down is TurnRight then Move. Along is TurnLeft and two moves. Up is TurnLeft,
+    Move, TurnRight.
+  - 'The trip: duck, duck, Move, duck, Move.'
+  par_lines: 15
+  xp: 40
+  status: published
+  python_lesson_slug: null
+- slug: go-slices
+  order: 7
+  title: Surveying the cavern
+  concept: Slices and range
+  language: go
+  intro_markdown: "*A survey map lists how far to walk before each left turn.*\n\n\
+    A slice is Go's list. `range` gives each index and value; `_` ignores the index:\n\
+    \n```go\nroute := []int{3, 5, 2, 4, 1}\nfor _, n := range route {\n\t...\n}\n\
+    ```\n"
+  grid:
+  - '#########'
+  - '#S......#'
+  - '#.......#'
+  - '#.G.....#'
+  - '#.......#'
+  - '#.......#'
+  - '#########'
+  start:
+    row: 1
+    col: 1
+    facing: S
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "route := []int{3, 5, 2, 4, 1}\nfor _, n := range route {\n\thero.TurnLeft()\n\
+    }\n"
+  solution: "route := []int{3, 5, 2, 4, 1}\nfor _, n := range route {\n\tfor range\
+    \ n {\n\t\thero.Move()\n\t}\n\thero.TurnLeft()\n}\n"
+  hints:
+  - n is 3, then 5, then 2, 4, and 1.
+  - for range n { hero.Move() } walks n tiles.
+  - TurnLeft after each inner loop.
+  par_lines: 7
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: go-switch
+  order: 8
+  title: Switching tracks
+  concept: switch
+  language: go
+  intro_markdown: "*Track switches light up red and blue. Red: turn left. Blue: turn\
+    \ right. They lead to the lift.*\n\n`hero.ReadSign()` returns `\"red\"`, `\"blue\"\
+    `, or `\"\"` when there is no light.\n\n```go\nswitch hero.ReadSign() {\ncase\
+    \ \"red\":\n\t...\ncase \"blue\":\n\t...\n}\n```\n\nGo cases never fall through,\
+    \ so there is no `break`.\n"
+  grid:
+  - '###########'
+  - '#.........#'
+  - '#....b..b.#'
+  - '#.........#'
+  - '#.......G.#'
+  - '#.........#'
+  - '#S...r....#'
+  - '###########'
+  start:
+    row: 6
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "for !hero.AtGoal() {\n\thero.Move()\n}\n"
+  solution: "for !hero.AtGoal() {\n\thero.Move()\n\tswitch hero.ReadSign() {\n\tcase\
+    \ \"red\":\n\t\thero.TurnLeft()\n\tcase \"blue\":\n\t\thero.TurnRight()\n\t}\n\
+    }\n"
+  hints:
+  - Read the switch light after every move.
+  - 'case "red": TurnLeft. case "blue": TurnRight.'
+  - No break needed in Go.
+  par_lines: 9
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: csharp-first-steps
+  order: 1
+  title: Power on
+  concept: Calling a method
+  language: csharp
+  intro_markdown: '*The derelict starship* Spectre *drifts in the dark. Deep in its
+    circuits, a ghost AI called **Echo** powers back on and heads for the bridge.*
+
+
+    C# methods use PascalCase, and every statement ends with `;`:
+
+
+    ```csharp
+
+    hero.Move();
+
+    ```
+
+
+    Echo starts out facing west.
+
+    '
+  grid:
+  - '########'
+  - '#G....S#'
+  - '########'
+  start:
+    row: 1
+    col: 6
+    facing: W
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.Move();
+
+    '
+  solution: 'hero.Move();
+
+    hero.Move();
+
+    hero.Move();
+
+    hero.Move();
+
+    hero.Move();
+
+    '
+  hints:
+  - Five tiles to the bridge.
+  - Five hero.Move(); lines.
+  par_lines: 5
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: csharp-turn-corner
+  order: 2
+  title: Docking bay
+  concept: Sequence
+  language: csharp
+  intro_markdown: '*The docking bay ramp goes up a level. Echo climbs it.*
+
+
+    `hero.TurnLeft();` and `hero.TurnRight();` turn without moving.
+
+    '
+  grid:
+  - '########'
+  - '###...G#'
+  - '###.####'
+  - '#S..####'
+  - '########'
+  start:
+    row: 3
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.Move();
+
+    hero.Move();
+
+    '
+  solution: 'hero.Move();
+
+    hero.Move();
+
+    hero.TurnLeft();
+
+    hero.Move();
+
+    hero.Move();
+
+    hero.TurnRight();
+
+    hero.Move();
+
+    hero.Move();
+
+    hero.Move();
+
+    '
+  hints:
+  - East two, up two, east three.
+  - Facing east, TurnLeft faces north.
+  par_lines: 9
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: csharp-loop-hall
+  order: 3
+  title: The long corridor
+  concept: for loops
+  language: csharp
+  intro_markdown: "*The ship's spine corridor runs ten sections end to end.*\n\nC#\
+    \ style puts each brace on its own line:\n\n```csharp\nfor (int i = 0; i < 3;\
+    \ i++)\n{\n    hero.Move();\n}\n```\n"
+  grid:
+  - '#############'
+  - '#S.........G#'
+  - '#############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "for (int i = 0; i < 3; i++)\n{\n    hero.Move();\n}\n"
+  solution: "for (int i = 0; i < 10; i++)\n{\n    hero.Move();\n}\n"
+  hints:
+  - Ten sections.
+  - Change i < 3 to i < 10.
+  par_lines: 4
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: csharp-energy-cells
+  order: 4
+  title: Energy cells
+  concept: while and if
+  language: csharp
+  intro_markdown: "*Spare energy cells rolled loose during the last jump. The bridge\
+    \ needs every one.*\n\n```csharp\nwhile (!hero.AtGoal())\n{\n    hero.Move();\n\
+    \    if (hero.OnGem())\n    {\n        ...\n    }\n}\n```\n\n`hero.OnGem()` is\
+    \ true over an energy cell, and `hero.PickUp();` collects it.\n"
+  grid:
+  - '#############'
+  - '#S..*.*.*..G#'
+  - '#############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  - on_gem
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "while (!hero.AtGoal())\n{\n    hero.Move();\n}\n"
+  solution: "while (!hero.AtGoal())\n{\n    hero.Move();\n    if (hero.OnGem())\n\
+    \    {\n        hero.PickUp();\n    }\n}\n"
+  hints:
+  - Check for a cell after every move.
+  - if (hero.OnGem()) goes inside the loop.
+  par_lines: 8
+  xp: 30
+  status: published
+  python_lesson_slug: null
+- slug: csharp-ducts
+  order: 5
+  title: Through the air ducts
+  concept: Conditions without braces
+  language: csharp
+  intro_markdown: "*The ventilation ducts spiral inward toward the core. Echo feels\
+    \ along the walls.*\n\nWhen an `if` or `else` controls a single statement, C#\
+    \ lets you skip the braces:\n\n```csharp\nif (hero.IsBlocked())\n    hero.TurnRight();\n\
+    else\n    hero.Move();\n```\n"
+  grid:
+  - '#############'
+  - '#...........#'
+  - '#.#########.#'
+  - '#.#.......#.#'
+  - '#.#.#####.#.#'
+  - '#.#.#G....#.#'
+  - '#.#.#######.#'
+  - '#S#.........#'
+  - '#############'
+  start:
+    row: 7
+    col: 1
+    facing: N
+  allowed:
+  - move
+  - turn_right
+  - is_blocked
+  - at_goal
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "while (!hero.AtGoal())\n{\n    hero.Move();\n}\n"
+  solution: "while (!hero.AtGoal())\n{\n    if (hero.IsBlocked())\n        hero.TurnRight();\n\
+    \    else\n        hero.Move();\n}\n"
+  hints:
+  - Every corner of the ducts turns right.
+  - If blocked, turn right. Otherwise, move.
+  par_lines: 7
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: csharp-local-functions
+  order: 6
+  title: Debris field
+  concept: Local functions
+  language: csharp
+  intro_markdown: "*Debris blocks the maintenance tunnel. Echo vaults over each piece.*\n\
+    \nA local function names a set of steps:\n\n```csharp\nvoid Hop()\n{\n    hero.TurnLeft();\n\
+    \    ...\n}\n\nHop();\n```\n"
+  grid:
+  - '##########'
+  - '#........#'
+  - '#S#..#.#G#'
+  - '##########'
+  start:
+    row: 2
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "void Hop()\n{\n    hero.TurnLeft();\n    hero.Move();\n}\n\n"
+  solution: "void Hop()\n{\n    hero.TurnLeft();\n    hero.Move();\n    hero.TurnRight();\n\
+    \    hero.Move();\n    hero.Move();\n    hero.TurnRight();\n    hero.Move();\n\
+    \    hero.TurnLeft();\n}\n\nHop();\nhero.Move();\nHop();\nHop();\n"
+  hints:
+  - 'A hop: up, over two tiles, down, face forward.'
+  - 'The trip: Hop, Move, Hop, Hop.'
+  par_lines: 15
+  xp: 40
+  status: published
+  python_lesson_slug: null
+- slug: csharp-foreach
+  order: 7
+  title: The star chart
+  concept: Arrays and foreach
+  language: csharp
+  intro_markdown: "*The navigation computer still has one star chart saved: four burns,\
+    \ turning right after each.*\n\n```csharp\nint[] route = { 7, 4, 5, 2 };\n\nforeach\
+    \ (int steps in route)\n{\n    ...\n}\n```\n"
+  grid:
+  - '##########'
+  - '#S.......#'
+  - '#........#'
+  - '#..G.....#'
+  - '#........#'
+  - '#........#'
+  - '##########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "int[] route = { 7, 4, 5, 2 };\n\nforeach (int steps in route)\n{\n\
+    \    hero.TurnRight();\n}\n"
+  solution: "int[] route = { 7, 4, 5, 2 };\n\nforeach (int steps in route)\n{\n  \
+    \  for (int i = 0; i < steps; i++)\n    {\n        hero.Move();\n    }\n    hero.TurnRight();\n\
+    }\n"
+  hints:
+  - foreach gives 7, then 4, then 5, then 2.
+  - An inner for loop moves steps times.
+  - TurnRight after each burn.
+  par_lines: 10
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: csharp-switch
+  order: 8
+  title: Airlock lights
+  concept: switch and break
+  language: csharp
+  intro_markdown: "*Airlock lights flash red and blue. Red: turn left. Blue: turn\
+    \ right. They lead to the escape pod.*\n\n`hero.ReadSign()` returns `\"red\"`,\
+    \ `\"blue\"`, or `null`.\n\n```csharp\nswitch (hero.ReadSign())\n{\n    case \"\
+    red\":\n        hero.TurnLeft();\n        break;\n}\n```\n\nUnlike Go, C# requires\
+    \ `break;` at the end of every case. Leave it out and the compiler stops you.\n"
+  grid:
+  - '##########'
+  - '#........#'
+  - '#........#'
+  - '#b....b..#'
+  - '#........#'
+  - '#.....r.G#'
+  - '#S.......#'
+  - '##########'
+  start:
+    row: 6
+    col: 1
+    facing: N
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "while (!hero.AtGoal())\n{\n    hero.Move();\n}\n"
+  solution: "while (!hero.AtGoal())\n{\n    hero.Move();\n    switch (hero.ReadSign())\n\
+    \    {\n        case \"red\":\n            hero.TurnLeft();\n            break;\n\
+    \        case \"blue\":\n            hero.TurnRight();\n            break;\n \
+    \   }\n}\n"
+  hints:
+  - Read the light after every move.
+  - 'case "red": TurnLeft and break;'
+  - Every case needs its own break;
+  par_lines: 13
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: java-first-steps
+  order: 1
+  title: Opening shift
+  concept: Calling a method
+  language: java
+  intro_markdown: '*Above the old town square sits the Midnight Roastery, run every
+    night by a cheerful ghost barista named **Bean**. Coffee grows right on the shop
+    floor, and every harvest goes to the roaster, `B`.*
+
+
+    Java methods are camelCase, and statements end with `;`:
+
+
+    ```java
+
+    hero.move();
+
+    ```
+
+    '
+  grid:
+  - '########'
+  - '#S....B#'
+  - '########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move();
+
+    '
+  solution: 'hero.move();
+
+    hero.move();
+
+    hero.move();
+
+    hero.move();
+
+    hero.move();
+
+    '
+  hints:
+  - Five tiles to the roaster.
+  - Five hero.move(); lines.
+  par_lines: 5
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: java-turn-corner
+  order: 2
+  title: First harvest
+  concept: Sequence
+  language: java
+  intro_markdown: '*One coffee plant waits behind the counter. Grow it, harvest it,
+    and take it to the roaster.*
+
+
+    On a soil tile `~`: `hero.plant();`, then `hero.water();` grows a ripe cherry,
+    then `hero.harvest();` picks it. Turns are `hero.turnLeft();` and `hero.turnRight();`.
+
+    '
+  grid:
+  - '######'
+  - '#S.~##'
+  - '###.##'
+  - '###.B#'
+  - '######'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  goal:
+    reach_goal: true
+    collect_crops: 1
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move();
+
+    hero.move();
+
+    '
+  solution: 'hero.move();
+
+    hero.move();
+
+    hero.plant();
+
+    hero.water();
+
+    hero.harvest();
+
+    hero.turnRight();
+
+    hero.move();
+
+    hero.move();
+
+    hero.turnLeft();
+
+    hero.move();
+
+    '
+  hints:
+  - The soil is two tiles east.
+  - plant, water, harvest, in that order.
+  - Then down two and east one to the roaster.
+  par_lines: 10
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: java-loop-hall
+  order: 3
+  title: A row of seedlings
+  concept: for loops
+  language: java
+  intro_markdown: "*Six soil beds line the window. Same routine on each: plant, water,\
+    \ harvest.*\n\n```java\nfor (int i = 0; i < 3; i++) {\n    hero.move();\n}\n```\n"
+  grid:
+  - '##########'
+  - '#S~~~~~~B#'
+  - '##########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - plant
+  - water
+  - harvest
+  goal:
+    reach_goal: true
+    collect_crops: 6
+  max_steps: 500
+  mode: guided
+  starter_code: "for (int i = 0; i < 6; i++) {\n    hero.move();\n}\n"
+  solution: "for (int i = 0; i < 6; i++) {\n    hero.move();\n    hero.plant();\n\
+    \    hero.water();\n    hero.harvest();\n}\nhero.move();\n"
+  hints:
+  - 'Each pass: step onto soil, then plant, water, harvest.'
+  - One more step after the loop reaches the roaster.
+  par_lines: 7
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: java-only-where-it-grows
+  order: 4
+  title: Only where it grows
+  concept: while and if
+  language: java
+  intro_markdown: "*The floorboards and the soil beds are mixed together. Planting\
+    \ on wood just gets Bean a splinter.*\n\n`hero.onSoil()` is true on a soil bed:\n\
+    \n```java\nwhile (!hero.atGoal()) {\n    hero.move();\n    if (hero.onSoil())\
+    \ {\n        ...\n    }\n}\n```\n"
+  grid:
+  - '#############'
+  - '#S.~..~~.~.B#'
+  - '#############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - plant
+  - water
+  - harvest
+  - on_soil
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_crops: 4
+  max_steps: 500
+  mode: free
+  starter_code: "while (!hero.atGoal()) {\n    hero.move();\n}\n"
+  solution: "while (!hero.atGoal()) {\n    hero.move();\n    if (hero.onSoil()) {\n\
+    \        hero.plant();\n        hero.water();\n        hero.harvest();\n    }\n\
+    }\n"
+  hints:
+  - Planting on a floorboard is an error.
+  - Check hero.onSoil() after every move.
+  par_lines: 8
+  xp: 35
+  status: published
+  python_lesson_slug: null
+- slug: java-runnable
+  order: 5
+  title: The house blend
+  concept: Lambdas and Runnable
+  language: java
+  intro_markdown: "*The garden winds around the counter. The routine at every plant\
+    \ is the same, so Bean names it.*\n\nA `Runnable` holds a block of code. Write\
+    \ it with a lambda, run it with `.run()`:\n\n```java\nRunnable tend = () -> {\n\
+    \    hero.plant();\n    ...\n};\n\ntend.run();\n```\n"
+  grid:
+  - '#######'
+  - '#S~.~.#'
+  - '#####~#'
+  - '#####.#'
+  - '###B~.#'
+  - '#######'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  goal:
+    reach_goal: true
+    collect_crops: 4
+  max_steps: 500
+  mode: free
+  starter_code: "Runnable tend = () -> {\n    hero.plant();\n};\n\n"
+  solution: "Runnable tend = () -> {\n    hero.plant();\n    hero.water();\n    hero.harvest();\n\
+    };\n\nhero.move();\ntend.run();\nhero.move();\nhero.move();\ntend.run();\nhero.move();\n\
+    hero.turnRight();\nhero.move();\ntend.run();\nhero.move();\nhero.move();\nhero.turnRight();\n\
+    hero.move();\ntend.run();\nhero.move();\n"
+  hints:
+  - tend is plant, water, harvest.
+  - 'Four plants: two on the top row, one going down, one on the bottom row.'
+  - 'Remember the semicolon after the lambda''s closing brace: };'
+  par_lines: 20
+  xp: 40
+  status: published
+  python_lesson_slug: null
+- slug: java-enhanced-for
+  order: 6
+  title: The order board
+  concept: Arrays and enhanced for
+  language: java
+  intro_markdown: "*Tonight's order board lists how many beds to tend before each\
+    \ right turn: `{4, 3, 3, 1}`.*\n\nThe enhanced `for` loop walks an array:\n\n\
+    ```java\nint[] rows = {4, 3, 3, 1};\n\nfor (int n : rows) {\n    ...\n}\n```\n"
+  grid:
+  - '#######'
+  - '#S~~~~#'
+  - '#....~#'
+  - '#.B..~#'
+  - '#.~~~~#'
+  - '#######'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  - on_soil
+  goal:
+    reach_goal: true
+    collect_crops: 10
+  max_steps: 500
+  mode: free
+  starter_code: "int[] rows = {4, 3, 3, 1};\n\nfor (int n : rows) {\n    hero.turnRight();\n\
+    }\n"
+  solution: "int[] rows = {4, 3, 3, 1};\n\nfor (int n : rows) {\n    for (int i =\
+    \ 0; i < n; i++) {\n        hero.move();\n        if (hero.onSoil()) {\n     \
+    \       hero.plant();\n            hero.water();\n            hero.harvest();\n\
+    \        }\n    }\n    hero.turnRight();\n}\n"
+  hints:
+  - n is 4, then 3, 3, and 1.
+  - An inner loop moves n tiles, tending soil as it goes.
+  - The last tile is the roaster, not soil, so check hero.onSoil() first.
+  par_lines: 13
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: java-map-orders
+  order: 7
+  title: Rush hour
+  concept: Maps, null, and equals
+  language: java
+  intro_markdown: '*Rush hour. Order tickets on the floor point the way: red means
+    turn left, blue means turn right. Tend the beds on the way to the roaster.*
+
+
+    `Map.of` builds a lookup table, and `hero.readSign()` returns `"red"`, `"blue"`,
+    or `null`:
+
+
+    ```java
+
+    var turns = Map.of("red", "left", "blue", "right");
+
+    ```
+
+
+    Two Java habits: check for `null` before using a value, and compare strings with
+    `.equals()`, not `==`.
+
+    '
+  grid:
+  - '##########'
+  - '#S.~..b..#'
+  - '#........#'
+  - '#.....~..#'
+  - '#.....r~B#'
+  - '##########'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  - on_soil
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+    collect_crops: 3
+  max_steps: 500
+  mode: free
+  starter_code: "var turns = Map.of(\"red\", \"left\", \"blue\", \"right\");\n\nwhile\
+    \ (!hero.atGoal()) {\n    hero.move();\n}\n"
+  solution: "var turns = Map.of(\"red\", \"left\", \"blue\", \"right\");\n\nwhile\
+    \ (!hero.atGoal()) {\n    hero.move();\n    if (hero.onSoil()) {\n        hero.plant();\n\
+    \        hero.water();\n        hero.harvest();\n    }\n    String ticket = hero.readSign();\n\
+    \    if (ticket != null) {\n        if (turns.get(ticket).equals(\"left\")) {\n\
+    \            hero.turnLeft();\n        } else {\n            hero.turnRight();\n\
+    \        }\n    }\n}\n"
+  hints:
+  - Tend soil, then read the ticket, after every move.
+  - 'Most tiles have no ticket: check ticket != null.'
+  - turns.get(ticket).equals("left") decides the turn.
+  par_lines: 17
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: js-first-steps
+  order: 1
+  title: Insert coin
+  concept: Calling a method
+  language: javascript
+  intro_markdown: '*When the Starlight Arcade closes, a ghost named **Pixel** slips
+    out of an old cabinet to chase the high score. Pixel starts at the bottom of the
+    screen.*
+
+
+    ```js
+
+    hero.move();
+
+    ```
+
+    '
+  grid:
+  - '###'
+  - '#G#'
+  - '#.#'
+  - '#.#'
+  - '#.#'
+  - '#S#'
+  - '###'
+  start:
+    row: 5
+    col: 1
+    facing: N
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move();
+
+    '
+  solution: 'hero.move();
+
+    hero.move();
+
+    hero.move();
+
+    hero.move();
+
+    '
+  hints:
+  - Pixel already faces up.
+  - Four moves.
+  par_lines: 4
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: js-turn-corner
+  order: 2
+  title: Around the claw machine
+  concept: Sequence
+  language: javascript
+  intro_markdown: '*The claw machine is in the way, and nobody has ever won from it.
+    Pixel goes around.*
+
+
+    JavaScript methods are camelCase: `hero.turnLeft();` and `hero.turnRight();`.
+
+    '
+  grid:
+  - '#######'
+  - '###...#'
+  - '###.#.#'
+  - '#S..#G#'
+  - '#######'
+  start:
+    row: 3
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: 'hero.move();
+
+    hero.move();
+
+    '
+  solution: 'hero.move();
+
+    hero.move();
+
+    hero.turnLeft();
+
+    hero.move();
+
+    hero.move();
+
+    hero.turnRight();
+
+    hero.move();
+
+    hero.move();
+
+    hero.turnRight();
+
+    hero.move();
+
+    hero.move();
+
+    '
+  hints:
+  - East two, up two, east two, down two.
+  - Left, right, right.
+  par_lines: 11
+  xp: 20
+  status: published
+  python_lesson_slug: null
+- slug: js-loop-hall
+  order: 3
+  title: Speedrun
+  concept: for loops
+  language: javascript
+  intro_markdown: "*Twelve tiles of neon floor. Speedrunners do it in one loop.*\n\
+    \n```js\nfor (let i = 0; i < 3; i++) {\n  hero.move();\n}\n```\n"
+  grid:
+  - '###############'
+  - '#S...........G#'
+  - '###############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: guided
+  starter_code: "for (let i = 0; i < 3; i++) {\n  hero.move();\n}\n"
+  solution: "for (let i = 0; i < 12; i++) {\n  hero.move();\n}\n"
+  hints:
+  - Twelve tiles.
+  - Change i < 3 to i < 12.
+  par_lines: 3
+  xp: 25
+  status: published
+  python_lesson_slug: null
+- slug: js-short-circuit
+  order: 4
+  title: Token run
+  concept: '&& short-circuit'
+  language: javascript
+  intro_markdown: '*Tokens litter the floor between the cabinets.*
+
+
+    `a && b()` only calls `b()` when `a` is truthy. JavaScript programmers use it
+    as a tiny `if`:
+
+
+    ```js
+
+    hero.onGem() && hero.pickUp();
+
+    ```
+
+    '
+  grid:
+  - '#############'
+  - '#S.**..*.*.G#'
+  - '#############'
+  start:
+    row: 1
+    col: 1
+    facing: E
+  allowed:
+  - move
+  - pick_up
+  - on_gem
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_all_gems: true
+  max_steps: 500
+  mode: free
+  starter_code: "while (!hero.atGoal()) {\n  hero.move();\n}\n"
+  solution: "while (!hero.atGoal()) {\n  hero.move();\n  hero.onGem() && hero.pickUp();\n\
+    }\n"
+  hints:
+  - Picking up on an empty tile is an error.
+  - 'After each move: hero.onGem() && hero.pickUp();'
+  par_lines: 4
+  xp: 30
+  status: published
+  python_lesson_slug: null
+- slug: js-arrow-jump
+  order: 5
+  title: Barrel jump
+  concept: Arrow functions
+  language: javascript
+  intro_markdown: "*A retro platformer level, haunted edition. Barrels two tiles wide\
+    \ block the floor.*\n\nAn arrow function stores steps in a constant:\n\n```js\n\
+    const jump = () => {\n  hero.turnLeft();\n  // ...\n};\n\njump();\n```\n"
+  grid:
+  - '##########'
+  - '#........#'
+  - '#S##..##G#'
+  - '##########'
+  start:
+    row: 2
+    col: 1
+    facing: E
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "const jump = () => {\n  hero.turnLeft();\n  hero.move();\n};\n\n"
+  solution: "const jump = () => {\n  hero.turnLeft();\n  hero.move();\n  hero.turnRight();\n\
+    \  for (let i = 0; i < 3; i++) hero.move();\n  hero.turnRight();\n  hero.move();\n\
+    \  hero.turnLeft();\n};\n\njump();\nhero.move();\njump();\n"
+  hints:
+  - 'A jump: up, over three tiles, down, face forward.'
+  - 'The trip: jump, move, jump.'
+  par_lines: 12
+  xp: 40
+  status: published
+  python_lesson_slug: null
+- slug: js-for-of
+  order: 6
+  title: Konami route
+  concept: Arrays and for...of
+  language: javascript
+  intro_markdown: "*A secret route is written on the back of a cabinet: `[5, 3, 4,\
+    \ 1]`, turning right after each.*\n\n`for...of` gives each value in an array:\n\
+    \n```js\nconst route = [5, 3, 4, 1];\nfor (const steps of route) {\n  // ...\n\
+    }\n```\n"
+  grid:
+  - '#########'
+  - '#.......#'
+  - '#.......#'
+  - '#.....G.#'
+  - '#.......#'
+  - '#......S#'
+  - '#########'
+  start:
+    row: 5
+    col: 7
+    facing: W
+  allowed: *id001
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "const route = [5, 3, 4, 1];\n\nfor (const steps of route) {\n  hero.turnRight();\n\
+    }\n"
+  solution: "const route = [5, 3, 4, 1];\n\nfor (const steps of route) {\n  for (let\
+    \ i = 0; i < steps; i++) hero.move();\n  hero.turnRight();\n}\n"
+  hints:
+  - steps is 5, then 3, 4, 1.
+  - An inner loop moves steps times.
+  - Turn right after each one.
+  par_lines: 5
+  xp: 45
+  status: published
+  python_lesson_slug: null
+- slug: js-arrow-pads
+  order: 7
+  title: Arrow pads
+  concept: Objects of functions and ?.
+  language: javascript
+  intro_markdown: "*Glowing floor pads point the way to the high-score cabinet: red\
+    \ turns left, blue turns right.*\n\nAn object can map each color to a function:\n\
+    \n```js\nconst pads = {\n  red: () => hero.turnLeft(),\n  blue: () => hero.turnRight(),\n\
+    };\n```\n\n`hero.readSign()` returns a color or `null`. `pads[color]?.()` calls\
+    \ the function only if it exists.\n"
+  grid:
+  - '##########'
+  - '#S.......#'
+  - '#....b..G#'
+  - '#........#'
+  - '#r...r...#'
+  - '#........#'
+  - '##########'
+  start:
+    row: 1
+    col: 1
+    facing: S
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - at_goal
+  - read_sign
+  goal:
+    reach_goal: true
+  max_steps: 500
+  mode: free
+  starter_code: "const pads = {\n  red: () => hero.turnLeft(),\n  blue: () => hero.turnRight(),\n\
+    };\n\nwhile (!hero.atGoal()) {\n  hero.move();\n}\n"
+  solution: "const pads = {\n  red: () => hero.turnLeft(),\n  blue: () => hero.turnRight(),\n\
+    };\n\nwhile (!hero.atGoal()) {\n  hero.move();\n  pads[hero.readSign()]?.();\n\
+    }\n"
+  hints:
+  - Read the pad after every move.
+  - pads[hero.readSign()] finds the function for that color.
+  - ?.() skips the call on tiles with no pad.
+  par_lines: 8
+  xp: 50
+  status: published
+  python_lesson_slug: null
+- slug: farm-first-plot
+  order: 100
+  title: First plot
+  concept: Plant, water, harvest
+  intro_markdown: 'Welcome to **Ghostfarm**. Soil tiles are `~`. Plant a seed, water
+    it until it
+
+    becomes a ripe crop `c`, harvest it, then walk to the barn `B`.
+
+
+    ```python
+
+    hero.plant()
+
+    hero.water()
+
+    hero.harvest()
+
+    ```
+
+    '
+  grid:
+  - '#####'
+  - '#S~B#'
+  - '#####'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - plant
+  - water
+  - harvest
+  - on_soil
+  - crops_held
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_crops: 1
+  max_steps: 500
+  mode: farm
+  starter_code: 'hero.move()
+
+    # plant, water, harvest, then walk to the barn
+
+    '
+  solution: 'hero.move()
+
+    hero.plant()
+
+    hero.water()
+
+    hero.harvest()
+
+    hero.move()
+
+    '
+  hints:
+  - Stand on soil (~), plant, water once, harvest, then move onto B.
+  par_lines: 5
+  xp: 25
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: farm-two-rows
+  order: 101
+  title: Two tidy rows
+  concept: Loops on the farm
+  intro_markdown: 'Two soil plots need crops before you deliver to the barn. A loop
+    keeps the
+
+    planting pattern short.
+
+    '
+  grid:
+  - '########'
+  - '#S~~..B#'
+  - '########'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  - on_soil
+  - crops_held
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_crops: 2
+  max_steps: 500
+  mode: farm
+  starter_code: "for _ in range(2):\n    hero.move()\n    hero.plant()\n    hero.water()\n\
+    \    hero.harvest()\n# walk to the barn\n"
+  solution: "for _ in range(2):\n    hero.move()\n    hero.plant()\n    hero.water()\n\
+    \    hero.harvest()\nhero.move()\nhero.move()\nhero.move()\n"
+  hints:
+  - Plant both soils before walking the rest of the way to B.
+  - You need collect_crops: 2 and to stand on the barn.
+  par_lines: 10
+  xp: 30
+  status: published
+  python_lesson_slug: null
+  language: python
+- slug: farm-garden-path
+  order: 102
+  title: Garden path
+  concept: Turning while farming
+  intro_markdown: 'The plot bends around a hedge. Plant the corner soil, harvest,
+    then find the barn.
+
+    '
+  grid:
+  - '######'
+  - '#S.~.#'
+  - '###.B#'
+  - '######'
+  start:
+    col: 1
+    row: 1
+    facing: E
+  allowed:
+  - move
+  - turn_left
+  - turn_right
+  - plant
+  - water
+  - harvest
+  - on_soil
+  - crops_held
+  - at_goal
+  goal:
+    reach_goal: true
+    collect_crops: 1
+  max_steps: 500
+  mode: farm
+  starter_code: 'hero.move()
+
+    hero.move()
+
+    '
+  solution: 'hero.move()
+
+    hero.move()
+
+    hero.plant()
+
+    hero.water()
+
+    hero.harvest()
+
+    hero.move()
+
+    hero.turn_right()
+
+    hero.move()
+
+    '
+  hints:
+  - The soil is two steps east. After harvest, walk one more east, turn right, then
+    into the barn.
+  par_lines: 8
+  xp: 30
+  status: published
+  python_lesson_slug: null
+  language: python
