@@ -77,6 +77,12 @@ def _certificate_code(user_id: uuid.UUID, track_slug: str, completed_on: date) -
     return f"GL-{track_slug.upper()[:6]}-{digest}"
 
 
+def _pct(completed: int, total: int) -> int:
+    if total <= 0:
+        return 0
+    return min(100, round((completed / total) * 100))
+
+
 async def _published_exercise_ids(
     session: AsyncSession, track_id: uuid.UUID
 ) -> list[uuid.UUID]:
@@ -101,7 +107,7 @@ async def _published_exercise_ids(
 async def _module_boss_completion(
     session: AsyncSession, user_id: uuid.UUID, track_id: uuid.UUID
 ) -> dict:
-    """Certificates require every published module boss, not raw exercise counts."""
+    """Module bosses still gate mastery on each published module."""
     from app.models.module_progress import ModuleProgress
 
     modules = list(
@@ -118,9 +124,8 @@ async def _module_boss_completion(
         return {
             "total": 0,
             "completed": 0,
-            "complete": False,
+            "complete": True,
             "completed_at": None,
-            "bosses_required": True,
         }
     rows = list(
         (
@@ -146,42 +151,87 @@ async def _module_boss_completion(
         "completed": done,
         "complete": done >= total,
         "completed_at": latest,
-        "bosses_required": True,
     }
 
 
 async def _completion_for_track(
     session: AsyncSession, user_id: uuid.UUID, track_id: uuid.UUID
 ) -> dict:
-    # Prefer module-boss mastery; still surface exercise counts for progress UI.
+    """Earn when every published exercise is complete and every module boss is passed."""
     bosses = await _module_boss_completion(session, user_id, track_id)
     exercise_ids = await _published_exercise_ids(session, track_id)
     exercise_total = len(exercise_ids)
-    done_rows = list(
-        (
-            await session.execute(
-                select(ExerciseProgress.exercise_id, ExerciseProgress.completed_at)
-                .where(
-                    ExerciseProgress.user_id == user_id,
-                    ExerciseProgress.exercise_id.in_(exercise_ids),
-                    ExerciseProgress.status == "completed",
+    done_rows = (
+        list(
+            (
+                await session.execute(
+                    select(ExerciseProgress.exercise_id, ExerciseProgress.completed_at)
+                    .where(
+                        ExerciseProgress.user_id == user_id,
+                        ExerciseProgress.exercise_id.in_(exercise_ids),
+                        ExerciseProgress.status == "completed",
+                    )
                 )
-            )
-        ).all()
-    ) if exercise_ids else []
+            ).all()
+        )
+        if exercise_ids
+        else []
+    )
+    exercises_completed = len(done_rows)
+    exercises_pct = _pct(exercises_completed, exercise_total)
+    bosses_pct = _pct(bosses["completed"], bosses["total"])
+    # Overall rate weights exercises first (what learners see day to day).
+    if exercise_total > 0 and bosses["total"] > 0:
+        percent = round((exercises_pct * 0.7) + (bosses_pct * 0.3))
+    elif exercise_total > 0:
+        percent = exercises_pct
+    else:
+        percent = bosses_pct
+
+    exercise_dates = [row[1].date() for row in done_rows if row[1] is not None]
+    latest_exercise = max(exercise_dates) if exercise_dates else None
+    completed_at = bosses["completed_at"] or latest_exercise
+    if bosses["completed_at"] and latest_exercise:
+        completed_at = max(bosses["completed_at"], latest_exercise)
+
+    exercises_done = exercise_total > 0 and exercises_completed >= exercise_total
+    bosses_done = bosses["complete"]
+    complete = exercises_done and bosses_done and exercise_total > 0
+
     return {
-        "total": bosses["total"],
-        "completed": bosses["completed"],
-        "complete": bosses["complete"],
-        "completed_at": bosses["completed_at"],
-        "bosses_required": True,
+        "total": exercise_total,
+        "completed": exercises_completed,
+        "percent": percent,
         "exercises_total": exercise_total,
-        "exercises_completed": len(done_rows),
+        "exercises_completed": exercises_completed,
+        "exercises_percent": exercises_pct,
+        "bosses_total": bosses["total"],
+        "bosses_completed": bosses["completed"],
+        "bosses_percent": bosses_pct,
+        "complete": complete,
+        "completed_at": completed_at,
+        "bosses_required": bosses["total"] > 0,
     }
 
 
 def _render_body(template: str, track_name: str) -> str:
     return template.replace("{track}", track_name)
+
+
+def _progress_fields(progress: dict) -> dict:
+    return {
+        "total": progress["total"],
+        "completed": progress["completed"],
+        "percent": progress["percent"],
+        "exercises_total": progress["exercises_total"],
+        "exercises_completed": progress["exercises_completed"],
+        "exercises_percent": progress["exercises_percent"],
+        "bosses_total": progress["bosses_total"],
+        "bosses_completed": progress["bosses_completed"],
+        "bosses_percent": progress["bosses_percent"],
+        "complete": progress["complete"],
+        "bosses_required": progress["bosses_required"],
+    }
 
 
 async def list_certificates(session: AsyncSession, user: User) -> dict:
@@ -190,7 +240,7 @@ async def list_certificates(session: AsyncSession, user: User) -> dict:
     items = []
     for track in tracks:
         progress = await _completion_for_track(session, user.id, track.id)
-        earned = bool(config["enabled"] and progress["complete"] and progress["total"] > 0)
+        earned = bool(config["enabled"] and progress["complete"])
         completed_on = progress["completed_at"] or datetime.now(UTC).date()
         items.append(
             {
@@ -198,9 +248,7 @@ async def list_certificates(session: AsyncSession, user: User) -> dict:
                 "track_name": track.name,
                 "track_color": track.color,
                 "enabled": config["enabled"],
-                "total": progress["total"],
-                "completed": progress["completed"],
-                "complete": progress["complete"],
+                **_progress_fields(progress),
                 "earned": earned,
                 "watermarked": not earned,
                 "completed_at": (
@@ -244,7 +292,7 @@ async def certificate_for_track(session: AsyncSession, user: User, slug: str) ->
                 raise ContentError(403, "You do not have access to this track")
 
     progress = await _completion_for_track(session, user.id, track.id)
-    if progress["total"] == 0:
+    if progress["exercises_total"] == 0 and progress["bosses_total"] == 0:
         raise ContentError(404, "This track has no published lessons yet")
 
     earned = bool(progress["complete"])
@@ -255,9 +303,7 @@ async def certificate_for_track(session: AsyncSession, user: User, slug: str) ->
         "track_name": track.name,
         "track_color": track.color,
         "learner_name": _learner_name(user),
-        "total": progress["total"],
-        "completed": progress["completed"],
-        "complete": progress["complete"],
+        **_progress_fields(progress),
         "earned": earned,
         "watermarked": not earned,
         "completed_at": progress["completed_at"].isoformat() if progress["completed_at"] else None,

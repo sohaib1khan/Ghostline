@@ -6,6 +6,25 @@ import {
   GhostlineMark,
 } from "../../components/certificates/CertificateDocument.jsx";
 
+function ProgressMeter({ label, completed, total, percent }) {
+  const safeTotal = total || 0;
+  const safeDone = completed || 0;
+  const pct = percent ?? (safeTotal ? Math.round((safeDone / safeTotal) * 100) : 0);
+  return (
+    <div className="cert-meter">
+      <div className="cert-meter-row">
+        <span>{label}</span>
+        <span className="font-mono">
+          {safeDone}/{safeTotal || "—"} · {pct}%
+        </span>
+      </div>
+      <div className="home-progress" aria-hidden>
+        <div className="home-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function CertificateCard({ cert }) {
   function printCert() {
     window.print();
@@ -20,10 +39,29 @@ function CertificateCard({ cert }) {
             Print / save PDF
           </button>
         ) : (
-          <p className="text-sm text-muted">
-            Pass every module boss on this path to remove the watermark and unlock your
-            certificate ID.
-          </p>
+          <div className="cert-unlock-panel">
+            <p className="text-base font-medium text-text">
+              Overall completion {cert.percent ?? 0}% — finish the path to unlock your ID
+            </p>
+            <ProgressMeter
+              label="Exercises"
+              completed={cert.exercises_completed ?? cert.completed}
+              total={cert.exercises_total ?? cert.total}
+              percent={cert.exercises_percent}
+            />
+            {(cert.bosses_total ?? 0) > 0 ? (
+              <ProgressMeter
+                label="Module bosses"
+                completed={cert.bosses_completed}
+                total={cert.bosses_total}
+                percent={cert.bosses_percent}
+              />
+            ) : null}
+            <p className="mt-2 text-sm text-muted">
+              Earn the official award when every published exercise is complete
+              {(cert.bosses_total ?? 0) > 0 ? " and every module boss is passed" : ""}.
+            </p>
+          </div>
         )}
         <Link to={`/learn/tracks/${cert.track_slug}`} className="btn-secondary">
           Back to {cert.track_name}
@@ -122,9 +160,13 @@ export default function CertificatesPage() {
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)] sm:p-8">
       <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">Recognition</p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">Certificates</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
-        Certificates use your profile name ({data.learner_name}). Preview is watermarked; the
-        official award unlocks when every published exercise on a path is done.
+      <p className="mt-2 max-w-2xl text-base text-muted">
+        Certificates use your profile name ({data.learner_name}). Progress tracks your completion
+        rate — finish every published exercise
+        {data.certificates?.some((item) => (item.bosses_total || 0) > 0)
+          ? " and pass each module boss"
+          : ""}{" "}
+        to remove the watermark and unlock your ID.
       </p>
       {!data.enabled ? (
         <p className="mt-6 text-sm text-muted">Certificates are turned off on this server.</p>
@@ -141,11 +183,25 @@ export default function CertificatesPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-text">{item.track_name}</p>
-                <p className="mt-1 text-sm text-muted">
-                  {item.earned
-                    ? `Official award · ID ${item.code}`
-                    : `${item.completed}/${item.total} module bosses · watermarked preview`}
-                </p>
+                {item.earned ? (
+                  <p className="mt-1 text-sm text-muted">Official award · ID {item.code}</p>
+                ) : (
+                  <div className="mt-2 flex flex-col gap-2">
+                    <ProgressMeter
+                      label="Path completion"
+                      completed={item.exercises_completed ?? item.completed}
+                      total={item.exercises_total ?? item.total}
+                      percent={item.percent}
+                    />
+                    <p className="text-sm text-muted">
+                      Exercises {item.exercises_completed ?? 0}/
+                      {item.exercises_total ?? item.total ?? 0}
+                      {(item.bosses_total || 0) > 0
+                        ? ` · Bosses ${item.bosses_completed || 0}/${item.bosses_total}`
+                        : ""}
+                    </p>
+                  </div>
+                )}
               </div>
               <Link
                 to={`/certificates/${item.track_slug}`}

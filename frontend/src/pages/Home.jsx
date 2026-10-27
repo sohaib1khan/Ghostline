@@ -163,8 +163,8 @@ export default function HomePage() {
             Type the line until your hands know it.
           </h1>
           <p className="landing-lead">
-            A calm learning path for Bash, Python, Go, JavaScript, SQL, C#, and Java — beginner basics,
-            intermediate practice, then advanced projects you type end to end.
+            A calm, typing-first path for Bash, Python, Go, JavaScript, SQL, C#, and Java — then
+            Ghostwalk mazes, games, and a certificate when your completion rate hits the finish.
           </p>
           <p className="landing-sample" aria-hidden="true">
             <span className="landing-sample-prompt">$</span>
@@ -176,18 +176,12 @@ export default function HomePage() {
             <Link to="/demo" className="btn-primary">
               Try a free lesson
             </Link>
-            <a
-              href="https://github.com/sohaib1khan/Ghostline"
-              className="btn-secondary"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View on GitHub
-            </a>
+            <Link to="/signup" className="btn-secondary">
+              Create an account
+            </Link>
           </div>
           <p className="landing-cta-note">
-            No account needed for the demo. Sign in from the nav when you want streaks and saved
-            progress.
+            Demo needs no account. Sign in later for streaks, Ghostwalk, playground, and certificates.
           </p>
         </section>
 
@@ -196,8 +190,8 @@ export default function HomePage() {
             How the path works
           </h2>
           <p className="landing-section-lead">
-            Lessons are short on purpose. You type real commands and code; the server checks what
-            you typed — it does not run your code on the server.
+            Short lessons on purpose. You type real commands; the server checks the answer string —
+            it never runs your code.
           </p>
           <ol className="landing-steps">
             <li>
@@ -205,7 +199,7 @@ export default function HomePage() {
               <div>
                 <p className="landing-step-title">Beginner</p>
                 <p className="landing-step-body">
-                  One-liners and core syntax until the shape of each command feels familiar.
+                  One-liners until the shape of each command feels familiar.
                 </p>
               </div>
             </li>
@@ -214,8 +208,7 @@ export default function HomePage() {
               <div>
                 <p className="landing-step-title">Intermediate</p>
                 <p className="landing-step-body">
-                  Longer guided scripts with progressive hints — daily practice that builds on the
-                  basics.
+                  Guided scripts with hints — daily practice that builds on the basics.
                 </p>
               </div>
             </li>
@@ -224,7 +217,7 @@ export default function HomePage() {
               <div>
                 <p className="landing-step-title">Advanced</p>
                 <p className="landing-step-body">
-                  Mini-projects you type end to end so the pieces finally sit together.
+                  Mini-projects typed end to end, then a certificate when the path is complete.
                 </p>
               </div>
             </li>
@@ -237,70 +230,39 @@ export default function HomePage() {
           </h2>
           <ul className="landing-modes">
             <li>
-              <p className="landing-mode-title">Trace</p>
+              <p className="landing-mode-title">Trace &amp; recall</p>
               <p className="landing-mode-body">
-                Type over a guided line until the keystrokes stick in your fingers.
+                Type over a guided line, then write it from memory when you are ready.
               </p>
             </li>
             <li>
-              <p className="landing-mode-title">Fill &amp; recall</p>
+              <p className="landing-mode-title">Ghostwalk</p>
               <p className="landing-mode-body">
-                Complete blanks, then write the line from memory when you are ready.
+                Guide a ghost through Python mazes in the browser — loops, functions, and more.
               </p>
             </li>
             <li>
               <p className="landing-mode-title">Games</p>
               <p className="landing-mode-body">
-                Short drills reuse the same published lines — hangman, output prediction, and more.
-              </p>
-            </li>
-            <li>
-              <p className="landing-mode-title">Playground</p>
-              <p className="landing-mode-body">
-                After you sign in, try ideas in a throwaway box that resets on its own.
+                Short drills reuse published lines — hangman, output prediction, and speed rounds.
               </p>
             </li>
             <li>
               <p className="landing-mode-title">Certificates</p>
               <p className="landing-mode-body">
-                Finish a path and earn a printable certificate with your profile name on it.
+                Track your completion rate. Finish every exercise and module boss to unlock a
+                printable award with your name.
               </p>
             </li>
           </ul>
         </section>
 
-        <section className="landing-section" aria-labelledby="landing-certificate">
-          <h2 id="landing-certificate" className="landing-section-title">
-            Finish a path. Earn the certificate.
-          </h2>
-          <p className="landing-section-lead">
-            After you sign in, your real name appears on the award. Guests can peek at a sample
-            below — the watermark reminds you it is a demo until the path is complete.
-          </p>
-          <div className="landing-certificate-demo mt-5">
-            <CertificateDocument
-              cert={DEMO_CERTIFICATE}
-              forceWatermark
-              watermarkLabel="Demo"
-              watermarkHint="Sign in · finish a path · unlock yours"
-            />
-          </div>
-          <div className="landing-cta mt-5">
-            <Link to="/demo" className="btn-primary">
-              Try a free lesson
-            </Link>
-            <Link to="/signup" className="btn-secondary">
-              Sign up to earn yours
-            </Link>
-          </div>
-        </section>
-
-        <section className="landing-section" aria-labelledby="landing-langs">
+        <section className="landing-section landing-section-langs" aria-labelledby="landing-langs">
           <h2 id="landing-langs" className="landing-section-title">
             Languages on the path
           </h2>
           <p className="landing-section-lead">
-            Pick a track in the free demo, or unlock the full ladder when you create an account.
+            Start in the free demo, or unlock the full ladder when you create an account.
           </p>
           <ul className="landing-langs">
             {[
@@ -321,6 +283,36 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        <section className="landing-section" aria-labelledby="landing-certificate">
+          <div className="landing-cert-layout">
+            <div>
+              <h2 id="landing-certificate" className="landing-section-title">
+                Finish a path. Earn the certificate.
+              </h2>
+              <p className="landing-section-lead">
+                Progress is visible as you go. When your completion rate hits 100% — every exercise
+                and every module boss — the watermark drops and your profile name is on the award.
+              </p>
+              <div className="landing-cta">
+                <Link to="/demo" className="btn-primary">
+                  Try a free lesson
+                </Link>
+                <Link to="/signup" className="btn-secondary">
+                  Sign up to earn yours
+                </Link>
+              </div>
+            </div>
+            <div className="landing-certificate-demo">
+              <CertificateDocument
+                cert={DEMO_CERTIFICATE}
+                forceWatermark
+                watermarkLabel="Demo"
+                watermarkHint="Sign in · finish a path · unlock yours"
+              />
+            </div>
+          </div>
         </section>
 
         <footer className="landing-foot">

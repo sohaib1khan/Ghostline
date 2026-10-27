@@ -84,7 +84,7 @@ Ten seeded levels live in `backend/app/seed/ghostwalk/levels.yaml` and load when
 
 - Shared engine: `backend/app/ghostwalk/world.py` (also served at `GET /api/ghostwalk/world.py` and copied to `frontend/public/ghostwalk/world.py`).
 - Submit path: browser returns an action list → `POST /api/ghostwalk/levels/{slug}/submit` → server `replay()` must agree; stars from line count vs `par_lines`.
-- Add or edit levels in Studio → Ghostwalk (grid preview, Test solution, Publish). Export YAML from the same page.
+- Add or edit levels in Studio → Ghostwalk (grid preview, Test solution, Publish). Export / upload YAML on the same page (matching slugs update; new slugs create).
 
 ## Playground
 

@@ -42,15 +42,18 @@ export default function DemoPage() {
   return (
     <div className="landing">
       <section className="landing-hero landing-hero-compact" aria-labelledby="demo-title">
-        <p className="landing-kicker">Free demo</p>
+        <p className="landing-kicker">Ghostline · Free demo</p>
         <h1 id="demo-title" className="landing-title">
           Feel the keystrokes before you sign up.
         </h1>
         <p className="landing-lead">
           Short published teasers — no account, no save. Sign in later for streaks, full tracks,
-          games, playground, and a certificate with your name when a path is complete.
+          Ghostwalk, games, and a certificate that tracks your completion rate.
         </p>
         <div className="landing-cta">
+          <Link to="/signup" className="btn-primary">
+            Create an account
+          </Link>
           <a
             href="https://github.com/sohaib1khan/Ghostline"
             className="btn-secondary"
@@ -59,9 +62,6 @@ export default function DemoPage() {
           >
             View on GitHub
           </a>
-          <Link to="/signup" className="btn-ghost">
-            Sign up for certificates
-          </Link>
         </div>
       </section>
 
@@ -71,12 +71,12 @@ export default function DemoPage() {
         </h2>
         <p className="landing-section-lead">
           Choose a track, then open a lesson. Trace over the guide, use hints if you stall, and
-          check your answer when you are ready.
+          check when you are ready.
         </p>
-        {error ? <p className="mt-4 text-sm text-error">{error}</p> : null}
-        {catalog === null && !error ? <p className="mt-4 text-sm text-muted">Loading…</p> : null}
+        {error ? <p className="mt-4 text-base text-error">{error}</p> : null}
+        {catalog === null && !error ? <p className="mt-4 text-base text-muted">Loading…</p> : null}
         {catalog && catalog.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No demo lessons are published yet.</p>
+          <p className="mt-4 text-base text-muted">No demo lessons are published yet.</p>
         ) : null}
         {catalog && catalog.length > 0 ? (
           <>
@@ -97,11 +97,11 @@ export default function DemoPage() {
             </div>
             {selected ? (
               <div className="mt-6">
-                <p className="flex flex-wrap items-center gap-2 font-medium text-text">
+                <p className="flex flex-wrap items-center gap-2 text-lg font-semibold text-text">
                   <TrackLogo slug={selected.slug} size="sm" title={selected.name} />
                   {selected.name}
                 </p>
-                <p className="mt-1 text-sm text-muted">{selected.description}</p>
+                <p className="mt-1 text-base text-muted">{selected.description}</p>
                 <ul className="landing-demo-lessons">
                   {selected.lessons.map((lesson) => (
                     <li key={lesson.id}>
@@ -124,29 +124,34 @@ export default function DemoPage() {
       </section>
 
       <section className="landing-section" aria-labelledby="demo-certificate">
-        <h2 id="demo-certificate" className="landing-section-title">
-          What a certificate looks like
-        </h2>
-        <p className="landing-section-lead">
-          This sample uses a demo name. After you create an account and finish{" "}
-          {selected?.name || "a track"}, your profile name and a real certificate ID appear here —
-          print or save as PDF.
-        </p>
-        <div className="landing-certificate-demo mt-5">
-          <CertificateDocument
-            cert={demoCert}
-            forceWatermark
-            watermarkLabel="Demo"
-            watermarkHint="Not an official award"
-          />
-        </div>
-        <div className="landing-cta mt-5">
-          <Link to="/signup" className="btn-primary">
-            Sign up to earn yours
-          </Link>
-          <Link to="/login" className="btn-secondary">
-            Log in
-          </Link>
+        <div className="landing-cert-layout">
+          <div>
+            <h2 id="demo-certificate" className="landing-section-title">
+              What a certificate looks like
+            </h2>
+            <p className="landing-section-lead">
+              This sample uses a demo name. After you create an account and finish{" "}
+              {selected?.name || "a track"} (100% exercises
+              {selected ? " + module bosses" : ""}), your profile name and certificate ID unlock —
+              print or save as PDF.
+            </p>
+            <div className="landing-cta">
+              <Link to="/signup" className="btn-primary">
+                Sign up to earn yours
+              </Link>
+              <Link to="/login" className="btn-secondary">
+                Log in
+              </Link>
+            </div>
+          </div>
+          <div className="landing-certificate-demo">
+            <CertificateDocument
+              cert={demoCert}
+              forceWatermark
+              watermarkLabel="Demo"
+              watermarkHint="Not an official award"
+            />
+          </div>
         </div>
       </section>
 

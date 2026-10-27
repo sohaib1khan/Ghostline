@@ -131,6 +131,13 @@ export default function GhostwalkAdminPage() {
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [documentText, setDocumentText] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [dryRun, setDryRun] = useState(true);
+  const [publishOnImport, setPublishOnImport] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadNotice, setUploadNotice] = useState("");
 
   async function load() {
     const data = await api("/api/admin/ghostwalk/levels");
@@ -238,6 +245,71 @@ export default function GhostwalkAdminPage() {
     URL.revokeObjectURL(url);
   }
 
+  function readImportFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setDocumentText(String(reader.result || ""));
+      setUploadError("");
+      setUploadNotice("");
+    };
+    reader.onerror = () => setUploadError("Could not read that file.");
+    reader.readAsText(file);
+  }
+
+  async function importDocument(event) {
+    event.preventDefault();
+    if (!documentText.trim()) {
+      setUploadError("Choose a YAML file or paste a level document first.");
+      return;
+    }
+    setUploading(true);
+    setUploadError("");
+    setUploadNotice("");
+    try {
+      const result = await api("/api/admin/ghostwalk/import", {
+        method: "POST",
+        body: {
+          document: documentText,
+          dry_run: dryRun,
+          publish: publishOnImport,
+        },
+      });
+      const label = fileName || "pasted YAML";
+      if (result.dry_run) {
+        const bad = (result.preview || []).filter((item) => !item.ok);
+        if (bad.length) {
+          setUploadError(
+            `Check found ${bad.length} problem(s) in ${label}: ${bad
+              .map((item) => `${item.slug || "?"}: ${(item.errors || []).join("; ")}`)
+              .join(" · ")}`,
+          );
+        } else {
+          const creates = (result.preview || []).filter((item) => item.action === "create").length;
+          const updates = (result.preview || []).filter((item) => item.action === "update").length;
+          setUploadNotice(
+            `Check passed for ${label}: would create ${creates} and update ${updates}. Nothing was saved. Uncheck “Check without saving” and click Save upload to apply.`,
+          );
+        }
+      } else {
+        setUploadNotice(
+          `Saved ${label}: created ${result.created || 0}, updated ${result.updated || 0}` +
+            (result.skipped ? `, skipped ${result.skipped}` : "") +
+            (publishOnImport ? " (published)." : "."),
+        );
+        await load();
+      }
+    } catch (err) {
+      setUploadError(err.message || "Import failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function move(levelId, direction) {
     const order = [...levels].sort((a, b) => a.order - b.order);
     const index = order.findIndex((item) => item.id === levelId);
@@ -260,6 +332,7 @@ export default function GhostwalkAdminPage() {
   }
 
   return (
+    <div className="flex flex-col gap-6">
     <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -502,5 +575,71 @@ export default function GhostwalkAdminPage() {
         </form>
       </div>
     </section>
+
+    <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">
+      <h2 className="text-lg font-semibold tracking-tight">Upload levels</h2>
+      <p className="mt-2 max-w-2xl text-sm text-muted">
+        Export YAML above, edit or add levels, then upload here. Matching slugs are updated; new
+        slugs are created. Same shape as the seed file: a <code className="text-text">levels:</code>{" "}
+        list, or one level object with a slug.
+      </p>
+      <form onSubmit={importDocument} className="mt-6 flex max-w-2xl flex-col gap-4">
+        <label className="text-sm">
+          File
+          <input
+            type="file"
+            accept=".yaml,.yml,.json,text/yaml,application/json"
+            className="mt-1 block w-full text-sm"
+            aria-label="Ghostwalk level file"
+            onChange={readImportFile}
+          />
+        </label>
+        {fileName ? <p className="text-sm text-muted">{fileName}</p> : null}
+        <label className="text-sm">
+          Or paste YAML
+          <textarea
+            className="mt-1 min-h-32 w-full rounded-xl border border-muted/30 bg-bg px-3 py-2 font-mono text-sm"
+            value={documentText}
+            onChange={(event) => setDocumentText(event.target.value)}
+            aria-label="Import Ghostwalk document"
+            placeholder={"levels:\n  - slug: my-level\n    title: My level\n    grid:\n      - \"###\"\n      - \"#SG\"\n      - \"###\"\n    start: {row: 1, col: 1, facing: E}\n    allowed: [move]\n    goal: {reach_goal: true}\n    par_lines: 2\n    mode: free\n    status: draft"}
+          />
+        </label>
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={dryRun}
+            onChange={(event) => setDryRun(event.target.checked)}
+          />
+          Check without saving
+        </label>
+        <label className="flex min-h-11 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={publishOnImport}
+            onChange={(event) => setPublishOnImport(event.target.checked)}
+          />
+          Publish on import (learners can play right away)
+        </label>
+        {uploadError ? (
+          <p className="text-sm text-error" role="alert">
+            {uploadError}
+          </p>
+        ) : null}
+        {uploadNotice ? (
+          <p className="text-sm text-success" role="status">
+            {uploadNotice}
+          </p>
+        ) : null}
+        <button
+          type="submit"
+          className="w-fit min-h-11 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
+          disabled={uploading}
+        >
+          {uploading ? "Working…" : dryRun ? "Check file" : "Save upload"}
+        </button>
+      </form>
+    </section>
+    </div>
   );
 }

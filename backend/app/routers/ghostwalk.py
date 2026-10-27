@@ -201,34 +201,41 @@ async def admin_export(
     return Response(content=body, media_type="application/x-yaml")
 
 
+class ImportIn(BaseModel):
+    """YAML/JSON text in `document`, or a parsed `levels` list / single level fields."""
+
+    document: str | None = Field(default=None, max_length=500_000)
+    levels: list | None = None
+    dry_run: bool = True
+    publish: bool = False
+
+
 @admin_router.post("/import")
 async def admin_import(
-    payload: dict,
-    dry_run: bool = Query(default=True),
+    payload: ImportIn,
+    dry_run: bool | None = Query(default=None),
     _: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    levels = payload.get("levels") if isinstance(payload, dict) else None
-    if not isinstance(levels, list):
-        raise HTTPException(status_code=400, detail="Expected {levels: [...]}")
-    preview = []
-    for item in levels:
-        if not isinstance(item, dict):
-            continue
-        from app.services.ghostwalk import validate_level_payload
+    from app.services.ghostwalk import admin_import_levels
 
-        errors = validate_level_payload(item)
-        preview.append({"slug": item.get("slug"), "errors": errors, "ok": not errors})
-    if dry_run:
-        return {"dry_run": True, "preview": preview}
-    created = 0
-    for item in levels:
-        if not isinstance(item, dict):
-            continue
-        from app.services.ghostwalk import validate_level_payload
-
-        if validate_level_payload(item):
-            continue
-        await admin_upsert_level(db, item)
-        created += 1
-    return {"dry_run": False, "imported": created, "preview": preview}
+    check_only = payload.dry_run if dry_run is None else dry_run
+    if payload.document and payload.document.strip():
+        source: str | dict = payload.document
+    elif payload.levels is not None:
+        source = {"levels": payload.levels}
+    else:
+        # Allow posting a bare level object fields via extra keys — prefer document.
+        raise HTTPException(
+            status_code=400,
+            detail="Send {document: '<yaml>'} or {levels: [...]}",
+        )
+    try:
+        return await admin_import_levels(
+            db,
+            document=source,
+            dry_run=check_only,
+            publish=payload.publish,
+        )
+    except ContentError as exc:
+        _raise(exc)

@@ -420,7 +420,11 @@ def _admin_level(level: GhostwalkLevel) -> dict:
 
 
 async def admin_upsert_level(
-    session: AsyncSession, payload: dict, *, level_id: uuid.UUID | None = None
+    session: AsyncSession,
+    payload: dict,
+    *,
+    level_id: uuid.UUID | None = None,
+    match_slug: bool = False,
 ) -> dict:
     errors = validate_level_payload(payload)
     if errors:
@@ -428,14 +432,18 @@ async def admin_upsert_level(
     slug = str(payload.get("slug") or "").strip()
     if not slug:
         raise ContentError(400, "slug is required")
+    level: GhostwalkLevel | None = None
     if level_id:
         level = await session.get(GhostwalkLevel, level_id)
         if level is None:
             raise ContentError(404, "Level not found")
+    elif match_slug:
+        level = await session.scalar(select(GhostwalkLevel).where(GhostwalkLevel.slug == slug))
     else:
         clash = await session.scalar(select(GhostwalkLevel).where(GhostwalkLevel.slug == slug))
         if clash:
             raise ContentError(409, "That slug is already used")
+    if level is None:
         level = GhostwalkLevel(
             slug=slug,
             position=0,
@@ -468,6 +476,100 @@ async def admin_upsert_level(
     await session.commit()
     await session.refresh(level)
     return _admin_level(level)
+
+
+def parse_import_document(raw: str | dict) -> list[dict]:
+    """Accept YAML/JSON text or a dict with levels / a single level."""
+    if isinstance(raw, dict):
+        loaded = raw
+    else:
+        text = str(raw or "").strip()
+        if not text:
+            raise ContentError(400, "Import document is empty.")
+        try:
+            loaded = yaml.safe_load(text)
+        except yaml.YAMLError as exc:
+            raise ContentError(400, f"Invalid YAML: {exc}") from exc
+    if loaded is None:
+        raise ContentError(400, "Import document is empty.")
+    if isinstance(loaded, list):
+        rows = loaded
+    elif isinstance(loaded, dict):
+        if isinstance(loaded.get("levels"), list):
+            rows = loaded["levels"]
+        elif loaded.get("slug"):
+            rows = [loaded]
+        else:
+            raise ContentError(400, "Expected a levels list or a single level with a slug.")
+    else:
+        raise ContentError(400, "Expected YAML/JSON object or list.")
+    out = [item for item in rows if isinstance(item, dict)]
+    if not out:
+        raise ContentError(400, "No level objects found in the file.")
+    return out
+
+
+async def admin_import_levels(
+    session: AsyncSession,
+    *,
+    document: str | dict,
+    dry_run: bool = True,
+    publish: bool = False,
+) -> dict:
+    rows = parse_import_document(document)
+    preview: list[dict] = []
+    for item in rows:
+        errors = validate_level_payload(item)
+        slug = str(item.get("slug") or "").strip()
+        existing = None
+        if slug:
+            existing = await session.scalar(
+                select(GhostwalkLevel).where(GhostwalkLevel.slug == slug)
+            )
+        preview.append(
+            {
+                "slug": slug or None,
+                "title": item.get("title"),
+                "ok": not errors,
+                "errors": errors,
+                "action": "update" if existing else "create",
+            }
+        )
+    if dry_run:
+        return {
+            "dry_run": True,
+            "count": len(preview),
+            "ok_count": sum(1 for item in preview if item["ok"]),
+            "preview": preview,
+        }
+
+    created = 0
+    updated = 0
+    skipped = 0
+    for item, row in zip(rows, preview, strict=True):
+        if not row["ok"]:
+            skipped += 1
+            continue
+        payload = dict(item)
+        if publish:
+            payload["status"] = "published"
+        slug = str(payload.get("slug") or "").strip()
+        before = await session.scalar(
+            select(GhostwalkLevel).where(GhostwalkLevel.slug == slug)
+        )
+        await admin_upsert_level(session, payload, match_slug=True)
+        if before:
+            updated += 1
+        else:
+            created += 1
+    return {
+        "dry_run": False,
+        "count": len(preview),
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "preview": preview,
+    }
 
 
 async def admin_reorder(session: AsyncSession, ordered_ids: list[uuid.UUID]) -> list[dict]:
