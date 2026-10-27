@@ -16,6 +16,15 @@ const SPEEDS = [
   { id: "instant", label: "Instant", ms: 0 },
 ];
 
+function viewButtonClass(active) {
+  return [
+    "min-h-12 rounded-xl border-2 px-4 text-base font-medium",
+    active
+      ? "border-accent bg-accent text-on-accent"
+      : "border-[color-mix(in_srgb,var(--text)_35%,transparent)] bg-surface text-text",
+  ].join(" ");
+}
+
 export default function GhostwalkPlayPage() {
   const { slug } = useParams();
   const [search] = useSearchParams();
@@ -28,8 +37,9 @@ export default function GhostwalkPlayPage() {
   const [draft, setDraft] = useState("");
   const [hintsShown, setHintsShown] = useState(0);
   const [introOpen, setIntroOpen] = useState(true);
-  const [topDown, setTopDown] = useState(false);
-  const [speedId, setSpeedId] = useState(reduce ? "instant" : "normal");
+  // Top-down is easier to read when zoomed; keep as default for comfort.
+  const [topDown, setTopDown] = useState(true);
+  const [speedId, setSpeedId] = useState(reduce ? "instant" : "slow");
   const [running, setRunning] = useState(false);
   const [loadingEngine, setLoadingEngine] = useState(false);
   const [trace, setTrace] = useState([]);
@@ -41,7 +51,7 @@ export default function GhostwalkPlayPage() {
   const [result, setResult] = useState(null);
   const [actions, setActions] = useState([]);
 
-  const speed = SPEEDS.find((item) => item.id === speedId) || SPEEDS[1];
+  const speed = SPEEDS.find((item) => item.id === speedId) || SPEEDS[0];
 
   useEffect(() => {
     let cancelled = false;
@@ -114,7 +124,7 @@ export default function GhostwalkPlayPage() {
       setActions(outcome.actions || []);
       const frames = outcome.trace || [];
       setTrace(frames);
-      setTraceIndex(stepOnly ? 0 : 0);
+      setTraceIndex(0);
       if (!frames.length && outcome.error) {
         setMessage(outcome.error);
       }
@@ -187,10 +197,10 @@ export default function GhostwalkPlayPage() {
 
   if (error) {
     return (
-      <section className="rounded-2xl bg-surface p-6">
-        <h1 className="text-2xl font-semibold">Ghostwalk</h1>
-        <p className="mt-3 text-error">{error}</p>
-        <Link to="/ghostwalk" className="mt-4 inline-flex text-accent">
+      <section className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_25%,transparent)] bg-surface p-6">
+        <h1 className="text-3xl font-semibold">Ghostwalk</h1>
+        <p className="mt-3 text-lg text-error">{error}</p>
+        <Link to="/ghostwalk" className="mt-4 inline-flex min-h-12 items-center text-base text-accent">
           Back to map
         </Link>
       </section>
@@ -198,47 +208,43 @@ export default function GhostwalkPlayPage() {
   }
 
   if (!level) {
-    return <p className="text-sm text-muted">Loading level…</p>;
+    return <p className="text-base text-muted">Loading level…</p>;
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="ghostwalk-world min-h-[240px] h-[min(55vh,28rem)]">
-        <Suspense fallback={<p className="p-4 text-sm text-muted">Loading 3D world…</p>}>
+    <section className="ghostwalk-play flex flex-col gap-5">
+      <div className="ghostwalk-world min-h-[18rem] h-[min(48vh,26rem)] sm:h-[min(52vh,32rem)]">
+        <Suspense fallback={<p className="p-4 text-base text-muted">Loading world…</p>}>
           <GhostwalkScene grid={grid} hero={hero} topDown={topDown} reduceMotion={reduce} />
         </Suspense>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3" role="group" aria-label="World view controls">
         <button
           type="button"
-          className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+          className={viewButtonClass(!topDown)}
           onClick={() => setTopDown(false)}
           aria-pressed={!topDown}
         >
-          3D
+          3D view
         </button>
         <button
           type="button"
-          className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+          className={viewButtonClass(topDown)}
           onClick={() => setTopDown(true)}
           aria-pressed={topDown}
         >
           Top-down
         </button>
-        <button
-          type="button"
-          className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
-          onClick={resetWorld}
-        >
+        <button type="button" className={viewButtonClass(false)} onClick={resetWorld}>
           Reset view
         </button>
-        <label className="ml-auto flex min-h-11 items-center gap-2 text-sm text-muted">
+        <label className="ml-auto flex min-h-12 items-center gap-3 text-base text-text">
           Speed
           <select
             value={speedId}
             onChange={(event) => setSpeedId(event.target.value)}
-            className="rounded-xl border border-muted/30 bg-bg px-2 py-2 text-text"
+            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] bg-bg px-3 text-base text-text"
           >
             {SPEEDS.map((item) => (
               <option key={item.id} value={item.id}>
@@ -249,31 +255,36 @@ export default function GhostwalkPlayPage() {
         </label>
       </div>
 
-      <div className="rounded-2xl bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
-        <p className="font-mono text-[11px] uppercase tracking-wider text-accent">
+      <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
+        <p className="font-mono text-sm uppercase tracking-wider text-accent">
           Level {level.order} · {level.concept}
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{level.title}</h1>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{level.title}</h1>
 
-        <div className="mt-3 rounded-xl border border-muted/20 p-3">
+        <div className="mt-4 rounded-xl border-2 border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-bg/60 p-4">
           <button
             type="button"
-            className="min-h-11 text-sm font-medium text-accent"
+            className="min-h-12 text-base font-semibold text-accent"
             onClick={() => setIntroOpen((value) => !value)}
             aria-expanded={introOpen}
           >
             {introOpen ? "Hide intro" : "Show intro"}
           </button>
           {introOpen ? (
-            <div className="mt-2 text-sm">
+            <div className="ghostwalk-intro mt-3 text-base leading-relaxed">
               <MarkdownView text={level.intro_markdown || ""} />
-              <p className="mt-2 text-muted">Unlocked commands: {unlockedCmds || "none"}</p>
+              <p className="mt-3 font-medium text-text">
+                Unlocked commands:{" "}
+                <span className="font-mono text-accent">{unlockedCmds || "none"}</span>
+              </p>
             </div>
           ) : null}
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)]">
-          <div>
+        {/* Stack on narrow / zoomed viewports; side-by-side only when roomy */}
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(16rem,22rem)]">
+          <div className="min-w-0">
+            <h2 className="mb-2 text-lg font-semibold">Your code</h2>
             <GhostEditor
               key={`${slug}-${memory ? "m" : "n"}`}
               value={draft}
@@ -283,29 +294,32 @@ export default function GhostwalkPlayPage() {
               disabled={running}
             />
           </div>
-          <div>
-            <h2 className="text-sm font-medium">Moves</h2>
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold">Moves</h2>
             <ul
-              className="mt-2 max-h-64 overflow-auto rounded-xl border border-muted/20 bg-bg p-2 text-sm"
+              className="mt-2 max-h-[min(28rem,50vh)] overflow-auto rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_28%,transparent)] bg-bg p-3 text-base leading-snug"
               aria-live="polite"
             >
               {moves.length ? (
                 moves.map((item, index) => (
-                  <li key={`${index}-${item}`} className="py-1 text-muted">
-                    {index + 1}. {item}
+                  <li
+                    key={`${index}-${item}`}
+                    className="border-b border-[color-mix(in_srgb,var(--text)_12%,transparent)] py-2 text-text last:border-0"
+                  >
+                    <span className="font-mono font-semibold text-accent">{index + 1}.</span> {item}
                   </li>
                 ))
               ) : (
-                <li className="text-muted">Run your code to see each move here.</li>
+                <li className="py-2 text-text">Run your code to see each move here.</li>
               )}
             </ul>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-3">
           <button
             type="button"
-            className="min-h-11 rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-50"
+            className="min-h-12 rounded-xl bg-accent px-5 text-base font-semibold text-on-accent disabled:opacity-50"
             disabled={running}
             onClick={() => runCode()}
           >
@@ -313,7 +327,7 @@ export default function GhostwalkPlayPage() {
           </button>
           <button
             type="button"
-            className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm disabled:opacity-50"
+            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-5 text-base font-medium disabled:opacity-50"
             disabled={running}
             onClick={() => runCode({ stepOnly: true })}
           >
@@ -321,7 +335,7 @@ export default function GhostwalkPlayPage() {
           </button>
           <button
             type="button"
-            className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm"
+            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-5 text-base font-medium"
             onClick={resetWorld}
           >
             Reset
@@ -329,22 +343,25 @@ export default function GhostwalkPlayPage() {
           {level.hints?.length ? (
             <button
               type="button"
-              className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm text-accent"
+              className="min-h-12 rounded-xl border-2 border-accent px-5 text-base font-medium text-accent"
               onClick={() => setHintsShown((count) => Math.min(count + 1, level.hints.length))}
               disabled={hintsShown >= level.hints.length}
             >
               Hint ({hintsShown}/{level.hints.length})
             </button>
           ) : null}
-          <p className="ml-auto self-center font-mono text-sm text-muted" aria-label="Par lines">
-            ★★☆ par {level.par_lines}
+          <p className="ml-auto self-center font-mono text-base text-text" aria-label="Par lines">
+            Par {level.par_lines} lines
           </p>
         </div>
 
         {hintsShown > 0 ? (
-          <ul className="mt-3 flex flex-col gap-1">
+          <ul className="mt-4 flex flex-col gap-2">
             {level.hints.slice(0, hintsShown).map((hint) => (
-              <li key={hint} className="text-sm text-muted">
+              <li
+                key={hint}
+                className="rounded-xl border-2 border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-bg px-4 py-3 text-base text-text"
+              >
                 {hint}
               </li>
             ))}
@@ -352,25 +369,31 @@ export default function GhostwalkPlayPage() {
         ) : null}
 
         {message ? (
-          <p className="mt-3 text-sm" role="status">
+          <p
+            className="mt-4 rounded-xl border-2 border-accent bg-accent/15 px-4 py-3 text-lg font-medium text-text"
+            role="status"
+          >
             {message}
           </p>
         ) : null}
 
         {result?.ok && level.mode === "guided" && !memory ? (
-          <p className="mt-3 text-sm">
-            <Link to={`/ghostwalk/${slug}?memory=1`} className="text-accent">
+          <p className="mt-4 text-base">
+            <Link to={`/ghostwalk/${slug}?memory=1`} className="font-semibold text-accent underline">
               Try it from memory
             </Link>{" "}
             — empty editor, free mode.
           </p>
         ) : null}
 
-        <p className="mt-4 text-xs text-muted">
-          Shortcuts: Ctrl+Enter run · Ctrl+. step · Ctrl+Shift+R reset · actions recorded:{" "}
-          {actions.length}
+        <p className="mt-5 text-sm text-muted">
+          Shortcuts: Ctrl+Enter run · Ctrl+. step · Ctrl+Shift+R reset
+          {actions.length ? ` · ${actions.length} actions recorded` : ""}
         </p>
-        <Link to="/ghostwalk" className="mt-2 inline-flex min-h-11 items-center text-sm text-accent">
+        <Link
+          to="/ghostwalk"
+          className="mt-2 inline-flex min-h-12 items-center text-base font-medium text-accent underline"
+        >
           Back to map
         </Link>
       </div>

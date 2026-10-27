@@ -3106,3 +3106,17 @@ body::after {
     opacity: 0.3;
   }
 }
+
+/* Ghostwalk play — larger type and clearer frames for low vision / zoom. */
+.ghostwalk-intro p,
+.ghostwalk-intro li,
+.ghostwalk-intro code {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.ghostwalk-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
