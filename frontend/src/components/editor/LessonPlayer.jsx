@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import {
@@ -30,6 +30,8 @@ import ParsonsPuzzle from "./ParsonsPuzzle.jsx";
 import PredictReveal from "../learning/PredictReveal.jsx";
 import { runInSandbox } from "./sandbox.js";
 import SimulatedTerminal from "./SimulatedTerminal.jsx";
+
+const StepThrough = lazy(() => import("./StepThrough.jsx"));
 
 function firstOpen(exercises) {
   const index = exercises.findIndex((item) => item.progress?.status !== "completed");
@@ -155,8 +157,27 @@ export default function LessonPlayer({
   // DECISION: never auto-advance after a pass. Next stays disabled briefly so a
   // fast Check click cannot land on the newly shown button.
   const [nextReady, setNextReady] = useState(false);
+  const [walkthrough, setWalkthrough] = useState(null);
+  const [walkError, setWalkError] = useState("");
+  const [walkLoading, setWalkLoading] = useState(false);
   const nextLesson = lesson.next_lesson || null;
   const hasNextExercise = index < lesson.exercises.length - 1;
+
+  async function openWalkthrough() {
+    if (!exercise?.has_walkthrough) return;
+    setWalkLoading(true);
+    setWalkError("");
+    try {
+      const data = await api(
+        `/api/exercises/${exercise.id}/walkthrough?hints_opened=${hintsShown}`,
+      );
+      setWalkthrough(data);
+    } catch (err) {
+      setWalkError(err.message || "Could not open step-through.");
+    } finally {
+      setWalkLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!result?.passed || !hasNextExercise) {
@@ -249,6 +270,8 @@ export default function LessonPlayer({
     setRemaining(next.remaining);
     setStudying(next.studying);
     setNextReady(Boolean(next.result?.passed));
+    setWalkthrough(null);
+    setWalkError("");
     if (nextExerciseId) {
       setFadeStage(loadFadeStage(nextExerciseId));
     }
@@ -498,6 +521,32 @@ export default function LessonPlayer({
               {remaining}s
             </p>
           ) : null}
+          {exercise.has_walkthrough &&
+          (exercise.type === "trace" || exercise.type === "fill") &&
+          !result?.passed ? (
+            <p className="mt-3">
+              <button
+                type="button"
+                className="min-h-11 text-base font-semibold text-accent underline"
+                disabled={walkLoading}
+                onClick={() => openWalkthrough()}
+              >
+                {walkLoading ? "Loading…" : "Watch it run first"}
+              </button>
+            </p>
+          ) : null}
+          {walkError ? <p className="mt-2 text-sm text-error">{walkError}</p> : null}
+          {walkthrough ? (
+            <div className="mt-4">
+              <Suspense fallback={<p className="text-sm text-muted">Loading step-through…</p>}>
+                <StepThrough
+                  walk={walkthrough}
+                  exerciseId={exercise.id}
+                  onClose={() => setWalkthrough(null)}
+                />
+              </Suspense>
+            </div>
+          ) : null}
           <div className="mt-4">
             {exercise.type === "fill" ? (
               <FillGap
@@ -661,7 +710,7 @@ export default function LessonPlayer({
           Try the check again
         </button>
       ) : null}
-      {result?.passed ? (
+          {result?.passed ? (
         <div className="mt-4" role="status">
           <XpPop amount={burst} reduce={reduce} />
           <p className="text-success">
@@ -671,6 +720,20 @@ export default function LessonPlayer({
                 }`
               : "Passed."}
           </p>
+          {exercise.has_walkthrough ? (
+            <button
+              type="button"
+              className="mt-3 mr-3 min-h-11 rounded-xl border-2 border-accent px-4 text-base font-medium text-accent"
+              disabled={walkLoading}
+              onClick={() => openWalkthrough()}
+            >
+              {walkLoading
+                ? "Loading…"
+                : walkthrough?.run === false
+                  ? "Read line by line"
+                  : "Step through"}
+            </button>
+          ) : null}
           {exercise.type === "challenge" &&
           (exercise.expected_output || exercise.simulated_output) ? (
             <div className="mt-3">

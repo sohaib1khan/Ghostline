@@ -8,9 +8,9 @@
 const PARENT_LIMIT_MS = 25000;
 
 /**
- * @param {string} runtime browser_js | pyodide | ghostwalk | ghostwalk_js
+ * @param {string} runtime browser_js | pyodide | ghostwalk | ghostwalk_js | trace
  * @param {string} code
- * @param {{ level?: object, worldSource?: string, skinsSource?: string, language?: string, worldJsUrl?: string }} [extra]
+ * @param {{ level?: object, worldSource?: string, skinsSource?: string, language?: string, worldJsUrl?: string, tracerSource?: string, program?: string, setup?: string, stdin?: string[] }} [extra]
  */
 export function runInSandbox(runtime, code, extra = {}) {
   return new Promise((resolve) => {
@@ -63,6 +63,10 @@ export function runInSandbox(runtime, code, extra = {}) {
           worldSource: extra.worldSource || null,
           skinsSource: extra.skinsSource || null,
           worldJsUrl: extra.worldJsUrl || null,
+          tracerSource: extra.tracerSource || null,
+          program: extra.program || null,
+          setup: extra.setup || "",
+          stdin: extra.stdin || [],
         },
         "*",
       );
@@ -71,7 +75,7 @@ export function runInSandbox(runtime, code, extra = {}) {
   });
 }
 
-const runtimeCache = { world: null, skins: null, worldJs: null };
+const runtimeCache = { world: null, skins: null, worldJs: null, tracer: null };
 
 async function fetchRuntimeText(url, fallbackUrl) {
   const response = await fetch(url, { credentials: "include" });
@@ -168,4 +172,55 @@ export async function runGhostwalk(level, code, language = "python") {
     skinsSource,
   });
   return asGhostwalkResult(ran);
+}
+
+async function loadTracerSource() {
+  if (runtimeCache.tracer) {
+    return runtimeCache.tracer;
+  }
+  const response = await fetch("/sandbox/tracer.py");
+  if (!response.ok) {
+    throw new Error("Could not load the step-through recorder.");
+  }
+  runtimeCache.tracer = await response.text();
+  return runtimeCache.tracer;
+}
+
+/**
+ * Record a Thonny-style walkthrough in the browser sandbox.
+ * @param {{ program: string, setup?: string, stdin?: string[] }} walk
+ */
+export async function recordWalkthrough(walk) {
+  const tracerSource = await loadTracerSource();
+  const ran = await runInSandbox("trace", "", {
+    tracerSource,
+    program: walk.program || "",
+    setup: walk.setup || "",
+    stdin: walk.stdin || [],
+  });
+  if (ran.error === "timeout") {
+    return {
+      steps: [],
+      stdout: "",
+      error: { type: "TimeoutError", message: "That walkthrough took too long.", line: null },
+      truncated: true,
+    };
+  }
+  if (ran.result && typeof ran.result === "object") {
+    return ran.result;
+  }
+  try {
+    return JSON.parse(ran.output || "{}");
+  } catch {
+    return {
+      steps: [],
+      stdout: "",
+      error: {
+        type: "RuntimeError",
+        message: ran.output || ran.error || "Sandbox failed.",
+        line: null,
+      },
+      truncated: false,
+    };
+  }
 }

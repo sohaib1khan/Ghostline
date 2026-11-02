@@ -253,6 +253,8 @@ def _learner_exercise(row: Exercise) -> dict:
         # DECISION: expose mode + parsons so LessonPlayer can switch UI without leaking checks.
         "mode": data.get("mode") or ("parsons" if data.get("parsons") else None),
         "parsons": bool(data.get("parsons") or data.get("mode") == "parsons"),
+        # Flag only — program/notes stay behind GET /api/exercises/{id}/walkthrough.
+        "has_walkthrough": bool(data.get("walkthrough")),
     }
 
 

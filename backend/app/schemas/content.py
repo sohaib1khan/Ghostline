@@ -111,6 +111,40 @@ class CheckIn(BaseModel):
         return self
 
 
+class WalkthroughIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    setup: str = Field(default="", max_length=4000)
+    stdin: list[str] = Field(default_factory=list, max_length=20)
+    try_it: str = Field(default="", max_length=4000)
+    run: bool = True
+    expect_error: str | None = Field(
+        default=None, pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,60}$"
+    )
+    notes: dict[int, str] = Field(default_factory=dict, max_length=300)
+
+    @field_validator("stdin")
+    @classmethod
+    def short_stdin(cls, value: list[str]) -> list[str]:
+        for item in value:
+            if len(item) > 200:
+                raise ValueError("Each stdin line must be at most 200 characters")
+        return value
+
+    @field_validator("notes")
+    @classmethod
+    def notes_ok(cls, value: dict[int, str]) -> dict[int, str]:
+        cleaned: dict[int, str] = {}
+        for key, note in value.items():
+            number = int(key)
+            if number < 1:
+                raise ValueError("Walkthrough note line numbers start at 1")
+            text = str(note or "")
+            if len(text) > 300:
+                raise ValueError("Each walkthrough note must be at most 300 characters")
+            cleaned[number] = text
+        return cleaned
+
+
 class ExerciseData(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: ExerciseType
@@ -125,6 +159,7 @@ class ExerciseData(BaseModel):
     expected_output: str | None = Field(default=None, max_length=8000)
     xp: int = Field(default=10, ge=0, le=1000)
     time_limit_seconds: int | None = Field(default=None, ge=1, le=3600)
+    walkthrough: WalkthroughIn | None = None
 
     @field_validator("hints")
     @classmethod

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 — 2026-11-01
+
+Python step-through (Thonny-style).
+
+- `walkthrough` field on exercises; `GET /api/exercises/{id}/walkthrough` after pass (or for trace/fill).
+- Browser `tracer.py` records steps once; `StepThrough` UI with variables, output, notes, and predict-value prompts.
+- Admin Walkthrough editor + Preview; import **replace** updates exercises in place so progress stays attached.
+
 ## 1.3.0 — 2026-10-27
 
 Ghostwalk languages, skins, and Ghostfarm.

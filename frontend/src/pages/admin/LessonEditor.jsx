@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import MarkdownView from "../../components/content/MarkdownView.jsx";
+
+const StepThrough = lazy(() => import("../../components/editor/StepThrough.jsx"));
 
 const TYPES = ["trace", "fill", "recall", "challenge"];
 const RUNTIMES = ["none", "browser_js", "pyodide"];
@@ -15,6 +17,17 @@ const KINDS = [
   "line_count",
   "output_equals",
 ];
+
+function blankWalkthrough() {
+  return {
+    setup: "",
+    stdinText: "",
+    try_it: "",
+    run: true,
+    expect_error: "",
+    notes: {},
+  };
+}
 
 function blankExercise(type = "recall") {
   return {
@@ -42,6 +55,8 @@ function blankExercise(type = "recall") {
     expected_output: "",
     xp: 10,
     time_limit_seconds: null,
+    walkthroughForm: blankWalkthrough(),
+    walkthroughEnabled: false,
   };
 }
 
@@ -50,6 +65,14 @@ function lines(value) {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+function programFromForm(form) {
+  const source = String(form.code || "").trim()
+    ? String(form.code || "").replace(/\n+$/, "")
+    : lines(form.answersText || "")[0] || "";
+  const tryIt = form.walkthroughForm?.try_it || "";
+  return source.replace(/\n+$/, "") + (tryIt.trim() ? `\n\n${tryIt.replace(/^\n+/, "")}` : "");
 }
 
 function payloadFromForm(form) {
@@ -79,12 +102,32 @@ function payloadFromForm(form) {
       })),
     },
   };
+  if (form.walkthroughEnabled) {
+    const notes = {};
+    for (const [key, value] of Object.entries(form.walkthroughForm?.notes || {})) {
+      const text = String(value || "").trim();
+      if (text) notes[Number(key)] = text;
+    }
+    data.walkthrough = {
+      setup: form.walkthroughForm?.setup || "",
+      stdin: lines(form.walkthroughForm?.stdinText || ""),
+      try_it: form.walkthroughForm?.try_it || "",
+      run: form.walkthroughForm?.run !== false,
+      expect_error: form.walkthroughForm?.expect_error || null,
+      notes,
+    };
+  } else {
+    data.walkthrough = null;
+  }
   delete data.hintsText;
   delete data.answersText;
+  delete data.walkthroughForm;
+  delete data.walkthroughEnabled;
   return data;
 }
 
 function formFromData(data) {
+  const walk = data.walkthrough || null;
   return {
     ...blankExercise(data.type),
     ...data,
@@ -92,6 +135,19 @@ function formFromData(data) {
     expected_output: data.expected_output || "",
     hintsText: (data.hints || []).join("\n"),
     answersText: (data.check?.accepted_answers || []).join("\n"),
+    walkthroughEnabled: Boolean(walk),
+    walkthroughForm: walk
+      ? {
+          setup: walk.setup || "",
+          stdinText: (walk.stdin || []).join("\n"),
+          try_it: walk.try_it || "",
+          run: walk.run !== false,
+          expect_error: walk.expect_error || "",
+          notes: Object.fromEntries(
+            Object.entries(walk.notes || {}).map(([key, value]) => [String(key), value]),
+          ),
+        }
+      : blankWalkthrough(),
     check: {
       ...blankExercise().check,
       ...data.check,
@@ -118,6 +174,21 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
   const [rawFormat, setRawFormat] = useState("json");
   const [attempt, setAttempt] = useState("");
   const [output, setOutput] = useState("");
+  const [walkOpen, setWalkOpen] = useState(Boolean(exercise?.data?.walkthrough));
+  const [preview, setPreview] = useState(null);
+
+  const programLines = useMemo(() => programFromForm(form).split("\n"), [form]);
+  const missingNotes = useMemo(() => {
+    if (!form.walkthroughEnabled) return [];
+    return programLines
+      .map((text, index) => ({ line: index + 1, text }))
+      .filter(
+        (row) =>
+          row.text.trim() &&
+          !row.text.trim().startsWith("#") &&
+          !String(form.walkthroughForm?.notes?.[row.line] || "").trim(),
+      );
+  }, [form, programLines]);
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
 
@@ -568,6 +639,167 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
                   onChange={(event) => update({ time_limit_seconds: event.target.value })}
                 />
               </label>
+            ) : null}
+          </div>
+          <div className="rounded-xl border border-muted/20 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                className="text-sm font-medium text-accent"
+                onClick={() => setWalkOpen((value) => !value)}
+                aria-expanded={walkOpen}
+              >
+                {walkOpen ? "Hide walkthrough" : "Walkthrough (step-through)"}
+              </button>
+              <label className="inline-flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.walkthroughEnabled)}
+                  onChange={(event) => update({ walkthroughEnabled: event.target.checked })}
+                />
+                Include walkthrough
+              </label>
+            </div>
+            {walkOpen ? (
+              <div className="mt-3 flex flex-col gap-3">
+                <label className="text-sm">
+                  Setup (hidden; runs first)
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                    value={form.walkthroughForm?.setup || ""}
+                    onChange={(event) =>
+                      update({
+                        walkthroughForm: { ...form.walkthroughForm, setup: event.target.value },
+                      })
+                    }
+                  />
+                </label>
+                <label className="text-sm">
+                  Stdin answers, one per line
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                    value={form.walkthroughForm?.stdinText || ""}
+                    onChange={(event) =>
+                      update({
+                        walkthroughForm: { ...form.walkthroughForm, stdinText: event.target.value },
+                      })
+                    }
+                  />
+                </label>
+                <label className="text-sm">
+                  try_it (appended so a def can run)
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                    value={form.walkthroughForm?.try_it || ""}
+                    onChange={(event) =>
+                      update({
+                        walkthroughForm: { ...form.walkthroughForm, try_it: event.target.value },
+                      })
+                    }
+                  />
+                </label>
+                <label className="inline-flex min-h-11 items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.walkthroughForm?.run === false}
+                    onChange={(event) =>
+                      update({
+                        walkthroughForm: {
+                          ...form.walkthroughForm,
+                          run: !event.target.checked,
+                        },
+                      })
+                    }
+                  />
+                  Notes only (do not run)
+                </label>
+                <label className="text-sm">
+                  Expected error type (optional)
+                  <input
+                    className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                    value={form.walkthroughForm?.expect_error || ""}
+                    onChange={(event) =>
+                      update({
+                        walkthroughForm: {
+                          ...form.walkthroughForm,
+                          expect_error: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <div>
+                  <p className="text-sm font-medium">Notes per line</p>
+                  <ul className="mt-2 flex flex-col gap-2">
+                    {programLines.map((text, index) => {
+                      const line = index + 1;
+                      return (
+                        <li key={line} className="grid gap-1 sm:grid-cols-[3rem_1fr_1.2fr]">
+                          <span className="font-mono text-xs text-muted">{line}</span>
+                          <code className="overflow-auto rounded bg-bg px-2 py-1 font-mono text-xs">
+                            {text || " "}
+                          </code>
+                          <input
+                            className="min-h-11 rounded-xl border border-muted/30 bg-surface px-3 text-sm"
+                            aria-label={`Note for line ${line}`}
+                            value={form.walkthroughForm?.notes?.[line] || ""}
+                            onChange={(event) =>
+                              update({
+                                walkthroughForm: {
+                                  ...form.walkthroughForm,
+                                  notes: {
+                                    ...form.walkthroughForm.notes,
+                                    [line]: event.target.value,
+                                  },
+                                },
+                              })
+                            }
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {missingNotes.length ? (
+                    <p className="mt-2 text-sm text-error" role="status">
+                      {missingNotes.length} non-blank line(s) have no note.
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="min-h-11 self-start rounded-xl border border-muted/30 px-4 text-sm"
+                  onClick={() => {
+                    const payload = payloadFromForm(form);
+                    const walk = payload.walkthrough;
+                    if (!walk) {
+                      setPreview(null);
+                      return;
+                    }
+                    const source = String(payload.code || "").replace(/\n+$/, "") ||
+                      (payload.check?.accepted_answers || [])[0] ||
+                      "";
+                    const program =
+                      source.replace(/\n+$/, "") +
+                      (walk.try_it?.trim() ? `\n\n${walk.try_it}` : "");
+                    setPreview({
+                      program,
+                      source_lines: source ? source.split("\n").length : 0,
+                      setup: walk.setup,
+                      stdin: walk.stdin,
+                      run: walk.run,
+                      expect_error: walk.expect_error,
+                      notes: walk.notes,
+                    });
+                  }}
+                >
+                  Preview steps
+                </button>
+                {preview ? (
+                  <Suspense fallback={<p className="text-sm text-muted">Loading preview…</p>}>
+                    <StepThrough walk={preview} onClose={() => setPreview(null)} />
+                  </Suspense>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <div className="rounded-xl border border-muted/20 p-3">

@@ -33,6 +33,7 @@ class PreferencesIn(BaseModel):
     editorBodyPx: int | None = Field(default=None, ge=220, le=4000)
     dailyReviews: int | None = Field(default=None, ge=0, le=50)
     dailyLessons: int | None = Field(default=None, ge=0, le=20)
+    predictValues: bool | None = None
 
 
 class PreferencesOut(BaseModel):
@@ -53,3 +54,4 @@ class PreferencesOut(BaseModel):
     editorBodyPx: int | None = None
     dailyReviews: int = 5
     dailyLessons: int = 1
+    predictValues: bool = True

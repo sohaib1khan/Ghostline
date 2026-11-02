@@ -33,6 +33,8 @@ export const PREF_DEFAULTS = {
   // Daily learning goal — reviews to clear and new lessons to finish.
   dailyReviews: 5,
   dailyLessons: 1,
+  // Ask “what will this variable be?” during step-through (up to 2 times).
+  predictValues: true,
   // Legacy alias used by GhostEditor A−/A+ until fully migrated.
   typingScale: "lg",
 };
@@ -124,6 +126,10 @@ export function normalizePrefs(raw = {}) {
     })(),
     dailyReviews: clampGoal(parsed.dailyReviews, PREF_DEFAULTS.dailyReviews, 50),
     dailyLessons: clampGoal(parsed.dailyLessons, PREF_DEFAULTS.dailyLessons, 20),
+    predictValues:
+      parsed.predictValues === undefined
+        ? PREF_DEFAULTS.predictValues
+        : Boolean(parsed.predictValues),
     typingScale: typingFromCode(codeScale),
   };
 }

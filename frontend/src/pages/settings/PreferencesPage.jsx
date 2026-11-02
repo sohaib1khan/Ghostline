@@ -262,6 +262,15 @@ export default function PreferencesPage() {
           <p className="text-sm text-muted">
             A small daily goal shown on Home. Zero turns that part off.
           </p>
+          <label className="flex min-h-11 items-center gap-2 text-sm" htmlFor="predict-values">
+            <input
+              id="predict-values"
+              type="checkbox"
+              checked={prefs.predictValues !== false}
+              onChange={(event) => field("predictValues", event.target.checked)}
+            />
+            Ask me to predict values while stepping through Python
+          </label>
           <label className="block text-sm text-muted" htmlFor="daily-reviews">
             Daily reviews
             <input

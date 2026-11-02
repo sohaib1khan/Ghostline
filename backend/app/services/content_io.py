@@ -6,7 +6,7 @@ from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -256,9 +256,10 @@ async def import_documents(
 
     summary = await apply()
     target_id = summary.pop("target_id")
-    # DECISION: import does not send a publish notification. Extend keeps the
-    # lesson and exercise rows so learner progress stays attached. Replace
-    # deletes that track's modules, and progress on them goes with them.
+    # DECISION: import does not send a publish notification. Extend and replace
+    # both update matching rows in place (module/lesson title, exercise order)
+    # so learner progress stays attached. Replace also removes rows missing
+    # from the file.
     await write_audit(
         session,
         actor_user_id=actor_id,
@@ -365,32 +366,76 @@ async def _replace_track(
     parsed: ImportedTrack,
     actor_id,
 ) -> dict[str, int]:
+    """Update modules/lessons/exercises in place so learner progress stays attached.
+
+    Matched by module title → lesson title → exercise order. Rows missing from
+    the file are removed; new ones are created.
+    """
     _require_unique(parsed.modules, "modules")
-    await session.execute(delete(Module).where(Module.track_id == track.id))
     _apply_track_text(track, parsed)
-    added_lessons = 0
-    added_exercises = 0
+    changes = _blank_changes()
+    existing_modules = _by_title(list(track.modules), "modules")
+    keep_module_ids: set[uuid.UUID] = set()
     for module_index, module in enumerate(parsed.modules, start=1):
         _require_unique(module.lessons, "lessons")
-        module_row = Module(
-            track_id=track.id,
-            title=module.title.strip(),
-            description=module.description.strip(),
-            position=module_index,
-            status=module.status,
-        )
-        session.add(module_row)
-        await session.flush()
-        for lesson_index, lesson in enumerate(module.lessons, start=1):
-            lesson_row = _new_lesson(module_row.id, lesson, lesson_index, actor_id)
-            session.add(lesson_row)
+        title = module.title.strip()
+        module_row = existing_modules.get(title)
+        if module_row is None:
+            module_row = Module(
+                track_id=track.id,
+                title=title,
+                description=module.description.strip(),
+                position=module_index,
+                status=module.status,
+            )
+            session.add(module_row)
             await session.flush()
-            added_lessons += 1
-            added_exercises += await _replace_exercises(session, lesson_row, lesson)
-    changes = _blank_changes()
-    changes["added_modules"] = len(parsed.modules)
-    changes["added_lessons"] = added_lessons
-    changes["added_exercises"] = added_exercises
+            changes["added_modules"] += 1
+            lesson_rows: list[Lesson] = []
+        else:
+            lesson_rows = list(module_row.lessons)
+            if _assign_module(module_row, module) or module_row.position != module_index:
+                module_row.position = module_index
+                changes["updated_modules"] += 1
+        keep_module_ids.add(module_row.id)
+        lessons = _by_title(lesson_rows, "lessons")
+        keep_lesson_ids: set[uuid.UUID] = set()
+        for lesson_index, lesson in enumerate(module.lessons, start=1):
+            lesson_title = lesson.title.strip()
+            lesson_row = lessons.get(lesson_title)
+            if lesson_row is None:
+                lesson_row = _new_lesson(module_row.id, lesson, lesson_index, actor_id)
+                session.add(lesson_row)
+                await session.flush()
+                changes["added_lessons"] += 1
+                existing_exercises: list[Exercise] = []
+            else:
+                existing_exercises = list(lesson_row.exercises)
+                moved = lesson_row.position != lesson_index
+                if _assign_lesson(lesson_row, lesson, actor_id) or moved:
+                    lesson_row.position = lesson_index
+                    changes["updated_lessons"] += 1
+            keep_lesson_ids.add(lesson_row.id)
+            added, updated = await _sync_exercises(
+                session, lesson_row, lesson, existing_exercises
+            )
+            changes["added_exercises"] += added
+            changes["updated_exercises"] += updated
+            # Drop exercises whose order is no longer in the file.
+            wanted = {
+                (exercise.order if exercise.order is not None else index)
+                for index, exercise in enumerate(lesson.exercises, start=1)
+            }
+            for row in list(lesson_row.exercises):
+                if row.position not in wanted:
+                    await session.delete(row)
+        for lesson_row in lesson_rows:
+            if lesson_row.id not in keep_lesson_ids:
+                await session.delete(lesson_row)
+    for module_row in list(track.modules):
+        if module_row.id not in keep_module_ids:
+            await session.delete(module_row)
+    await session.flush()
     return changes
 
 
