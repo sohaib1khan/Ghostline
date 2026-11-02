@@ -1,4 +1,4 @@
-"""Learner exercise helpers (walkthrough / step-through)."""
+"""Learner exercise helpers (walkthrough / step-through / quiz)."""
 
 from uuid import UUID
 
@@ -13,6 +13,7 @@ from app.models.user import User
 from app.security.deps import current_user
 from app.security.rate_limit import limiter
 from app.services.content_store import ContentError
+from app.services.quiz import record_quiz_result
 from app.services.walkthrough import walkthrough_for_user
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
@@ -22,6 +23,13 @@ class PredictMissIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     guessed: str = Field(default="", max_length=200)
     expected: str = Field(default="", max_length=200)
+
+
+class QuizResultIn(BaseModel):
+    q: str = Field(min_length=1, max_length=300)
+    code: str = Field(default="", max_length=2000)
+    picked: str = Field(min_length=1, max_length=500)
+    first_try: bool = True
 
 
 @router.get("/{exercise_id}/walkthrough")
@@ -66,3 +74,27 @@ async def log_predict_miss(
     )
     await db.commit()
     return {"ok": True}
+
+
+@router.post("/{exercise_id}/quiz/result")
+@limiter.limit("60/minute")
+async def post_quiz_result(
+    request: Request,
+    exercise_id: UUID,
+    body: QuizResultIn,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Record a quiz pick: soft journal on miss, +2 XP once on first-try correct."""
+    try:
+        return await record_quiz_result(
+            db,
+            user,
+            exercise_id,
+            q=body.q,
+            code=body.code,
+            picked=body.picked,
+            first_try=body.first_try,
+        )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

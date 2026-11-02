@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 — 2026-11-01
+
+Real post-pass quizzes.
+
+- `quiz` on exercises (output/concept); practice payload includes questions; Studio Quiz editor.
+- `QuizCheck` replaces token-based ExplainBack when quiz exists; soft miss journal + spaced review; +2 XP once on first-try correct.
+- Seed output quizzes verified by running the snippet (skipped until YAML is imported).
+
 ## 1.4.0 — 2026-11-01
 
 Python step-through (Thonny-style).

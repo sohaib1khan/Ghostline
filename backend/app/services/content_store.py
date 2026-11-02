@@ -184,9 +184,8 @@ def _practice_hints(exercise_type: str, data: dict) -> list[str]:
 def _fill_hints(data: dict, rule_hints: list[str]) -> list[str]:
     code = str(data.get("code") or "")
     words = [part for part in code.strip().split() if part]
-    answers = [
-        str(item) for item in ((data.get("check") or {}).get("accepted_answers") or []) if str(item).strip()
-    ]
+    accepted = ((data.get("check") or {}).get("accepted_answers") or [])
+    answers = [str(item) for item in accepted if str(item).strip()]
     answer_words = [part for part in (answers[0] if answers else code).strip().split() if part]
     hints = list(rule_hints)
     blanks = list(data.get("blanks") or [])
@@ -255,6 +254,8 @@ def _learner_exercise(row: Exercise) -> dict:
         "parsons": bool(data.get("parsons") or data.get("mode") == "parsons"),
         # Flag only — program/notes stay behind GET /api/exercises/{id}/walkthrough.
         "has_walkthrough": bool(data.get("walkthrough")),
+        # Practice quizzes may show answers in the browser; they are not graded via /api/check.
+        "quiz": data.get("quiz") or [],
     }
 
 

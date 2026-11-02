@@ -29,6 +29,17 @@ function blankWalkthrough() {
   };
 }
 
+function blankQuizItem() {
+  return {
+    kind: "concept",
+    q: "",
+    code: "",
+    answer: "",
+    wrongText: "",
+    why: "",
+  };
+}
+
 function blankExercise(type = "recall") {
   return {
     type,
@@ -57,6 +68,7 @@ function blankExercise(type = "recall") {
     time_limit_seconds: null,
     walkthroughForm: blankWalkthrough(),
     walkthroughEnabled: false,
+    quizForm: [],
   };
 }
 
@@ -119,10 +131,21 @@ function payloadFromForm(form) {
   } else {
     data.walkthrough = null;
   }
+  data.quiz = (form.quizForm || [])
+    .filter((item) => String(item.q || "").trim() && String(item.answer || "").trim())
+    .map((item) => ({
+      kind: item.kind === "output" ? "output" : "concept",
+      q: String(item.q || "").trim(),
+      code: item.code || "",
+      answer: String(item.answer || ""),
+      wrong: lines(item.wrongText || ""),
+      why: item.why || "",
+    }));
   delete data.hintsText;
   delete data.answersText;
   delete data.walkthroughForm;
   delete data.walkthroughEnabled;
+  delete data.quizForm;
   return data;
 }
 
@@ -148,6 +171,14 @@ function formFromData(data) {
           ),
         }
       : blankWalkthrough(),
+    quizForm: (data.quiz || []).map((item) => ({
+      kind: item.kind === "output" ? "output" : "concept",
+      q: item.q || "",
+      code: item.code || "",
+      answer: item.answer || "",
+      wrongText: (item.wrong || []).join("\n"),
+      why: item.why || "",
+    })),
     check: {
       ...blankExercise().check,
       ...data.check,
@@ -175,6 +206,7 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
   const [attempt, setAttempt] = useState("");
   const [output, setOutput] = useState("");
   const [walkOpen, setWalkOpen] = useState(Boolean(exercise?.data?.walkthrough));
+  const [quizOpen, setQuizOpen] = useState((exercise?.data?.quiz || []).length > 0);
   const [preview, setPreview] = useState(null);
 
   const programLines = useMemo(() => programFromForm(form).split("\n"), [form]);
@@ -800,6 +832,168 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
                   </Suspense>
                 ) : null}
               </div>
+            ) : null}
+          </div>
+          <div className="rounded-xl border border-muted/20 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                className="text-sm font-medium text-accent"
+                onClick={() => setQuizOpen((value) => !value)}
+                aria-expanded={quizOpen}
+              >
+                {quizOpen ? "Hide quiz" : "Quiz"}
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                disabled={(form.quizForm || []).length >= 6}
+                onClick={() =>
+                  update({ quizForm: [...(form.quizForm || []), blankQuizItem()] })
+                }
+              >
+                Add question
+              </button>
+            </div>
+            {quizOpen ? (
+              <ul className="mt-3 flex flex-col gap-4">
+                {(form.quizForm || []).map((item, index) => {
+                  const wrongLines = lines(item.wrongText || "");
+                  const matchesAnswer = wrongLines.some(
+                    (line) => line === String(item.answer || ""),
+                  );
+                  return (
+                    <li
+                      key={`quiz-${index}`}
+                      className="rounded-xl border border-muted/20 bg-bg/50 p-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium">Question {index + 1}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                            disabled={index === 0}
+                            onClick={() => {
+                              const next = [...(form.quizForm || [])];
+                              [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                              update({ quizForm: next });
+                            }}
+                          >
+                            Up
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                            disabled={index >= (form.quizForm || []).length - 1}
+                            onClick={() => {
+                              const next = [...(form.quizForm || [])];
+                              [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                              update({ quizForm: next });
+                            }}
+                          >
+                            Down
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-error/40 px-3 text-sm text-error"
+                            onClick={() =>
+                              update({
+                                quizForm: (form.quizForm || []).filter((_, i) => i !== index),
+                              })
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      <label className="mt-2 block text-sm">
+                        Kind
+                        <select
+                          className="mt-1 min-h-11 w-full rounded-xl border border-muted/30 bg-surface px-3"
+                          value={item.kind}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, kind: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        >
+                          <option value="concept">concept</option>
+                          <option value="output">output</option>
+                        </select>
+                      </label>
+                      <label className="mt-2 block text-sm">
+                        Question
+                        <input
+                          className="mt-1 min-h-11 w-full rounded-xl border border-muted/30 bg-surface px-3"
+                          value={item.q}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, q: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        />
+                      </label>
+                      <label className="mt-2 block text-sm">
+                        Code (optional)
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                          value={item.code}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, code: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        />
+                      </label>
+                      <label className="mt-2 block text-sm">
+                        Answer
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                          value={item.answer}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, answer: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        />
+                      </label>
+                      <label className="mt-2 block text-sm">
+                        Wrong answers, one per line
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                          value={item.wrongText}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, wrongText: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        />
+                      </label>
+                      {matchesAnswer ? (
+                        <p className="mt-2 text-sm text-error" role="status">
+                          Wrong answer matches the right answer
+                        </p>
+                      ) : null}
+                      <label className="mt-2 block text-sm">
+                        Why
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2"
+                          value={item.why}
+                          onChange={(event) => {
+                            const next = [...(form.quizForm || [])];
+                            next[index] = { ...item, why: event.target.value };
+                            update({ quizForm: next });
+                          }}
+                        />
+                      </label>
+                    </li>
+                  );
+                })}
+                {(form.quizForm || []).length === 0 ? (
+                  <li className="text-sm text-muted">No quiz questions yet.</li>
+                ) : null}
+              </ul>
             ) : null}
           </div>
           <div className="rounded-xl border border-muted/20 p-3">

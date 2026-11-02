@@ -28,6 +28,8 @@ import GhostEditor from "./GhostEditor.jsx";
 import { indentUnitForTrack } from "./indent.js";
 import ParsonsPuzzle from "./ParsonsPuzzle.jsx";
 import PredictReveal from "../learning/PredictReveal.jsx";
+import QuizCheck from "./QuizCheck.jsx";
+import { hasQuiz } from "./quizSelect.js";
 import { runInSandbox } from "./sandbox.js";
 import SimulatedTerminal from "./SimulatedTerminal.jsx";
 
@@ -152,6 +154,7 @@ export default function LessonPlayer({
     loadFadeStage(lesson.exercises[index]?.id),
   );
   const [explainBack, setExplainBack] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   // Wall-clock timer for fills / recall / Check — GhostEditor also reports its own duration.
   const startedAt = useRef(Date.now());
   // DECISION: never auto-advance after a pass. Next stays disabled briefly so a
@@ -429,7 +432,11 @@ export default function LessonPlayer({
       if (data.passed && onPassed) {
         onPassed(exercise.id);
       }
-      setExplainBack(Boolean(data.passed && shouldExplainBack(exercise.tokens || [])));
+      const quizReady = hasQuiz(exercise);
+      setShowQuiz(Boolean(data.passed && quizReady));
+      setExplainBack(
+        Boolean(data.passed && !quizReady && shouldExplainBack(exercise.tokens || [])),
+      );
       if (
         data.passed &&
         accountXp &&
@@ -592,6 +599,7 @@ export default function LessonPlayer({
                 const next = freshExerciseState(exercise);
                 next.studying = false;
                 setExplainBack(false);
+                setShowQuiz(false);
                 applyState(next);
                 setAttemptKey((value) => value + 1);
                 upsertExerciseState(lesson.id, index, exercise.id, {
@@ -606,6 +614,15 @@ export default function LessonPlayer({
             >
               Type it again — the ghost fades
             </button>
+          ) : null}
+          {result?.passed && showQuiz ? (
+            <QuizCheck
+              key={`quiz-${exercise.id}`}
+              exercise={exercise}
+              lessonExercises={lesson.exercises}
+              accountXp={accountXp}
+              onXp={(amount) => setBurst(amount)}
+            />
           ) : null}
           {result?.passed && explainBack ? (
             <ExplainBack key={exercise.id} id={exercise.id} tokens={exercise.tokens || []} />

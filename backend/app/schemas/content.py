@@ -145,6 +145,33 @@ class WalkthroughIn(BaseModel):
         return cleaned
 
 
+class QuizItemIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["output", "concept"] = "concept"
+    q: str = Field(min_length=1, max_length=300)
+    code: str = Field(default="", max_length=2000)
+    answer: str = Field(min_length=1, max_length=500)
+    wrong: list[str] = Field(min_length=1, max_length=4)
+    why: str = Field(default="", max_length=400)
+
+    @field_validator("wrong")
+    @classmethod
+    def short_wrong(cls, value: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for item in value:
+            text = str(item)
+            if not text or len(text) > 500:
+                raise ValueError("Each wrong answer must be 1–500 characters")
+            cleaned.append(text)
+        return cleaned
+
+    @model_validator(mode="after")
+    def wrong_differs_from_answer(self) -> "QuizItemIn":
+        if any(item == self.answer for item in self.wrong):
+            raise ValueError("Wrong answer matches the right answer")
+        return self
+
+
 class ExerciseData(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: ExerciseType
@@ -160,6 +187,7 @@ class ExerciseData(BaseModel):
     xp: int = Field(default=10, ge=0, le=1000)
     time_limit_seconds: int | None = Field(default=None, ge=1, le=3600)
     walkthrough: WalkthroughIn | None = None
+    quiz: list[QuizItemIn] = Field(default_factory=list, max_length=6)
 
     @field_validator("hints")
     @classmethod
