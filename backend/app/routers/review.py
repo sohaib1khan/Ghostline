@@ -55,6 +55,31 @@ def _as_recall_payload(exercise: Exercise, track: Track, module: Module, lesson:
     }
 
 
+async def practiced_track_ids(
+    session: AsyncSession, user_id: uuid.UUID, visible: set[uuid.UUID]
+) -> set[uuid.UUID]:
+    """Tracks where the learner has started or completed at least one lesson exercise."""
+    if not visible:
+        return set()
+    rows = list(
+        (
+            await session.scalars(
+                select(Module.track_id)
+                .join(Lesson, Lesson.module_id == Module.id)
+                .join(Exercise, Exercise.lesson_id == Lesson.id)
+                .join(ExerciseProgress, ExerciseProgress.exercise_id == Exercise.id)
+                .where(
+                    ExerciseProgress.user_id == user_id,
+                    ExerciseProgress.status.in_(("started", "completed")),
+                    Module.track_id.in_(visible),
+                )
+                .distinct()
+            )
+        ).all()
+    )
+    return set(rows)
+
+
 @router.get("/due")
 async def due_reviews(
     limit: int = Query(default=20, ge=1, le=50),
@@ -63,10 +88,12 @@ async def due_reviews(
 ) -> dict:
     now = datetime.now(UTC)
     tracks = await list_visible_tracks(db, user)
-    track_ids = {track.id for track in tracks}
+    visible_ids = {track.id for track in tracks}
+    # Only courses the learner has actually practiced — not every assigned track.
+    track_ids = await practiced_track_ids(db, user.id, visible_ids)
     due: list[dict] = []
 
-    # Ghostwalk free replays scheduled after struggle (failed runs / hints).
+    # Ghostwalk free replays only after the learner has played that level.
     from app.models.ghostwalk import GhostwalkLevel, GhostwalkProgress
 
     gw_rows = list(
@@ -79,6 +106,8 @@ async def due_reviews(
                     GhostwalkProgress.next_review_at.is_not(None),
                     GhostwalkProgress.next_review_at <= now,
                     GhostwalkLevel.status == "published",
+                    # Require a real attempt so unplayed levels never show up.
+                    GhostwalkProgress.attempts > 0,
                 )
                 .order_by(GhostwalkProgress.next_review_at.asc())
                 .limit(limit)
@@ -126,6 +155,8 @@ async def due_reviews(
             ExerciseProgress.next_review_at.is_not(None),
             ExerciseProgress.next_review_at <= now,
             Module.track_id.in_(track_ids),
+            # Only lessons the learner has progress on (this exercise itself).
+            ExerciseProgress.attempts > 0,
             Exercise.status == "published",
             Lesson.status == "published",
             Module.status == "published",

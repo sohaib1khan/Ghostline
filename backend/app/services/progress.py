@@ -370,6 +370,7 @@ async def dashboard(session: AsyncSession, user: User) -> dict:
                     Module.track_id.in_(track_ids),
                     ExerciseProgress.user_id == user.id,
                     ExerciseProgress.status == "completed",
+                    ExerciseProgress.attempts > 0,
                     ExerciseProgress.next_review_at.is_not(None),
                     ExerciseProgress.next_review_at <= now,
                 )

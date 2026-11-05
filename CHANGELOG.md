@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.1 — 2026-11-05
+
+Review polish.
+
+- Pass feedback on `/review` uses green success styling (and XP pop) instead of the red fail chrome; longer pause before the next item.
+- Review queue only includes courses the learner has actually started or completed — not every assigned track.
+
 ## 1.5.0 — 2026-11-01
 
 Real post-pass quizzes.

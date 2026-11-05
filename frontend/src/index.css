@@ -1018,6 +1018,23 @@ body::after {
   border-color: color-mix(in srgb, var(--error) 55%, #000);
 }
 
+.practice-check-pass {
+  border-radius: 0.65rem;
+  border: 2px solid color-mix(in srgb, var(--success) 70%, #fff);
+  background: color-mix(in srgb, var(--success) 22%, var(--bg));
+  padding: 0.75rem 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #d4f5e4;
+}
+
+:root[data-theme="light"] .practice-check-pass {
+  color: #14532d;
+  background: color-mix(in srgb, var(--success) 16%, #fff);
+  border-color: color-mix(in srgb, var(--success) 55%, #000);
+}
+
 @keyframes status-rise {
   from {
     opacity: 0;

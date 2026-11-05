@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import GhostEditor from "../../components/editor/GhostEditor.jsx";
 import { indentUnitForTrack } from "../../components/editor/indent.js";
+import XpPop from "../../components/feedback/XpPop.jsx";
 import { bumpDaily } from "../../lib/dailyGoal.js";
+import { readPrefs } from "../../prefs.js";
 import { playSound } from "../../sounds.js";
 
 const CONFIDENCE = [
@@ -19,9 +21,12 @@ export default function ReviewPage() {
   const [hintsShown, setHintsShown] = useState(0);
   const [confidence, setConfidence] = useState("");
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState("fail");
+  const [burst, setBurst] = useState(0);
   const [pending, setPending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [passedCount, setPassedCount] = useState(0);
+  const reduce = Boolean(readPrefs().reduceMotion);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,11 +57,14 @@ export default function ReviewPage() {
       return;
     }
     if (!confidence) {
+      setMessageTone("fail");
       setMessage("Pick how sure you were first: Guessed, Unsure, or Knew it.");
       return;
     }
     setPending(true);
     setMessage("");
+    setMessageTone("fail");
+    setBurst(0);
     try {
       const result = await api(`/api/review/${item.id}`, {
         method: "POST",
@@ -70,22 +78,28 @@ export default function ReviewPage() {
         playSound("correct");
         setPassedCount((count) => count + 1);
         bumpDaily("reviews");
-        setMessage(`Passed. +${result.xp_awarded || 0} XP`);
+        const xp = Number(result.xp_awarded || 0);
+        setBurst(xp);
+        setMessageTone("pass");
+        setMessage(xp > 0 ? `Passed. +${xp} XP` : "Nice — still sharp.");
         window.setTimeout(() => {
           setDraft("");
           setHintsShown(0);
           setConfidence("");
           setMessage("");
+          setBurst(0);
           setIndex((value) => value + 1);
-        }, 700);
+        }, 1600);
       } else {
         playSound("wrong");
+        setMessageTone("fail");
         setMessage(result.failed_rule_hint || "Not quite — try a hint.");
         if (item.hints?.length && hintsShown < item.hints.length) {
           setHintsShown((count) => Math.min(count + 1, item.hints.length));
         }
       }
     } catch (error) {
+      setMessageTone("fail");
       setMessage(error.message || "Check failed.");
     } finally {
       setPending(false);
@@ -231,9 +245,16 @@ export default function ReviewPage() {
         </Link>
       </div>
       {message ? (
-        <p className="mt-3 practice-check-fail" role="status">
-          {message}
-        </p>
+        <div className="mt-3" role="status">
+          {messageTone === "pass" && burst > 0 ? <XpPop amount={burst} reduce={reduce} /> : null}
+          <p
+            className={
+              messageTone === "pass" ? "practice-check-pass" : "practice-check-fail"
+            }
+          >
+            {message}
+          </p>
+        </div>
       ) : null}
     </section>
   );
