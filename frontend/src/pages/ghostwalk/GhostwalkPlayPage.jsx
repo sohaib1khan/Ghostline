@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
 import GhostEditor from "../../components/editor/GhostEditor.jsx";
@@ -12,21 +12,13 @@ import { playSound } from "../../sounds.js";
 
 const GhostwalkScene = lazy(() => import("./GhostwalkScene.jsx"));
 
+/** Playback pacing — Slow is the default so each move is easy to follow. */
 const SPEEDS = [
-  { id: "slow", label: "Slow", ms: 700 },
-  { id: "normal", label: "Normal", ms: 350 },
-  { id: "fast", label: "Fast", ms: 120 },
+  { id: "slow", label: "Slow", ms: 1100 },
+  { id: "normal", label: "Normal", ms: 650 },
+  { id: "fast", label: "Fast", ms: 280 },
   { id: "instant", label: "Instant", ms: 0 },
 ];
-
-function viewButtonClass(active) {
-  return [
-    "min-h-12 rounded-xl border-2 px-4 text-base font-medium",
-    active
-      ? "border-accent bg-accent text-on-accent"
-      : "border-[color-mix(in_srgb,var(--text)_35%,transparent)] bg-surface text-text",
-  ].join(" ");
-}
 
 export default function GhostwalkPlayPage() {
   const { slug } = useParams();
@@ -34,6 +26,7 @@ export default function GhostwalkPlayPage() {
   const memory = search.get("memory") === "1";
   const prefs = readPrefs();
   const reduce = prefs.reduceMotion;
+  const stageRef = useRef(null);
 
   const [level, setLevel] = useState(null);
   const [error, setError] = useState("");
@@ -41,11 +34,10 @@ export default function GhostwalkPlayPage() {
   const [hintsShown, setHintsShown] = useState(0);
   const [introOpen, setIntroOpen] = useState(true);
   const [syntaxOpen, setSyntaxOpen] = useState(false);
-  // Top-down is easier to read when zoomed; keep as default for comfort.
-  const [topDown, setTopDown] = useState(true);
   const [speedId, setSpeedId] = useState(reduce ? "instant" : "slow");
   const [running, setRunning] = useState(false);
   const [loadingEngine, setLoadingEngine] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(false);
   const [trace, setTrace] = useState([]);
   const [traceIndex, setTraceIndex] = useState(0);
   const [moves, setMoves] = useState([]);
@@ -75,6 +67,7 @@ export default function GhostwalkPlayPage() {
         setMoves([]);
         setTrace([]);
         setTraceIndex(0);
+        setAutoPlay(false);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -94,10 +87,11 @@ export default function GhostwalkPlayPage() {
   );
 
   const applyFrame = useCallback(
-    (frame) => {
+    (frame, { appendMove = true } = {}) => {
       if (!frame) return;
       setHero({ row: frame.row, col: frame.col, facing: frame.facing });
       if (frame.grid) setGrid(frame.grid);
+      if (!appendMove) return;
       const themed = themeMoveMessage(theme, frame);
       if (themed) {
         setMoves((current) => [...current, themed]);
@@ -106,28 +100,39 @@ export default function GhostwalkPlayPage() {
     [theme],
   );
 
+  function focusStage() {
+    stageRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+  }
+
   useEffect(() => {
     if (!trace.length || traceIndex >= trace.length) return undefined;
-    const frame = trace[traceIndex];
-    applyFrame(frame);
-    if (traceIndex >= trace.length - 1) return undefined;
+    applyFrame(trace[traceIndex]);
+    if (traceIndex >= trace.length - 1) {
+      if (autoPlay) setAutoPlay(false);
+      return undefined;
+    }
+    if (!autoPlay) return undefined;
     const delay = speed.ms;
     if (delay <= 0) {
+      const rest = trace.slice(traceIndex + 1);
+      rest.forEach((frame) => applyFrame(frame));
       setTraceIndex(trace.length - 1);
-      applyFrame(trace[trace.length - 1]);
+      setAutoPlay(false);
       return undefined;
     }
     const timer = window.setTimeout(() => setTraceIndex((value) => value + 1), delay);
     return () => window.clearTimeout(timer);
-  }, [trace, traceIndex, speed.ms, applyFrame]);
+  }, [trace, traceIndex, speed.ms, applyFrame, autoPlay]);
 
-  async function runCode() {
-    if (!level || running) return;
+  async function prepareRun() {
+    if (!level || running) return null;
     setRunning(true);
     setLoadingEngine(true);
     setMessage("");
     setResult(null);
     setMoves([]);
+    setAutoPlay(false);
+    focusStage();
     try {
       const levelPayload = {
         grid: level.grid,
@@ -167,18 +172,44 @@ export default function GhostwalkPlayPage() {
         playSound("wrong");
         setMessage(outcome.error || "Not quite.");
       }
+      return frames;
     } catch (err) {
       setMessage(err.message || "Run failed.");
+      return null;
     } finally {
       setLoadingEngine(false);
       setRunning(false);
     }
   }
 
+  async function runCode() {
+    const frames = await prepareRun();
+    if (frames?.length) {
+      setAutoPlay(true);
+      setTraceIndex(0);
+    }
+  }
+
+  async function stepOnce() {
+    focusStage();
+    if (!trace.length) {
+      const frames = await prepareRun();
+      if (frames?.length) {
+        setAutoPlay(false);
+        setTraceIndex(0);
+      }
+      return;
+    }
+    if (traceIndex >= trace.length - 1) return;
+    setAutoPlay(false);
+    setTraceIndex((value) => value + 1);
+  }
+
   function resetWorld() {
     if (!level) return;
     setTrace([]);
     setTraceIndex(0);
+    setAutoPlay(false);
     setMoves([]);
     setMessage("");
     setResult(null);
@@ -188,6 +219,7 @@ export default function GhostwalkPlayPage() {
       col: level.start?.col ?? 1,
       facing: level.start?.facing || "E",
     });
+    focusStage();
   }
 
   useEffect(() => {
@@ -197,7 +229,7 @@ export default function GhostwalkPlayPage() {
         runCode();
       } else if (event.ctrlKey && event.key === ".") {
         event.preventDefault();
-        runCode();
+        stepOnce();
       } else if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "r") {
         event.preventDefault();
         resetWorld();
@@ -209,8 +241,11 @@ export default function GhostwalkPlayPage() {
 
   const mode = level?.mode || "free";
   const guidedTarget = mode === "guided" && level?.solution ? level.solution : "";
-
   const unlockedCmds = useMemo(() => (level?.allowed || []).join(", "), [level]);
+  const stepLabel =
+    trace.length > 0
+      ? `Step ${Math.min(traceIndex + 1, trace.length)}/${trace.length}`
+      : "Step";
 
   if (error) {
     return (
@@ -229,67 +264,101 @@ export default function GhostwalkPlayPage() {
   }
 
   return (
-    <section className="ghostwalk-play flex flex-col gap-5">
-      <div className="ghostwalk-world min-h-[18rem] h-[min(48vh,26rem)] sm:h-[min(52vh,32rem)]">
-        <Suspense fallback={<p className="p-4 text-base text-muted">Loading world…</p>}>
-          <GhostwalkScene
-            grid={grid}
-            hero={hero}
-            topDown={topDown}
-            reduceMotion={reduce}
-            language={level.language || "python"}
-            mode={level.mode || "free"}
-          />
-        </Suspense>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3" role="group" aria-label="World view controls">
-        <button
-          type="button"
-          className={viewButtonClass(!topDown)}
-          onClick={() => setTopDown(false)}
-          aria-pressed={!topDown}
-        >
-          3D view
-        </button>
-        <button
-          type="button"
-          className={viewButtonClass(topDown)}
-          onClick={() => setTopDown(true)}
-          aria-pressed={topDown}
-        >
-          Top-down
-        </button>
-        <button type="button" className={viewButtonClass(false)} onClick={resetWorld}>
-          Reset view
-        </button>
-        <label className="ml-auto flex min-h-12 items-center gap-3 text-base text-text">
-          Speed
-          <select
-            value={speedId}
-            onChange={(event) => setSpeedId(event.target.value)}
-            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] bg-bg px-3 text-base text-text"
-          >
-            {SPEEDS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
-        <p className="font-mono text-sm uppercase tracking-wider text-accent">
+    <section className="ghostwalk-play mx-auto flex w-full max-w-[90rem] flex-col gap-4">
+      <header className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_18%,transparent)] bg-surface px-4 py-3 sm:px-5">
+        <p className="font-mono text-xs uppercase tracking-wider text-accent sm:text-sm">
           {gameMeta(level.language).game} · {gameMeta(level.language).ghost} · Level {level.order}
           {level.mode === "farm" ? " · Ghostfarm" : ""}
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{level.title}</h1>
-        <p className="mt-1 text-base text-muted">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{level.title}</h1>
+        <p className="mt-1 text-sm text-muted sm:text-base">
           {languageLabel(level.language)} · {level.concept}
         </p>
+      </header>
 
-        <div className="mt-4 rounded-xl border-2 border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-bg/60 p-4">
+      {/* Sticky stage: scene + controls stay in view while the rest scrolls */}
+      <div ref={stageRef} className="ghostwalk-stage sticky top-0 z-20 -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div className="ghostwalk-world overflow-hidden rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-bg shadow-[var(--shadow)]">
+          <Suspense fallback={<p className="p-4 text-base text-muted">Loading world…</p>}>
+            <GhostwalkScene
+              grid={grid}
+              hero={hero}
+              reduceMotion={reduce}
+              language={level.language || "python"}
+              mode={level.mode || "free"}
+            />
+          </Suspense>
+        </div>
+
+        <div
+          className="ghostwalk-dock mt-2 flex flex-wrap items-center gap-2 rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface/95 p-2 backdrop-blur-md sm:gap-3 sm:p-3"
+          role="group"
+          aria-label="Simulation controls"
+        >
+          <button
+            type="button"
+            className="min-h-12 flex-1 rounded-xl bg-accent px-4 text-base font-semibold text-on-accent disabled:opacity-50 sm:flex-none sm:px-5"
+            disabled={running}
+            onClick={() => runCode()}
+          >
+            {loadingEngine ? "Running…" : autoPlay ? "Playing…" : "Run"}
+          </button>
+          <button
+            type="button"
+            className="min-h-12 flex-1 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-4 text-base font-medium disabled:opacity-50 sm:flex-none sm:px-5"
+            disabled={running || (trace.length > 0 && traceIndex >= trace.length - 1 && !loadingEngine)}
+            onClick={() => stepOnce()}
+          >
+            {stepLabel}
+          </button>
+          <button
+            type="button"
+            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-4 text-base font-medium sm:px-5"
+            onClick={resetWorld}
+          >
+            Reset
+          </button>
+          {level.hints?.length ? (
+            <button
+              type="button"
+              className="min-h-12 rounded-xl border-2 border-accent px-4 text-base font-medium text-accent sm:px-5"
+              onClick={() => setHintsShown((count) => Math.min(count + 1, level.hints.length))}
+              disabled={hintsShown >= level.hints.length}
+            >
+              Hint ({hintsShown}/{level.hints.length})
+            </button>
+          ) : null}
+          <label className="flex min-h-12 items-center gap-2 text-sm text-text sm:ml-auto sm:text-base">
+            Speed
+            <select
+              value={speedId}
+              onChange={(event) => setSpeedId(event.target.value)}
+              className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] bg-bg px-3 text-base text-text"
+            >
+              {SPEEDS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="font-mono text-sm text-muted sm:text-base" aria-label="Par lines">
+            Par {level.par_lines}
+          </p>
+        </div>
+
+        {message ? (
+          <p
+            className="mt-2 rounded-xl border-2 border-accent bg-accent/15 px-4 py-3 text-base font-medium text-text sm:text-lg"
+            role="status"
+          >
+            {message}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="rounded-2xl border-2 border-[color-mix(in_srgb,var(--text)_22%,transparent)] bg-surface p-4 shadow-[var(--shadow)] sm:p-6">
+        <div className="rounded-xl border-2 border-[color-mix(in_srgb,var(--accent)_35%,transparent)] bg-bg/60 p-4">
           <button
             type="button"
             className="min-h-12 text-base font-semibold text-accent"
@@ -329,8 +398,7 @@ export default function GhostwalkPlayPage() {
           ) : null}
         </div>
 
-        {/* Stack on narrow / zoomed viewports; side-by-side only when roomy */}
-        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(16rem,22rem)]">
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(14rem,20rem)]">
           <div className="min-w-0">
             <h2 className="mb-2 text-lg font-semibold">Your code</h2>
             <GhostEditor
@@ -345,62 +413,25 @@ export default function GhostwalkPlayPage() {
           <div className="min-w-0">
             <h2 className="text-lg font-semibold">Moves</h2>
             <ul
-              className="mt-2 max-h-[min(28rem,50vh)] overflow-auto rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_28%,transparent)] bg-bg p-3 text-base leading-snug"
+              className="mt-2 max-h-[min(22rem,40vh)] overflow-auto rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_28%,transparent)] bg-bg p-3 text-base leading-snug"
               aria-live="polite"
             >
               {moves.length ? (
                 moves.map((item, index) => (
                   <li
                     key={`${index}-${item}`}
-                    className="border-b border-[color-mix(in_srgb,var(--text)_12%,transparent)] py-2 text-text last:border-0"
+                    className={`border-b border-[color-mix(in_srgb,var(--text)_12%,transparent)] py-2 text-text last:border-0 ${
+                      index === moves.length - 1 ? "font-medium text-accent" : ""
+                    }`}
                   >
                     <span className="font-mono font-semibold text-accent">{index + 1}.</span> {item}
                   </li>
                 ))
               ) : (
-                <li className="py-2 text-text">Run your code to see each move here.</li>
+                <li className="py-2 text-text">Run or Step to watch each move here.</li>
               )}
             </ul>
           </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="min-h-12 rounded-xl bg-accent px-5 text-base font-semibold text-on-accent disabled:opacity-50"
-            disabled={running}
-            onClick={() => runCode()}
-          >
-            {loadingEngine ? "Running…" : "Run"}
-          </button>
-          <button
-            type="button"
-            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-5 text-base font-medium disabled:opacity-50"
-            disabled={running}
-            onClick={() => runCode()}
-          >
-            Step
-          </button>
-          <button
-            type="button"
-            className="min-h-12 rounded-xl border-2 border-[color-mix(in_srgb,var(--text)_35%,transparent)] px-5 text-base font-medium"
-            onClick={resetWorld}
-          >
-            Reset
-          </button>
-          {level.hints?.length ? (
-            <button
-              type="button"
-              className="min-h-12 rounded-xl border-2 border-accent px-5 text-base font-medium text-accent"
-              onClick={() => setHintsShown((count) => Math.min(count + 1, level.hints.length))}
-              disabled={hintsShown >= level.hints.length}
-            >
-              Hint ({hintsShown}/{level.hints.length})
-            </button>
-          ) : null}
-          <p className="ml-auto self-center font-mono text-base text-text" aria-label="Par lines">
-            Par {level.par_lines} lines
-          </p>
         </div>
 
         {hintsShown > 0 ? (
@@ -416,15 +447,6 @@ export default function GhostwalkPlayPage() {
           </ul>
         ) : null}
 
-        {message ? (
-          <p
-            className="mt-4 rounded-xl border-2 border-accent bg-accent/15 px-4 py-3 text-lg font-medium text-text"
-            role="status"
-          >
-            {message}
-          </p>
-        ) : null}
-
         {result?.ok && level.mode === "guided" && !memory ? (
           <p className="mt-4 text-base">
             <Link to={`/ghostwalk/${slug}?memory=1`} className="font-semibold text-accent underline">
@@ -435,7 +457,7 @@ export default function GhostwalkPlayPage() {
         ) : null}
 
         <p className="mt-5 text-sm text-muted">
-          Shortcuts: Ctrl+Enter run · Ctrl+. step · Ctrl+Shift+R reset
+          Drag to look around · scroll to zoom · Ctrl+Enter run · Ctrl+. step · Ctrl+Shift+R reset
           {actions.length ? ` · ${actions.length} actions recorded` : ""}
         </p>
         <Link

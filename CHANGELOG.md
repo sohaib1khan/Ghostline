@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0 — 2026-11-07
+
+In-app bug reports and support messages.
+
+- Learners and admins report bugs via a breezy modal (auto page/context capture + category chips + short note); each ticket gets a `BUG-…` id.
+- Messages inbox for replies; unread badge in the nav; Studio → Tickets desk for super admin replies and status.
+
+## 1.5.2 — 2026-11-07
+
+Ghostwalk play layout.
+
+- Sticky scene + Run/Step/Reset dock so the world stays in view on phones.
+- Real Step advances one move at a time; slower default pacing.
+- Dropped 3D/Top-down/Reset view toggles — one flexible orbit playground that scales by viewport.
+
 ## 1.5.1 — 2026-11-05
 
 Review polish.

@@ -531,36 +531,27 @@ function WorldContents({ grid, hero, reduceMotion }) {
   );
 }
 
-function cameraForGrid(rows, cols, topDown) {
+/** Readable isometric framing — drag/scroll freely; no fixed top-down/3D modes. */
+function cameraForGrid(rows, cols) {
   const span = Math.max(rows, cols, 3);
   const center = [(cols - 1) / 2, 0.3, (rows - 1) / 2];
-  if (topDown) {
-    const zoom = Math.max(18, Math.min(48, 155 / span));
-    return {
-      center,
-      camera: { position: [center[0], 20, center[2] + 0.01], zoom, near: 0.1, far: 120 },
-      minDistance: 4,
-      maxDistance: 34,
-    };
-  }
-  const distance = Math.max(6.2, span * 1.25);
+  const distance = Math.max(7.2, span * 1.35);
   return {
     center,
     camera: {
-      position: [center[0] + distance * 0.62, distance * 0.72, center[2] + distance * 0.82],
-      fov: 34,
+      position: [center[0] + distance * 0.55, distance * 0.78, center[2] + distance * 0.72],
+      fov: 36,
       near: 0.1,
-      far: 120,
+      far: 140,
     },
-    minDistance: 4,
-    maxDistance: Math.max(22, span * 2.8),
+    minDistance: 3.5,
+    maxDistance: Math.max(28, span * 3.2),
   };
 }
 
 export default function GhostwalkScene({
   grid,
   hero,
-  topDown = false,
   reduceMotion = false,
   language = "python",
   mode = "free",
@@ -575,34 +566,36 @@ export default function GhostwalkScene({
   THEME_SHAPES = theme.shapes;
   const rows = grid?.length || 3;
   const cols = (typeof grid?.[0] === "string" ? grid[0].length : grid?.[0]?.length) || 3;
-  const framing = cameraForGrid(rows, cols, topDown);
+  const framing = cameraForGrid(rows, cols);
   const borderGlow = theme.palette.floorGlow || "#7eb6ff";
 
   return (
     <div
-      className="ghostwalk-canvas h-full min-h-[16rem] w-full overflow-hidden rounded-2xl border-2 shadow-[0_0_0_1px_rgba(126,182,255,0.18),0_18px_50px_rgba(6,12,28,0.55)]"
+      className="ghostwalk-canvas h-full min-h-[14rem] w-full overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgba(126,182,255,0.18),0_18px_50px_rgba(6,12,28,0.55)]"
       style={{
         background: theme.palette.void,
         borderColor: `color-mix(in srgb, ${borderGlow} 55%, transparent)`,
       }}
     >
       <Canvas
-        key={`${topDown ? "top" : "persp"}-${language}-${mode}`}
+        key={`${language}-${mode}`}
         shadows
         dpr={[1, 1.75]}
         gl={{ antialias: true, alpha: false }}
-        orthographic={topDown}
         camera={framing.camera}
-        aria-label={`${theme.id} Ghostwalk 3D world`}
+        aria-label={`${theme.id} Ghostwalk playground`}
       >
         <color attach="background" args={[theme.palette.void]} />
         <fog attach="fog" args={[theme.palette.fog, 12, 42]} />
         <WorldContents grid={grid} hero={hero} reduceMotion={quiet} />
         <OrbitControls
-          enablePan={false}
+          makeDefault
+          enablePan
+          enableZoom
           minDistance={framing.minDistance}
           maxDistance={framing.maxDistance}
-          maxPolarAngle={topDown ? 0.01 : Math.PI / 2.25}
+          maxPolarAngle={Math.PI / 2.15}
+          minPolarAngle={0.12}
           target={framing.center}
         />
       </Canvas>

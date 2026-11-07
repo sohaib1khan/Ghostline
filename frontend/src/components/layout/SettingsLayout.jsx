@@ -5,6 +5,7 @@ const YOU = [
   { to: "/settings/profile", label: "Profile", hint: "Name and password" },
   { to: "/settings/preferences", label: "Preferences", hint: "Accessibility, theme, and sound" },
   { to: "/settings/progress", label: "Progress", hint: "Reset lessons by track or step" },
+  { to: "/messages", label: "Messages", hint: "Bug reports and support replies" },
 ];
 
 const SITE = [

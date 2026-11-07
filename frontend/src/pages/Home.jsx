@@ -113,11 +113,12 @@ function StatChip({ label, value, hint }) {
 }
 
 export default function HomePage() {
-  const { user } = useOutletContext();
+  const { user, refreshUnread } = useOutletContext();
   const [tracks, setTracks] = useState(null);
   const [stats, setStats] = useState(null);
   const [reviewDue, setReviewDue] = useState(null);
   const [ghostwalkContinue, setGhostwalkContinue] = useState(null);
+  const [messageCount, setMessageCount] = useState(0);
   const [error, setError] = useState("");
   const prefs = readPrefs();
   const reduce = prefs.reduceMotion;
@@ -134,14 +135,17 @@ export default function HomePage() {
       api("/api/learn/dashboard"),
       api("/api/me/stats"),
       api("/api/review/due?limit=20").catch(() => null),
+      api("/api/tickets/unread").catch(() => ({ count: 0 })),
     ])
-      .then(([board, meStats, review]) => {
+      .then(([board, meStats, review, unread]) => {
         if (!cancelled) {
           setTracks(board);
           setStats(meStats);
           setReviewDue(review);
           setGhostwalkContinue(board?.ghostwalk || null);
+          setMessageCount(Number(unread?.count) || 0);
           setError("");
+          if (refreshUnread) refreshUnread();
         }
       })
       .catch((err) => {
@@ -152,7 +156,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, refreshUnread]);
 
   if (!user) {
     return (
@@ -363,6 +367,17 @@ export default function HomePage() {
 
   return (
     <section className="home-shell rounded-2xl bg-surface p-5 shadow-[var(--shadow)] sm:p-8">
+      {messageCount > 0 ? (
+        <p
+          className="mb-4 rounded-xl border-2 border-accent bg-accent/15 px-4 py-3 text-base text-text"
+          role="status"
+        >
+          You have {messageCount} support message{messageCount === 1 ? "" : "s"}.{" "}
+          <Link to="/messages" className="font-semibold text-accent underline">
+            Open Messages
+          </Link>
+        </p>
+      ) : null}
       <header className={`home-hero ${reduce ? "" : "practice-rise"}`}>
         <div className="min-w-0">
           <p className="home-kicker">Ghostline</p>

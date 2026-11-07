@@ -11,6 +11,7 @@ from app.models.practice import PracticeEvent
 from app.models.progress import ExerciseProgress, UserStats
 from app.models.session import UserSession
 from app.models.setting import AppSetting
+from app.models.ticket import Ticket, TicketMessage
 from app.models.track import Track, UserTrackAccess
 from app.models.user import User
 
@@ -29,6 +30,8 @@ __all__ = [
     "ModuleProgress",
     "NotificationChannel",
     "PracticeEvent",
+    "Ticket",
+    "TicketMessage",
     "Track",
     "User",
     "UserSession",

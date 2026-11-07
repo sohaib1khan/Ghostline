@@ -2,6 +2,15 @@ import { useEffect, useId, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { isStaff, isSuperAdmin } from "../../roles.js";
 
+function Badge({ count }) {
+  if (!count) return null;
+  return (
+    <span className="app-nav-badge" aria-label={`${count} unread`}>
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
+
 const LEARN = [
   { to: "/", label: "Home", end: true, match: (path) => path === "/" },
   {
@@ -52,6 +61,11 @@ const STUDIO_SUPER = [
     match: (path) => path.startsWith("/admin/ghostwalk"),
   },
   {
+    to: "/admin/tickets",
+    label: "Tickets",
+    match: (path) => path.startsWith("/admin/tickets"),
+  },
+  {
     to: "/admin/users",
     label: "Users",
     end: true,
@@ -90,7 +104,13 @@ function Segment({ label, tone = "learn", children }) {
   );
 }
 
-export default function AppNav({ user, onSignOut, signingOut }) {
+export default function AppNav({
+  user,
+  onSignOut,
+  signingOut,
+  unreadCount = 0,
+  onReportBug,
+}) {
   const location = useLocation();
   const path = location.pathname;
   const menuId = useId();
@@ -103,6 +123,7 @@ export default function AppNav({ user, onSignOut, signingOut }) {
     path === "/admin/settings" ||
     path.startsWith("/admin/ai") ||
     path.startsWith("/admin/certificates");
+  const messagesActive = path.startsWith("/messages");
 
   useEffect(() => {
     setOpen(false);
@@ -173,6 +194,20 @@ export default function AppNav({ user, onSignOut, signingOut }) {
         <div className="app-nav-account">
           {user ? (
             <>
+              <Key to="/messages" active={messagesActive} onNavigate={closeMenu}>
+                Messages
+                <Badge count={unreadCount} />
+              </Key>
+              <button
+                type="button"
+                className="app-nav-signout"
+                onClick={() => {
+                  closeMenu();
+                  if (onReportBug) onReportBug();
+                }}
+              >
+                Report bug
+              </button>
               <Key to="/settings/profile" active={settingsActive} onNavigate={closeMenu}>
                 Settings
               </Key>

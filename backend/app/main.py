@@ -18,17 +18,19 @@ from app.routers.auth import router as auth_router
 from app.routers.certificates import router as certificates_router
 from app.routers.check import router as check_router
 from app.routers.demo import router as demo_router
+from app.routers.exercises import router as exercises_router
 from app.routers.games import router as games_router
 from app.routers.ghostwalk import admin_router as ghostwalk_admin_router
 from app.routers.ghostwalk import router as ghostwalk_router
 from app.routers.health import router as health_router
 from app.routers.journal import router as journal_router
-from app.routers.exercises import router as exercises_router
 from app.routers.learn import router as learn_router
 from app.routers.me import router as me_router
 from app.routers.playground import router as playground_router
 from app.routers.review import router as review_router
 from app.routers.setup import router as setup_router
+from app.routers.tickets import admin_router as tickets_admin_router
+from app.routers.tickets import router as tickets_router
 from app.security.csrf import CSRFMiddleware
 from app.security.rate_limit import limiter
 from app.startup import shutdown, startup
@@ -75,6 +77,7 @@ def create_app() -> FastAPI:
     app.include_router(games_router, prefix="/api")
     app.include_router(review_router, prefix="/api")
     app.include_router(journal_router, prefix="/api")
+    app.include_router(tickets_router, prefix="/api")
     app.include_router(ghostwalk_router, prefix="/api")
     app.include_router(ghostwalk_admin_router, prefix="/api")
     app.include_router(playground_router, prefix="/api")
@@ -85,6 +88,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_content_router, prefix="/api")
     app.include_router(admin_settings_router, prefix="/api")
     app.include_router(admin_certificates_router, prefix="/api")
+    app.include_router(tickets_admin_router, prefix="/api")
     return app
 
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { api } from "./api/client.js";
 import AiPage from "./pages/admin/AiPage.jsx";
@@ -8,7 +8,10 @@ import LeaderboardPage from "./pages/admin/LeaderboardPage.jsx";
 import LessonPreview from "./pages/admin/LessonPreview.jsx";
 import SettingsPage from "./pages/admin/SettingsPage.jsx";
 import CertificateSettingsPage from "./pages/admin/CertificateSettingsPage.jsx";
+import TicketsAdminPage from "./pages/admin/TicketsAdminPage.jsx";
 import UsersPage from "./pages/admin/UsersPage.jsx";
+import ReportBugModal from "./components/support/ReportBugModal.jsx";
+import MessagesPage from "./pages/support/MessagesPage.jsx";
 import GamesPage from "./pages/games/GamesPage.jsx";
 import PlayPage from "./pages/games/PlayPage.jsx";
 import CertificatesPage, {
@@ -59,7 +62,22 @@ function Shell() {
   const [setupRequired, setSetupRequired] = useState(false);
   const [user, setUser] = useState(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
+
+  const refreshUnread = useCallback(async () => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const data = await api("/api/tickets/unread");
+      setUnreadCount(Number(data.count) || 0);
+    } catch {
+      /* keep last known count */
+    }
+  }, [user]);
 
   useEffect(() => {
     applyTheme(theme);
@@ -111,6 +129,16 @@ function Shell() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return undefined;
+    }
+    refreshUnread();
+    const timer = window.setInterval(refreshUnread, 60_000);
+    return () => window.clearInterval(timer);
+  }, [user, refreshUnread, location.pathname]);
+
   async function logout() {
     setSigningOut(true);
     try {
@@ -146,7 +174,8 @@ function Shell() {
       (location.pathname.startsWith("/admin/users") ||
         location.pathname.startsWith("/admin/content") ||
         location.pathname.startsWith("/admin/preview") ||
-        location.pathname.startsWith("/admin/certificates"))
+        location.pathname.startsWith("/admin/certificates") ||
+        location.pathname.startsWith("/admin/tickets"))
     ) {
       destination = "/";
     }
@@ -179,7 +208,13 @@ function Shell() {
             </button>
           </header>
           {ready && !setupRequired ? (
-            <AppNav user={user} onSignOut={logout} signingOut={signingOut} />
+            <AppNav
+              user={user}
+              onSignOut={logout}
+              signingOut={signingOut}
+              unreadCount={unreadCount}
+              onReportBug={() => setReportOpen(true)}
+            />
           ) : null}
           <InstallPrompt />
           <OfflineNotice />
@@ -192,8 +227,27 @@ function Shell() {
           {destination ? <Navigate to={destination} replace /> : null}
           {ready && !error && !destination ? (
             <main id="main-content" tabIndex={-1}>
-              <Outlet context={{ user, setUser, setSetupRequired, theme, setTheme }} />
+              <Outlet
+                context={{
+                  user,
+                  setUser,
+                  setSetupRequired,
+                  theme,
+                  setTheme,
+                  openReportBug: () => setReportOpen(true),
+                  refreshUnread,
+                }}
+              />
             </main>
+          ) : null}
+          {user ? (
+            <ReportBugModal
+              open={reportOpen}
+              onClose={() => setReportOpen(false)}
+              onSubmitted={() => {
+                refreshUnread();
+              }}
+            />
           ) : null}
         </div>
       </div>
@@ -223,10 +277,12 @@ export default function App() {
         </Route>
         <Route path="/admin/content" element={<ContentPage />} />
         <Route path="/admin/ghostwalk" element={<GhostwalkAdminPage />} />
+        <Route path="/admin/tickets" element={<TicketsAdminPage />} />
         <Route path="/admin/preview/lessons/:lessonId" element={<LessonPreview />} />
         <Route path="/admin/leaderboard" element={<LeaderboardPage />} />
         <Route path="/admin/leadboard" element={<Navigate to="/admin/leaderboard" replace />} />
         <Route path="/admin/users" element={<UsersPage />} />
+        <Route path="/messages" element={<MessagesPage />} />
         <Route path="/games" element={<GamesPage />} />
         <Route path="/games/:game" element={<PlayPage />} />
         <Route path="/stats" element={<Navigate to="/" replace />} />
