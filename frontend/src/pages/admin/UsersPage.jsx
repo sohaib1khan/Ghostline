@@ -223,7 +223,6 @@ export default function UsersPage() {
               className="mt-1 w-full rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
             >
               <option value="learner">Learner</option>
-              <option value="admin">Admin</option>
             </select>
           </label>
           <TrackChecks
@@ -415,7 +414,6 @@ export default function UsersPage() {
                       className="mt-1 block rounded-xl border border-muted/30 bg-bg px-3 py-2 text-text"
                     >
                       <option value="learner">Learner</option>
-                      <option value="admin">Admin</option>
                     </select>
                   </label>
                   <Action

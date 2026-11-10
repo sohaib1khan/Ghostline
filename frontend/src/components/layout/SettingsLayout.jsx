@@ -9,7 +9,7 @@ const YOU = [
 ];
 
 const SITE = [
-  { to: "/admin/settings", label: "Leaderboard", hint: "Who can see XP" },
+  { to: "/admin/settings", label: "Site & music", hint: "Leaderboard and calm playlist" },
   { to: "/settings/notifications", label: "Notifications", hint: "Where alerts are sent" },
   { to: "/admin/ai", label: "AI", hint: "Draft lessons" },
 ];

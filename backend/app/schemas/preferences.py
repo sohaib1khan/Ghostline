@@ -19,6 +19,8 @@ class PreferencesIn(BaseModel):
     reduceMotion: bool | None = None
     sound: bool | None = None
     volume: float | None = Field(default=None, ge=0, le=1)
+    music: bool | None = None
+    musicVolume: float | None = Field(default=None, ge=0, le=1)
     textScale: TextScale | None = None
     codeScale: CodeScale | None = None
     lineSpacing: LineSpacing | None = None
@@ -40,6 +42,8 @@ class PreferencesOut(BaseModel):
     reduceMotion: bool = False
     sound: bool = False
     volume: float = 0.4
+    music: bool = False
+    musicVolume: float = 0.28
     textScale: TextScale = 100
     codeScale: CodeScale = 150
     lineSpacing: LineSpacing = "relaxed"

@@ -13,7 +13,7 @@ class User(IdMixin, TimestampMixin, Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint(
-            "role in ('super_admin', 'admin', 'learner')",
+            "role in ('super_admin', 'learner')",
             name="ck_users_role",
         ),
         CheckConstraint(

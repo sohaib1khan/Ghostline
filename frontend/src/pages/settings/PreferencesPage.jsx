@@ -313,7 +313,7 @@ export default function PreferencesPage() {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3 border-t border-muted/20 pt-4">
-          <legend className="text-sm font-medium text-text">Sound</legend>
+          <legend className="text-sm font-medium text-text">Sound effects</legend>
           <label className="flex min-h-11 items-center gap-2 text-sm" htmlFor="sound">
             <input
               id="sound"
@@ -321,14 +321,14 @@ export default function PreferencesPage() {
               checked={prefs.sound}
               onChange={(event) => field("sound", event.target.checked)}
             />
-            Sound
+            Sound effects
           </label>
           <p className="text-sm text-muted">
-            Sound stays off until you turn it on. Key ticks, a correct chime, and a lesson-complete
-            tone use the volume below.
+            Key ticks, correct/wrong chimes, and lesson-complete tones. Stays off until you enable
+            it.
           </p>
           <label className="block text-sm text-muted" htmlFor="volume">
-            Volume
+            Effects volume
             <input
               id="volume"
               type="range"
@@ -338,6 +338,36 @@ export default function PreferencesPage() {
               value={prefs.volume}
               disabled={!prefs.sound}
               onChange={(event) => field("volume", Number(event.target.value))}
+              className="mt-2 block w-full"
+            />
+          </label>
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-3 border-t border-muted/20 pt-4">
+          <legend className="text-sm font-medium text-text">Calm music</legend>
+          <label className="flex min-h-11 items-center gap-2 text-sm" htmlFor="music">
+            <input
+              id="music"
+              type="checkbox"
+              checked={prefs.music}
+              onChange={(event) => field("music", event.target.checked)}
+            />
+            Background music
+          </label>
+          <p className="text-sm text-muted">
+            Soft rotating pads while you practice. Separate from sound effects — both default off.
+          </p>
+          <label className="block text-sm text-muted" htmlFor="music-volume">
+            Music volume
+            <input
+              id="music-volume"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={prefs.musicVolume}
+              disabled={!prefs.music}
+              onChange={(event) => field("musicVolume", Number(event.target.value))}
               className="mt-2 block w-full"
             />
           </label>

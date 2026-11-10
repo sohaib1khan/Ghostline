@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.0 — 2026-11-10
+
+Calm music + two-role accounts.
+
+- Soft rotating ambient pads (5 tracks); learners toggle music/SFX volumes in Preferences; super admin edits playlist URLs under Settings.
+- Roles collapsed to `super_admin` and `learner` (former `admin` accounts become learners).
+
 ## 1.6.1 — 2026-11-10
 
 Public aliases for privacy.

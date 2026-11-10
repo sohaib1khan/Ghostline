@@ -17,6 +17,8 @@ export const PREF_DEFAULTS = {
   reduceMotion: false,
   sound: false,
   volume: 0.4,
+  music: false,
+  musicVolume: 0.28,
   textScale: 100,
   // DECISION: large code by default — low-vision users should not hunt for a setting first.
   codeScale: 150,
@@ -94,6 +96,7 @@ function firstVisitDefaults() {
 export function normalizePrefs(raw = {}) {
   const parsed = raw && typeof raw === "object" ? raw : {};
   const volume = Number(parsed.volume);
+  const musicVolume = Number(parsed.musicVolume);
   let codeScale = clampScale(parsed.codeScale);
   if (parsed.codeScale === undefined && parsed.typingScale) {
     codeScale = codeFromTyping(pick(TYPING_SCALES, parsed.typingScale, "lg"));
@@ -105,6 +108,10 @@ export function normalizePrefs(raw = {}) {
     reduceMotion: Boolean(parsed.reduceMotion),
     sound: Boolean(parsed.sound),
     volume: Number.isFinite(volume) ? Math.min(1, Math.max(0, volume)) : PREF_DEFAULTS.volume,
+    music: Boolean(parsed.music),
+    musicVolume: Number.isFinite(musicVolume)
+      ? Math.min(1, Math.max(0, musicVolume))
+      : PREF_DEFAULTS.musicVolume,
     textScale,
     codeScale,
     lineSpacing: pick(LINE_SPACINGS, parsed.lineSpacing, PREF_DEFAULTS.lineSpacing),

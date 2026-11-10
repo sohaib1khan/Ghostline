@@ -26,6 +26,7 @@ from app.routers.health import router as health_router
 from app.routers.journal import router as journal_router
 from app.routers.learn import router as learn_router
 from app.routers.me import router as me_router
+from app.routers.music import router as music_router
 from app.routers.playground import router as playground_router
 from app.routers.review import router as review_router
 from app.routers.setup import router as setup_router
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
     app.include_router(setup_router, prefix="/api")
     app.include_router(auth_router, prefix="/api")
     app.include_router(me_router, prefix="/api")
+    app.include_router(music_router, prefix="/api")
     app.include_router(learn_router, prefix="/api")
     app.include_router(exercises_router, prefix="/api")
     app.include_router(certificates_router, prefix="/api")

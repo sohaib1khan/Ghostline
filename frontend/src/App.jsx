@@ -40,6 +40,7 @@ import SettingsLayout from "./components/layout/SettingsLayout.jsx";
 import InstallPrompt from "./components/pwa/InstallPrompt.jsx";
 import OfflineNotice from "./components/pwa/OfflineNotice.jsx";
 import { clearPracticeSession } from "./practiceSession.js";
+import { applyMusicVolume, loadMusicPlaylist, stopMusic, syncMusicFromPrefs } from "./music.js";
 import { applyStoredPrefs, mergeServerPrefs } from "./prefs.js";
 import { isStaff, isSuperAdmin } from "./roles.js";
 import { applyTheme, readTheme } from "./theme/theme.js";
@@ -86,6 +87,36 @@ function Shell() {
   useEffect(() => {
     applyStoredPrefs();
   }, []);
+
+  useEffect(() => {
+    function onPrefs() {
+      applyMusicVolume();
+      syncMusicFromPrefs();
+    }
+    window.addEventListener("ghostline-prefs", onPrefs);
+    return () => window.removeEventListener("ghostline-prefs", onPrefs);
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      stopMusic();
+      return undefined;
+    }
+    let cancelled = false;
+    loadMusicPlaylist().then(() => {
+      if (!cancelled) syncMusicFromPrefs();
+    });
+    function unlock() {
+      syncMusicFromPrefs();
+    }
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [user]);
 
   useEffect(() => {
     let cancelled = false;

@@ -138,7 +138,7 @@ async def create_user(
     ip: str | None,
 ) -> dict:
     if role not in ASSIGNABLE_ROLES:
-        raise UserAdminError(400, "Role must be admin or learner")
+        raise UserAdminError(400, "Role must be learner")
     normalized = email.strip().lower()
     try:
         validate_password(password, normalized)
@@ -196,7 +196,7 @@ async def update_user(
     next_role = role or user.role
     next_status = status or user.status
     if role is not None and role not in ASSIGNABLE_ROLES:
-        raise UserAdminError(400, "Role must be admin or learner")
+        raise UserAdminError(400, "Role must be learner")
     if next_role == SUPER_ADMIN_ROLE and not is_super_admin(user.role):
         raise UserAdminError(400, "Super admin cannot be assigned here")
     await _keep_a_super_admin(session, user, role=next_role, status=next_status)
