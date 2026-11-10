@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { api } from "../../api/client.js";
 import StreakFlame from "../../components/feedback/StreakFlame.jsx";
+import { isSuperAdmin } from "../../roles.js";
+
+function learnerLabel(row, showReal) {
+  if (showReal && row.real_name) {
+    return row.real_name;
+  }
+  if (showReal && row.first_name) {
+    return `${row.first_name} ${row.last_name || ""}`.trim();
+  }
+  return row.display_name || row.public_alias || "Anonymous Coder";
+}
 
 const SORTS = [
   { id: "xp", label: "XP" },
@@ -74,6 +86,8 @@ function formatWhen(iso) {
 }
 
 export default function LeaderboardPage() {
+  const { user } = useOutletContext();
+  const showReal = isSuperAdmin(user?.role);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [sort, setSort] = useState("time_spent_seconds");
@@ -105,7 +119,17 @@ export default function LeaderboardPage() {
     const needle = query.trim().toLowerCase();
     const filtered = needle
       ? data.leaderboard.filter((row) => {
-          const hay = `${row.first_name} ${row.last_name} ${row.role}`.toLowerCase();
+          const hay = [
+            row.display_name,
+            row.public_alias,
+            row.role,
+            showReal ? row.real_name : "",
+            showReal ? row.first_name : "",
+            showReal ? row.last_name : "",
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
           return hay.includes(needle);
         })
       : data.leaderboard;
@@ -116,7 +140,7 @@ export default function LeaderboardPage() {
       }
       return (right.time_spent_seconds || 0) - (left.time_spent_seconds || 0);
     });
-  }, [data, query, sort]);
+  }, [data, query, sort, showReal]);
 
   const topByTime = useMemo(() => {
     if (!data?.leaderboard) {
@@ -232,8 +256,11 @@ export default function LeaderboardPage() {
                     #{index + 1}
                   </p>
                   <p className="mt-1 truncate font-medium text-text">
-                    {row.first_name} {row.last_name}
+                    {learnerLabel(row, showReal)}
                   </p>
+                  {showReal && row.public_alias ? (
+                    <p className="truncate text-xs text-muted">{row.public_alias}</p>
+                  ) : null}
                   <p className="mt-1 font-mono text-sm text-accent">
                     {formatDuration(row.time_spent_seconds)}
                   </p>
@@ -400,9 +427,10 @@ export default function LeaderboardPage() {
                   <tr key={row.id}>
                     <td className="font-mono text-muted">{index + 1}</td>
                     <td>
-                      <p className="font-medium text-text">
-                        {row.first_name} {row.last_name}
-                      </p>
+                      <p className="font-medium text-text">{learnerLabel(row, showReal)}</p>
+                      {showReal && row.public_alias ? (
+                        <p className="text-xs text-muted">{row.public_alias}</p>
+                      ) : null}
                       {row.role !== "learner" ? (
                         <p className="text-xs text-muted">{row.role}</p>
                       ) : null}

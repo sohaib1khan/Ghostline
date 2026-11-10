@@ -208,8 +208,12 @@ async def test_games_score_once_and_stats_follow(database) -> None:
         assert opened.status_code == 200
         board = await request(learner, "GET", "/api/games/leaderboard")
         assert board.status_code == 200
-        assert board.json()["entries"][0]["name"] == "Grace"
+        entry_name = board.json()["entries"][0]["name"]
+        assert entry_name
+        assert entry_name != "Grace"
+        assert "Grace" not in board.text
         assert LEARNER_EMAIL not in board.text
+        assert "Hopper" not in board.text
         shut = await request(admin, "PUT", "/api/admin/settings", {"leaderboard_enabled": False})
         assert shut.status_code == 200
         assert (await request(learner, "GET", "/api/games/leaderboard")).status_code == 404

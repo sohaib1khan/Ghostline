@@ -8,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.practice import PracticeEvent
 from app.models.progress import ExerciseProgress, UserStats
 from app.models.user import User
+from app.security.roles import is_super_admin
+from app.services.aliases import public_label, real_label
 
 
-async def staff_insights(session: AsyncSession) -> dict:
+async def staff_insights(session: AsyncSession, *, viewer: User | None = None) -> dict:
     today = datetime.now(UTC).date()
     week_ago = today - timedelta(days=6)
     fortnight_ago = today - timedelta(days=13)
@@ -167,7 +169,7 @@ async def staff_insights(session: AsyncSession) -> dict:
         for row in source_rows
     ]
 
-    board = await _leaderboard_rows(session, week_ago)
+    board = await _leaderboard_rows(session, week_ago, viewer=viewer)
     return {
         "summary": {
             "approved_users": int(approved or 0),
@@ -189,7 +191,9 @@ async def staff_insights(session: AsyncSession) -> dict:
     }
 
 
-async def _leaderboard_rows(session: AsyncSession, week_ago: date) -> list[dict]:
+async def _leaderboard_rows(
+    session: AsyncSession, week_ago: date, *, viewer: User | None = None
+) -> list[dict]:
     users = list(
         (
             await session.scalars(
@@ -199,6 +203,7 @@ async def _leaderboard_rows(session: AsyncSession, week_ago: date) -> list[dict]
     )
     if not users:
         return []
+    show_real = bool(viewer and is_super_admin(viewer.role))
 
     user_ids = [user.id for user in users]
     stats_rows = list(
@@ -281,34 +286,37 @@ async def _leaderboard_rows(session: AsyncSession, week_ago: date) -> list[dict]
     for user in users:
         stats = stats_by.get(user.id)
         events = events_by.get(user.id)
-        rows.append(
-            {
-                "id": str(user.id),
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "role": user.role,
-                "xp": int(stats.xp) if stats else 0,
-                "current_streak_days": int(stats.current_streak_days) if stats else 0,
-                "longest_streak_days": int(stats.longest_streak_days) if stats else 0,
-                "last_active_date": (
-                    stats.last_active_date.isoformat()
-                    if stats and stats.last_active_date
-                    else None
-                ),
-                "exercises_completed": completed_by.get(user.id, 0),
-                "practice_sessions": int(events.sessions) if events else 0,
-                "games_played": int(events.games) if events else 0,
-                "time_spent_seconds": int(events.seconds) if events else 0,
-                "lesson_time_seconds": int(events.lesson_seconds) if events else 0,
-                "game_time_seconds": int(events.game_seconds) if events else 0,
-                "time_spent_7d": int(events.week_seconds) if events else 0,
-                "avg_wpm": int(events.avg_wpm) if events and events.avg_wpm is not None else None,
-                "last_practice_at": (
-                    events.last_practice.isoformat() if events and events.last_practice else None
-                ),
-                "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
-            }
-        )
+        row = {
+            "id": str(user.id),
+            "display_name": public_label(user),
+            "public_alias": public_label(user),
+            "role": user.role,
+            "xp": int(stats.xp) if stats else 0,
+            "current_streak_days": int(stats.current_streak_days) if stats else 0,
+            "longest_streak_days": int(stats.longest_streak_days) if stats else 0,
+            "last_active_date": (
+                stats.last_active_date.isoformat()
+                if stats and stats.last_active_date
+                else None
+            ),
+            "exercises_completed": completed_by.get(user.id, 0),
+            "practice_sessions": int(events.sessions) if events else 0,
+            "games_played": int(events.games) if events else 0,
+            "time_spent_seconds": int(events.seconds) if events else 0,
+            "lesson_time_seconds": int(events.lesson_seconds) if events else 0,
+            "game_time_seconds": int(events.game_seconds) if events else 0,
+            "time_spent_7d": int(events.week_seconds) if events else 0,
+            "avg_wpm": int(events.avg_wpm) if events and events.avg_wpm is not None else None,
+            "last_practice_at": (
+                events.last_practice.isoformat() if events and events.last_practice else None
+            ),
+            "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
+        }
+        if show_real:
+            row["first_name"] = user.first_name
+            row["last_name"] = user.last_name
+            row["real_name"] = real_label(user)
+        rows.append(row)
 
     rows.sort(
         key=lambda item: (

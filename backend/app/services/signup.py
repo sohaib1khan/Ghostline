@@ -45,10 +45,13 @@ async def signup(
     if existing is not None:
         return SIGNUP_MESSAGE
 
+    from app.services.aliases import unique_alias
+
     user = User(
         email=normalized,
         first_name=first_name,
         last_name=last_name,
+        public_alias=await unique_alias(session),
         password_hash=password_hash,
         role="learner",
         status="approved",

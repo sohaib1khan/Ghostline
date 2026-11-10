@@ -33,7 +33,11 @@ SAMPLE_ID = "00000000-0000-4000-8000-000000000001"
 
 PROTECTED = [
     ("GET", "/api/me", None),
-    ("PATCH", "/api/me", {"first_name": "Grace", "last_name": "Hopper"}),
+    (
+        "PATCH",
+        "/api/me",
+        {"first_name": "Grace", "last_name": "Hopper", "public_alias": "Recursive Raccoon"},
+    ),
     ("POST", "/api/me/password", {"current_password": PASSWORD, "new_password": OTHER_PASSWORD}),
     ("GET", "/api/learn/tracks", None),
     ("GET", "/api/learn/tracks/bash", None),
@@ -507,14 +511,18 @@ async def test_direct_create_reset_reject_and_last_admin(database) -> None:
 async def test_profile_keeps_this_session_and_revokes_others(database) -> None:
     async with api_client() as client:
         await create_admin(client)
+        me = await request(client, "GET", "/api/me")
+        assert me.status_code == 200
+        alias = me.json()["public_alias"]
         renamed = await request(
             client,
             "PATCH",
             "/api/me",
-            {"first_name": "Augusta", "last_name": "King"},
+            {"first_name": "Augusta", "last_name": "King", "public_alias": alias},
         )
         assert renamed.status_code == 200
         assert renamed.json()["first_name"] == "Augusta"
+        assert renamed.json()["public_alias"] == alias
 
         async with get_sessionmaker()() as session:
             admin = await session.scalar(select(User).where(User.email == ADMIN_EMAIL))

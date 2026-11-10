@@ -66,10 +66,13 @@ async def maybe_bootstrap_admin(session: AsyncSession) -> bool:
         )
         if await admin_exists(session):
             return True
+        from app.services.aliases import unique_alias
+
         user = User(
             email=email,
             first_name=first_name[:80],
             last_name=last_name[:80],
+            public_alias=await unique_alias(session),
             password_hash=hash_password(password),
             role=SUPER_ADMIN_ROLE,
             status="approved",
@@ -134,10 +137,13 @@ async def create_initial_admin(
             validate_password(password, email)
         except ValueError as exc:
             raise SetupError(400, str(exc)) from exc
+        from app.services.aliases import unique_alias
+
         user = User(
             email=email,
             first_name=first_name,
             last_name=last_name,
+            public_alias=await unique_alias(session),
             password_hash=hash_password(password),
             role=SUPER_ADMIN_ROLE,
             status="approved",

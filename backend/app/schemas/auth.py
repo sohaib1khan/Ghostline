@@ -65,11 +65,19 @@ class SignupOut(BaseModel):
 class ProfileIn(BaseModel):
     first_name: str = Field(min_length=1, max_length=80)
     last_name: str = Field(min_length=1, max_length=80)
+    public_alias: str = Field(min_length=2, max_length=40)
 
     @field_validator("first_name", "last_name")
     @classmethod
     def clean_name(cls, value: str) -> str:
         return _clean_name(value)
+
+    @field_validator("public_alias")
+    @classmethod
+    def clean_alias(cls, value: str) -> str:
+        from app.services.aliases import clean_alias
+
+        return clean_alias(value)
 
 
 class PasswordChangeIn(BaseModel):
@@ -84,5 +92,6 @@ class UserOut(BaseModel):
     email: str
     first_name: str
     last_name: str
+    public_alias: str
     role: str
     status: str

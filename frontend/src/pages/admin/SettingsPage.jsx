@@ -60,7 +60,7 @@ export default function SettingsPage() {
           Show the leaderboard
         </label>
         <p className="text-sm text-muted">
-          When this is on, learners see first names and XP on the stats page. It stays off until you
+          When this is on, learners see public aliases and XP. Real names stay private. It stays off until you
           turn it on.
         </p>
         {error ? <p className="text-sm text-error">{error}</p> : null}

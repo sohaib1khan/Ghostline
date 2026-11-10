@@ -13,7 +13,12 @@ from app.security.deps import current_user
 from app.security.requests import client_ip
 from app.services.content_store import ContentError
 from app.services.preferences import read_preferences, update_preferences
-from app.services.profile import ProfileError, change_password, update_profile
+from app.services.profile import (
+    ProfileError,
+    change_password,
+    regenerate_alias,
+    update_profile,
+)
 from app.services.progress import reset_progress
 from app.services.stats import learner_stats
 
@@ -56,13 +61,27 @@ async def patch_me(
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> UserOut:
-    updated = await update_profile(
-        db,
-        user,
-        first_name=payload.first_name,
-        last_name=payload.last_name,
-        ip=client_ip(request),
-    )
+    try:
+        updated = await update_profile(
+            db,
+            user,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+            public_alias=payload.public_alias,
+            ip=client_ip(request),
+        )
+    except ProfileError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+    return UserOut.model_validate(updated)
+
+
+@router.post("/me/alias/regenerate", response_model=UserOut)
+async def post_regenerate_alias(
+    request: Request,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserOut:
+    updated = await regenerate_alias(db, user, ip=client_ip(request))
     return UserOut.model_validate(updated)
 
 

@@ -25,6 +25,8 @@ class User(IdMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)
     first_name: Mapped[str] = mapped_column(String(80), nullable=False)
     last_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    # Shown on shared boards; real names stay private except to super admins.
+    public_alias: Mapped[str] = mapped_column(String(40), unique=True, nullable=False, default="")
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False)

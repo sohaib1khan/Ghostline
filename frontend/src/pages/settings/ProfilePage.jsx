@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const { user, setUser } = useOutletContext();
   const [firstName, setFirstName] = useState(user?.first_name ?? "");
   const [lastName, setLastName] = useState(user?.last_name ?? "");
+  const [publicAlias, setPublicAlias] = useState(user?.public_alias ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [notice, setNotice] = useState("");
@@ -27,10 +28,31 @@ export default function ProfilePage() {
     try {
       const updated = await api("/api/me", {
         method: "PATCH",
-        body: { first_name: firstName, last_name: lastName },
+        body: {
+          first_name: firstName,
+          last_name: lastName,
+          public_alias: publicAlias,
+        },
       });
       setUser(updated);
-      setNotice("Name saved.");
+      setPublicAlias(updated.public_alias || "");
+      setNotice("Profile saved.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function rollAlias() {
+    setError("");
+    setNotice("");
+    setPending(true);
+    try {
+      const updated = await api("/api/me/alias/regenerate", { method: "POST" });
+      setUser(updated);
+      setPublicAlias(updated.public_alias || "");
+      setNotice("New public alias ready — save if you also changed your real name.");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -67,22 +89,47 @@ export default function ProfilePage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               id="profile-first-name"
-              label="First name"
+              label="First name (private)"
               value={firstName}
               onChange={setFirstName}
               autoComplete="given-name"
             />
             <Field
               id="profile-last-name"
-              label="Last name"
+              label="Last name (private)"
               value={lastName}
               onChange={setLastName}
               autoComplete="family-name"
             />
           </div>
-          <SubmitButton disabled={pending || !firstName.trim() || !lastName.trim()}>
-            Save name
-          </SubmitButton>
+          <p className="text-sm text-muted">
+            Your real name stays private. Only a super admin can see it on the Studio board.
+          </p>
+          <Field
+            id="profile-public-alias"
+            label="Public alias"
+            value={publicAlias}
+            onChange={setPublicAlias}
+            autoComplete="nickname"
+          />
+          <p className="text-sm text-muted">
+            This funny programming name is what others see on shared boards.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <SubmitButton
+              disabled={pending || !firstName.trim() || !lastName.trim() || !publicAlias.trim()}
+            >
+              Save profile
+            </SubmitButton>
+            <button
+              type="button"
+              className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm"
+              disabled={pending}
+              onClick={rollAlias}
+            >
+              Roll a new alias
+            </button>
+          </div>
         </form>
       </section>
       <section className="rounded-2xl bg-surface p-6 shadow-[var(--shadow)]">

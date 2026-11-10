@@ -13,7 +13,7 @@ router = APIRouter(prefix="/admin/insights", tags=["admin-insights"])
 
 @router.get("")
 async def insights(
-    _: User = Depends(require_admin),
+    user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    return await staff_insights(db)
+    return await staff_insights(db, viewer=user)

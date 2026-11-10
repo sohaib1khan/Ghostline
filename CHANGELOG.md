@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.1 — 2026-11-10
+
+Public aliases for privacy.
+
+- Shared boards (Studio Leaderboard for non–super-admins, games XP board) show funny programming aliases instead of real names.
+- Only super admins see legal names on the Studio board; learners control their public alias on Profile (edit or roll a new one).
+
 ## 1.6.0 — 2026-11-07
 
 In-app bug reports and support messages.

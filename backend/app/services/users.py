@@ -147,10 +147,13 @@ async def create_user(
     taken = await session.scalar(select(User.id).where(User.email == normalized))
     if taken is not None:
         raise UserAdminError(409, "A user with that email already exists")
+    from app.services.aliases import unique_alias
+
     user = User(
         email=normalized,
         first_name=first_name,
         last_name=last_name,
+        public_alias=await unique_alias(session),
         password_hash=hash_password(password),
         role=role,
         status="approved",

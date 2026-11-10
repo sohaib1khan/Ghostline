@@ -1110,15 +1110,19 @@ async def leaderboard(session: AsyncSession) -> list[dict]:
     rows = list(
         (
             await session.execute(
-                select(User.first_name, UserStats.xp, UserStats.current_streak_days)
+                select(User.public_alias, UserStats.xp, UserStats.current_streak_days)
                 .join(UserStats, UserStats.user_id == User.id)
                 .where(User.status == "approved", UserStats.xp > 0)
-                .order_by(UserStats.xp.desc(), User.first_name)
+                .order_by(UserStats.xp.desc(), User.public_alias)
                 .limit(10)
             )
         ).all()
     )
     return [
-        {"name": row.first_name, "xp": row.xp, "streak_days": row.current_streak_days}
+        {
+            "name": (row.public_alias or "Anonymous Coder").strip() or "Anonymous Coder",
+            "xp": row.xp,
+            "streak_days": row.current_streak_days,
+        }
         for row in rows
     ]

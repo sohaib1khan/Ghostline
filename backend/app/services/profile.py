@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.security.passwords import hash_password, validate_password, verify_password
 from app.security.tokens import hash_token
+from app.services.aliases import unique_alias
 from app.services.audit import write_audit
 from app.services.auth import revoke_user_sessions
 
@@ -22,17 +23,50 @@ async def update_profile(
     *,
     first_name: str,
     last_name: str,
+    public_alias: str,
     ip: str | None,
 ) -> User:
+    try:
+        alias = await unique_alias(
+            session, except_user_id=user.id, preferred=public_alias
+        )
+    except ValueError as exc:
+        raise ProfileError(400, str(exc)) from exc
     user.first_name = first_name
     user.last_name = last_name
+    user.public_alias = alias
     await write_audit(
         session,
         actor_user_id=user.id,
         action="profile.update",
         target_type="user",
         target_id=str(user.id),
-        details={"first_name": first_name, "last_name": last_name},
+        details={
+            "first_name": first_name,
+            "last_name": last_name,
+            "public_alias": alias,
+        },
+        ip=ip,
+    )
+    await session.commit()
+    return user
+
+
+async def regenerate_alias(
+    session: AsyncSession,
+    user: User,
+    *,
+    ip: str | None,
+) -> User:
+    alias = await unique_alias(session, except_user_id=user.id)
+    user.public_alias = alias
+    await write_audit(
+        session,
+        actor_user_id=user.id,
+        action="profile.alias",
+        target_type="user",
+        target_id=str(user.id),
+        details={"public_alias": alias},
         ip=ip,
     )
     await session.commit()
