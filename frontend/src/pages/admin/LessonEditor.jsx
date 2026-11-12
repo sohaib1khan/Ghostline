@@ -69,6 +69,7 @@ function blankExercise(type = "recall") {
     walkthroughForm: blankWalkthrough(),
     walkthroughEnabled: false,
     quizForm: [],
+    bossHintsForm: [],
   };
 }
 
@@ -141,11 +142,16 @@ function payloadFromForm(form) {
       wrong: lines(item.wrongText || ""),
       why: item.why || "",
     }));
+  data.boss_hints = (form.bossHintsForm || [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .slice(0, 6);
   delete data.hintsText;
   delete data.answersText;
   delete data.walkthroughForm;
   delete data.walkthroughEnabled;
   delete data.quizForm;
+  delete data.bossHintsForm;
   return data;
 }
 
@@ -179,6 +185,7 @@ function formFromData(data) {
       wrongText: (item.wrong || []).join("\n"),
       why: item.why || "",
     })),
+    bossHintsForm: (data.boss_hints || []).map((item) => String(item || "")),
     check: {
       ...blankExercise().check,
       ...data.check,
@@ -207,6 +214,9 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
   const [output, setOutput] = useState("");
   const [walkOpen, setWalkOpen] = useState(Boolean(exercise?.data?.walkthrough));
   const [quizOpen, setQuizOpen] = useState((exercise?.data?.quiz || []).length > 0);
+  const [bossHintsOpen, setBossHintsOpen] = useState(
+    (exercise?.data?.boss_hints || []).length > 0,
+  );
   const [preview, setPreview] = useState(null);
 
   const programLines = useMemo(() => programFromForm(form).split("\n"), [form]);
@@ -996,6 +1006,103 @@ function ExerciseForm({ lessonId, exercise, onSaved, onDeleted = null }) {
               </ul>
             ) : null}
           </div>
+          {form.type === "recall" || form.type === "challenge" ? (
+            <div className="rounded-xl border border-muted/20 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  className="text-sm font-medium text-accent"
+                  onClick={() => setBossHintsOpen((value) => !value)}
+                  aria-expanded={bossHintsOpen}
+                >
+                  {bossHintsOpen ? "Hide boss hints" : "Boss hints"}
+                </button>
+                <button
+                  type="button"
+                  className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                  disabled={(form.bossHintsForm || []).length >= 6}
+                  onClick={() =>
+                    update({ bossHintsForm: [...(form.bossHintsForm || []), ""] })
+                  }
+                >
+                  Add hint step
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                Ladder for the module boss (remind → parts → shape). Do not paste the full
+                answer. Max 6 steps.
+              </p>
+              {bossHintsOpen ? (
+                <ul className="mt-3 flex flex-col gap-3">
+                  {(form.bossHintsForm || []).map((hint, index) => (
+                    <li key={`boss-hint-${index}`} className="rounded-xl border border-muted/20 bg-bg/50 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium">Step {index + 1}</p>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                            disabled={index === 0}
+                            onClick={() => {
+                              const next = [...(form.bossHintsForm || [])];
+                              [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                              update({ bossHintsForm: next });
+                            }}
+                          >
+                            Up
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm"
+                            disabled={index >= (form.bossHintsForm || []).length - 1}
+                            onClick={() => {
+                              const next = [...(form.bossHintsForm || [])];
+                              [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                              update({ bossHintsForm: next });
+                            }}
+                          >
+                            Down
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-11 rounded-xl border border-muted/30 px-3 text-sm text-error"
+                            onClick={() =>
+                              update({
+                                bossHintsForm: (form.bossHintsForm || []).filter(
+                                  (_, i) => i !== index,
+                                ),
+                              })
+                            }
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                      <label className="mt-2 block text-sm">
+                        Hint text
+                        <textarea
+                          className="mt-1 w-full rounded-xl border border-muted/30 bg-surface px-3 py-2 font-mono"
+                          rows={4}
+                          value={hint}
+                          onChange={(event) => {
+                            const next = [...(form.bossHintsForm || [])];
+                            next[index] = event.target.value;
+                            update({ bossHintsForm: next });
+                          }}
+                        />
+                      </label>
+                    </li>
+                  ))}
+                  {(form.bossHintsForm || []).length === 0 ? (
+                    <li className="text-sm text-muted">
+                      No boss hints yet — the server builds a short fallback ladder from the
+                      lesson title and practice hints.
+                    </li>
+                  ) : null}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
           <div className="rounded-xl border border-muted/20 p-3">
             <p className="text-sm font-medium">Test this rule</p>
             <label className="mt-2 block text-sm">

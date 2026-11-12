@@ -188,6 +188,7 @@ class ExerciseData(BaseModel):
     time_limit_seconds: int | None = Field(default=None, ge=1, le=3600)
     walkthrough: WalkthroughIn | None = None
     quiz: list[QuizItemIn] = Field(default_factory=list, max_length=6)
+    boss_hints: list[str] = Field(default_factory=list, max_length=6)
 
     @field_validator("hints")
     @classmethod
@@ -196,6 +197,17 @@ class ExerciseData(BaseModel):
             if len(item) > 800:
                 raise ValueError("A hint is too long")
         return value
+
+    @field_validator("boss_hints")
+    @classmethod
+    def short_boss_hints(cls, value: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for item in value:
+            text = str(item)
+            if len(text) > 4000:
+                raise ValueError("A boss hint is too long")
+            cleaned.append(text)
+        return cleaned
 
     @model_validator(mode="after")
     def type_fields(self) -> "ExerciseData":

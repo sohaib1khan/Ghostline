@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0 — 2026-11-12
+
+Module boss: hints that cost points, honest server scores.
+
+- Boss runs live on the server (`boss_runs`); start / hint / check / reveal / finish — no answer `ghost` in the browser, no trusted `passed` flags.
+- Per-item credit: deepest hint opened (90% / 75% / 50%), second try halves, Show answer = 0; pass mark still 70%.
+- `boss_hints` on recall/challenge exercises (Studio editor + YAML import); fallback ladder from lesson title/summary when missing.
+- BossPage: Need a nudge? ladder, stay-on-item feedback with Next, results breakdown and Mastered without hints.
+
 ## 1.7.0 — 2026-11-10
 
 Calm music + two-role accounts.

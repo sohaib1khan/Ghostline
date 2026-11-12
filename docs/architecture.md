@@ -24,7 +24,7 @@ Published lessons are what learners and the public demo can open. Drafts stay in
 
 - **Checks** stay string-based in `services/check_engine.py` (optional partial credit for `must_contain_all`). Learner code never runs on the API.
 - **Spaced review** stores `next_review_at` / `ease` / `interval_days` on `exercise_progress`; `services/review.py` schedules; `GET /api/review/due` interleaves due items (journal struggles first).
-- **Mastery gates** live in `services/gating.py` and `module_progress`. The next module unlocks at 80% recall completion; a module boss (no hints, 70% pass) sets `mastered_at`. Certificates require every module boss on the track.
+- **Mastery gates** live in `services/gating.py` and `module_progress`. The next module unlocks at 80% recall completion; a module boss (`boss_runs`, hints that cost credit, 70% pass) sets `mastered_at`. Certificates require every module boss on the track.
 - **Mistake journal** (`attempt_log`, 90-day retention) powers “usual slips” and prefers struggling items in review.
 - **Preferences** JSON on the user (and localStorage for demo) drives rem/`--ui-scale`, contrast themes, and editor comfort.
 

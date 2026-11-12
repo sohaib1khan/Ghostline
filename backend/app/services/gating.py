@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -288,86 +287,3 @@ def pick_boss_exercises(exercises: list[Exercise], *, limit: int = BOSS_SIZE_MAX
     if len(picked) < BOSS_SIZE_MIN:
         return picked
     return picked[: max(BOSS_SIZE_MIN, min(limit, len(picked)))]
-
-
-async def boss_payload(session: AsyncSession, user: User, module_id: uuid.UUID) -> dict:
-    module = await session.scalar(
-        select(Module)
-        .where(Module.id == module_id)
-        .options(selectinload(Module.lessons).selectinload(Lesson.exercises))
-    )
-    if module is None or module.status != "published":
-        raise ContentError(404, "Module not found")
-    await assert_module_unlocked(session, user, module)
-    exercises = [
-        exercise
-        for lesson in module.lessons
-        if lesson.status == "published"
-        for exercise in lesson.exercises
-        if exercise.status == "published" and exercise.type in RECALL_TYPES
-    ]
-    picked = pick_boss_exercises(exercises)
-    from app.services.content_store import _ghost_answer
-
-    items = []
-    for exercise in picked:
-        data = dict(exercise.data or {})
-        items.append(
-            {
-                "id": exercise.id,
-                "type": "recall",
-                "prompt": data.get("prompt") or "Type the answer from memory.",
-                "ghost": _ghost_answer(data),
-                "hints": [],  # boss: no hints
-                "xp": data.get("xp", 0),
-            }
-        )
-    row = await ensure_module_row(session, user.id, module_id)
-    return {
-        "module_id": module.id,
-        "module_title": module.title,
-        "pass_mark": BOSS_PASS_MARK,
-        "mastered": bool(row.mastered_at),
-        "boss_score": row.boss_score,
-        "items": items,
-        "count": len(items),
-    }
-
-
-async def submit_boss(
-    session: AsyncSession,
-    user: User,
-    module_id: uuid.UUID,
-    *,
-    results: list[dict],
-) -> dict:
-    """results: [{exercise_id, passed}] — graded client-side via check API already,
-    or we re-check. Here we trust passed flags only after individual checks;
-    acceptance uses score ratio.
-    """
-    payload = await boss_payload(session, user, module_id)
-    if not payload["items"]:
-        raise ContentError(400, "This module has no boss exercises yet")
-    by_id = {item["id"]: item for item in payload["items"]}
-    passed = 0
-    total = len(by_id)
-    for entry in results:
-        ex_id = entry.get("exercise_id")
-        if ex_id in by_id and entry.get("passed"):
-            passed += 1
-    score_pct = round(100 * passed / total) if total else 0
-    ratio = passed / total if total else 0
-    row = await ensure_module_row(session, user.id, module_id)
-    row.boss_attempts = int(row.boss_attempts or 0) + 1
-    row.boss_score = score_pct
-    mastered = ratio >= BOSS_PASS_MARK
-    if mastered and row.mastered_at is None:
-        row.mastered_at = datetime.now(UTC)
-    await session.commit()
-    return {
-        "passed": mastered,
-        "score": score_pct,
-        "pass_mark": int(BOSS_PASS_MARK * 100),
-        "mastered": bool(row.mastered_at),
-        "mastered_at": row.mastered_at.isoformat() if row.mastered_at else None,
-    }

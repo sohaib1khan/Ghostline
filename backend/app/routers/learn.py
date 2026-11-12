@@ -11,26 +11,37 @@ from app.models.track import Track
 from app.models.user import User
 from app.schemas.users import TrackOut
 from app.security.deps import current_user, require_track_access
+from app.services.boss import (
+    check_boss_item,
+    finish_boss,
+    open_hint,
+    reveal_boss_item,
+    start_boss,
+)
 from app.services.content_store import (
     ContentError,
     lesson_for_learner,
     outline_for,
     projects_for_user,
 )
-from app.services.gating import boss_payload, submit_boss
 from app.services.progress import dashboard, lesson_states, progress_for_exercises
 from app.services.tracks import list_visible_tracks
 
 router = APIRouter(prefix="/learn", tags=["learn"])
 
 
-class BossResultIn(BaseModel):
+class BossHintIn(BaseModel):
     exercise_id: UUID
-    passed: bool
+    level: int = Field(ge=1, le=6)
 
 
-class BossSubmitIn(BaseModel):
-    results: list[BossResultIn] = Field(default_factory=list, max_length=20)
+class BossCheckIn(BaseModel):
+    exercise_id: UUID
+    attempt: str = Field(default="", max_length=20000)
+
+
+class BossRevealIn(BaseModel):
+    exercise_id: UUID
 
 
 def _track_out(track: Track) -> TrackOut:
@@ -122,31 +133,88 @@ async def lesson(
     return payload
 
 
-@router.get("/modules/{module_id}/boss")
-async def module_boss(
+@router.post("/modules/{module_id}/boss/start")
+async def module_boss_start(
     module_id: UUID,
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
-        return await boss_payload(db, user, module_id)
+        return await start_boss(db, user, module_id)
     except ContentError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
 
 
-@router.post("/modules/{module_id}/boss")
-async def module_boss_submit(
+@router.post("/modules/{module_id}/boss/{run_id}/hint")
+async def module_boss_hint(
     module_id: UUID,
-    payload: BossSubmitIn,
+    run_id: UUID,
+    payload: BossHintIn,
     user: User = Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     try:
-        return await submit_boss(
+        return await open_hint(
             db,
             user,
             module_id,
-            results=[item.model_dump() for item in payload.results],
+            run_id,
+            exercise_id=payload.exercise_id,
+            level=payload.level,
         )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@router.post("/modules/{module_id}/boss/{run_id}/check")
+async def module_boss_check(
+    module_id: UUID,
+    run_id: UUID,
+    payload: BossCheckIn,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    try:
+        return await check_boss_item(
+            db,
+            user,
+            module_id,
+            run_id,
+            exercise_id=payload.exercise_id,
+            attempt=payload.attempt,
+        )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@router.post("/modules/{module_id}/boss/{run_id}/reveal")
+async def module_boss_reveal(
+    module_id: UUID,
+    run_id: UUID,
+    payload: BossRevealIn,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    try:
+        return await reveal_boss_item(
+            db,
+            user,
+            module_id,
+            run_id,
+            exercise_id=payload.exercise_id,
+        )
+    except ContentError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+
+@router.post("/modules/{module_id}/boss/{run_id}/finish")
+async def module_boss_finish(
+    module_id: UUID,
+    run_id: UUID,
+    user: User = Depends(current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    try:
+        return await finish_boss(db, user, module_id, run_id)
     except ContentError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

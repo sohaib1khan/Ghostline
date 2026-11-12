@@ -48,6 +48,10 @@ modules:
                   hint: Which command lists directory contents?
             hints:
               - The command is two letters.
+            boss_hints:
+              - 'From the lesson "List a folder": ls lists names.'
+              - "You need:\n- the command ls"
+              - "The shape:\n```bash\n___\n```"
             simulated_output: |
               notes.txt
             expected_output: null
