@@ -177,12 +177,10 @@ export default function ReviewPage() {
       </div>
       {item.hints?.length ? (
         <div className="mt-4">
-          <p className="text-xs text-muted">
-            Stuck? Open a hint — it also turns on a typing ghost.
-          </p>
-          <ul className="mt-2 flex flex-col gap-1">
+          <p className="text-xs text-muted">Hints unlock a typing ghost.</p>
+          <ul className="mt-2 flex flex-col gap-2">
             {item.hints.slice(0, hintsShown).map((hint) => (
-              <li key={hint} className="hint-card text-sm text-muted">
+              <li key={hint} className="hint-card text-sm text-text">
                 {hint}
               </li>
             ))}
@@ -190,7 +188,7 @@ export default function ReviewPage() {
           {hintsShown < item.hints.length ? (
             <button
               type="button"
-              className="mt-2 min-h-11 text-sm text-accent"
+              className="hint-open-btn mt-3"
               onClick={() => setHintsShown((count) => count + 1)}
             >
               Hint ({hintsShown}/{item.hints.length})
@@ -231,16 +229,11 @@ export default function ReviewPage() {
           ))}
         </div>
       </fieldset>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="min-h-11 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
-          disabled={pending}
-          onClick={submit}
-        >
+      <div className="practice-actions mt-4">
+        <button type="button" className="practice-btn" disabled={pending} onClick={submit}>
           {pending ? "Checking…" : "Check"}
         </button>
-        <Link to="/" className="min-h-11 inline-flex items-center text-sm text-muted">
+        <Link to="/" className="practice-btn-quiet">
           Back
         </Link>
       </div>

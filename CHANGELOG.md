@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1 — 2026-11-18
+
+Practice chrome polish (all languages).
+
+- Shared lesson / review / boss controls: exercise card, hint pills, status bar, and pass panels aligned.
+- Check / Next use the same practice button treatment; pass feedback matches Review’s success panel.
+
 ## 1.8.0 — 2026-11-12
 
 Module boss: hints that cost points, honest server scores.

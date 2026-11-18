@@ -726,9 +726,14 @@ body::after {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  padding: 0.5rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 92%, transparent),
+      color-mix(in srgb, var(--bg) 35%, var(--surface))
+    );
+  padding: 0.55rem 0.95rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
@@ -891,15 +896,27 @@ body::after {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem 1rem;
-  border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  padding: 0.45rem 0.85rem;
+  gap: 0.5rem 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 96%, transparent),
+      color-mix(in srgb, var(--bg) 55%, var(--surface))
+    );
+  padding: 0.55rem 0.95rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: var(--action-font, 0.75rem);
   letter-spacing: 0.03em;
   color: var(--muted);
   animation: status-rise 420ms ease-out both;
+}
+
+.ghost-ide-statusbar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.5rem;
 }
 
 .ghost-ide-statusbar strong {
@@ -1002,10 +1019,10 @@ body::after {
 }
 
 .practice-check-fail {
-  border-radius: 0.65rem;
-  border: 2px solid color-mix(in srgb, var(--error) 70%, #fff);
-  background: color-mix(in srgb, var(--error) 22%, var(--bg));
-  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--error) 55%, transparent);
+  background: color-mix(in srgb, var(--error) 18%, var(--bg));
+  padding: 0.85rem 1rem;
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.45;
@@ -1014,25 +1031,31 @@ body::after {
 
 :root[data-theme="light"] .practice-check-fail {
   color: #7a1f1f;
-  background: color-mix(in srgb, var(--error) 16%, #fff);
-  border-color: color-mix(in srgb, var(--error) 55%, #000);
+  background: color-mix(in srgb, var(--error) 14%, #fff);
+  border-color: color-mix(in srgb, var(--error) 45%, #000);
 }
 
 .practice-check-pass {
-  border-radius: 0.65rem;
-  border: 2px solid color-mix(in srgb, var(--success) 70%, #fff);
-  background: color-mix(in srgb, var(--success) 22%, var(--bg));
-  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--success) 55%, transparent);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--success) 20%, var(--bg)),
+      color-mix(in srgb, var(--accent) 10%, var(--bg))
+    );
+  padding: 0.85rem 1rem;
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.45;
   color: #d4f5e4;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--success) 25%, transparent);
 }
 
 :root[data-theme="light"] .practice-check-pass {
   color: #14532d;
-  background: color-mix(in srgb, var(--success) 16%, #fff);
-  border-color: color-mix(in srgb, var(--success) 55%, #000);
+  background: color-mix(in srgb, var(--success) 14%, #fff);
+  border-color: color-mix(in srgb, var(--success) 45%, #000);
 }
 
 @keyframes status-rise {
@@ -1373,8 +1396,101 @@ body::after {
 }
 
 .hint-card {
-  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  padding-left: 0.65rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+  padding: 0.7rem 0.85rem;
+}
+
+.exercise-card {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--accent) 5%, var(--surface)),
+      var(--surface) 38%
+    );
+  padding: 1rem;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+:root[data-theme="light"] .exercise-card {
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--accent) 6%, #fff),
+      var(--surface) 40%
+    );
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.practice-btn {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.85rem;
+  background: var(--accent);
+  padding: 0.55rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--on-accent);
+  transition:
+    transform 160ms ease,
+    box-shadow 180ms ease,
+    filter 160ms ease;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.practice-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.practice-btn:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.practice-btn-quiet {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  background: transparent;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.practice-btn-quiet:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
+}
+
+.hint-open-btn {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 0.4rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.hint-open-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .session-bar,
@@ -1398,9 +1514,11 @@ body::after {
 }
 
 .type-chip {
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   border-radius: 999px;
-  padding: 0.15rem 0.55rem;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 0.2rem 0.65rem;
+  letter-spacing: 0.08em;
 }
 
 .game-card {

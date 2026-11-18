@@ -471,10 +471,10 @@ export default function LessonPlayer({
   }
 
   const card = (
-    <div className="rounded-xl border border-muted/20 p-4">
+    <div className="exercise-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted">
-          {index + 1} of {lesson.exercises.length} · {exercise.type}
+          {index + 1} of {lesson.exercises.length}
           {exercise.progress?.status === "completed" || result?.passed ? " · done" : ""}
         </p>
         <span className="type-chip font-mono text-xs uppercase tracking-wider text-accent">
@@ -487,8 +487,7 @@ export default function LessonPlayer({
           style={{ width: `${progressPct}%` }}
         />
       </div>
-      <p className="mt-3 text-xs text-muted">Guided practice — study, type, hint when you stall.</p>
-      <p className="mt-3">{exercise.prompt}</p>
+      <p className="mt-4 text-base leading-relaxed text-text">{exercise.prompt}</p>
       {studying ? (
         <div className="mt-4">
           <WorkedExample
@@ -630,19 +629,18 @@ export default function LessonPlayer({
           {exercise.hints?.length ? (
             <div className="mt-4">
               <p className="text-xs text-muted">
-                Stuck? Open a hint — it also turns on a typing ghost for the next key. Each hint
-                costs a little XP when you pass.
+                Hints unlock a typing ghost. Each one trims a little XP on pass.
               </p>
-              <ul className="mt-2 flex flex-col gap-1">
+              <ul className="mt-2 flex flex-col gap-2">
                 {exercise.hints.slice(0, hintsShown).map((hint, hintIndex) =>
                   reduce ? (
-                    <li key={`${hint}-${hintIndex}`} className="hint-card text-sm text-muted">
+                    <li key={`${hint}-${hintIndex}`} className="hint-card text-sm text-text">
                       {hint}
                     </li>
                   ) : (
                     <motion.li
                       key={`${hint}-${hintIndex}`}
-                      className="hint-card text-sm text-muted"
+                      className="hint-card text-sm text-text"
                       initial={hintIndex === hintsShown - 1 ? { opacity: 0, y: 10 } : false}
                       animate={{ opacity: 1, y: 0 }}
                     >
@@ -654,7 +652,7 @@ export default function LessonPlayer({
               {hintsShown < exercise.hints.length ? (
                 <button
                   type="button"
-                  className="mt-2 text-sm text-accent"
+                  className="hint-open-btn mt-3"
                   onClick={() => setHintsShown((count) => count + 1)}
                 >
                   Hint ({hintsShown}/{exercise.hints.length})
@@ -668,26 +666,26 @@ export default function LessonPlayer({
               ) : null}
             </div>
           ) : null}
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="practice-actions mt-4">
             {exercise.type !== "trace" || parsons ? (
               <button
                 type="button"
                 disabled={pending || expired || Boolean(result?.passed)}
                 onClick={() => submit(answer)}
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
+                className="practice-btn"
               >
                 {pending ? "Checking…" : "Check"}
               </button>
             ) : null}
             {needsStudy(exercise) && !result?.passed ? (
-              <button type="button" className="text-sm text-muted" onClick={() => setStudying(true)}>
+              <button type="button" className="practice-btn-quiet" onClick={() => setStudying(true)}>
                 Show example again
               </button>
             ) : null}
             {expired ? (
               <button
                 type="button"
-                className="text-sm text-accent"
+                className="practice-btn-quiet"
                 onClick={() => {
                   const next = freshExerciseState(exercise);
                   applyState(next);
@@ -706,7 +704,7 @@ export default function LessonPlayer({
               </button>
             ) : null}
             {index > 0 ? (
-              <button type="button" className="text-sm text-muted" onClick={() => goTo(index - 1)}>
+              <button type="button" className="practice-btn-quiet" onClick={() => goTo(index - 1)}>
                 Back
               </button>
             ) : null}
@@ -721,7 +719,7 @@ export default function LessonPlayer({
       {exercise.type === "trace" && !parsons && message && !result?.passed ? (
         <button
           type="button"
-          className="mt-2 text-sm text-accent"
+          className="practice-btn-quiet mt-2"
           onClick={() => submit(exercise.code)}
         >
           Try the check again
@@ -730,7 +728,7 @@ export default function LessonPlayer({
           {result?.passed ? (
         <div className="mt-4" role="status">
           <XpPop amount={burst} reduce={reduce} />
-          <p className="text-success">
+          <p className="practice-check-pass">
             {accountXp
               ? `Passed. +${result.xp_awarded} XP${
                   result.xp_total !== undefined ? ` · ${result.xp_total} total` : ""
@@ -740,7 +738,7 @@ export default function LessonPlayer({
           {exercise.has_walkthrough ? (
             <button
               type="button"
-              className="mt-3 mr-3 min-h-11 rounded-xl border-2 border-accent px-4 text-base font-medium text-accent"
+              className="practice-btn-quiet mt-3 mr-3 border-accent text-accent"
               disabled={walkLoading}
               onClick={() => openWalkthrough()}
             >
@@ -765,7 +763,7 @@ export default function LessonPlayer({
           {hasNextExercise ? (
             <button
               type="button"
-              className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
+              className="practice-btn mt-3"
               disabled={!nextReady}
               onClick={() => goTo(index + 1)}
             >
@@ -776,16 +774,16 @@ export default function LessonPlayer({
               {finish}
             </div>
           ) : nextLesson ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
+            <div className="practice-actions mt-3">
               <Link
                 to={`/learn/lessons/${nextLesson.id}`}
-                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent"
+                className="practice-btn"
                 onClick={endSession}
               >
                 Continue{nextLesson.title ? `: ${nextLesson.title}` : ""}
               </Link>
               {backTo ? (
-                <Link to={backTo} className="text-sm text-muted" onClick={endSession}>
+                <Link to={backTo} className="practice-btn-quiet" onClick={endSession}>
                   Back to path
                 </Link>
               ) : null}

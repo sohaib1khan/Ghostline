@@ -275,102 +275,100 @@ export default function BossPage() {
         Hints cost points. Pass mark {Math.round((boss.pass_mark || 0.7) * 100)}%. Item{" "}
         {index + 1} of {total}.
       </p>
-      <p className="mt-4 text-base text-text">{item.prompt}</p>
 
-      <div className="mt-4">
-        <p className="text-sm font-medium">Need a nudge?</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {costs.map((cost) => {
-            const opened = hintLevel >= cost.level;
-            const next = cost.level === hintLevel + 1;
-            return (
-              <button
-                key={cost.level}
-                type="button"
-                className="inline-flex min-h-11 items-center rounded-xl border border-muted/30 px-3 text-sm disabled:opacity-50"
-                disabled={pending || itemEnded || opened || !next}
-                onClick={() => openHint(cost.level)}
-              >
-                {cost.label} (item worth {formatWorth(cost.worth)})
-              </button>
-            );
-          })}
-          {costs.length === 0 ? (
-            <p className="text-sm text-muted">No authored hints for this item.</p>
-          ) : null}
-        </div>
-      </div>
+      <div className="exercise-card mt-5">
+        <p className="text-base leading-relaxed text-text">{item.prompt}</p>
 
-      {openedHints.length ? (
-        <div className="mt-4 flex flex-col gap-3" aria-live="polite">
-          {openedHints.map((hint) => (
-            <div key={hint.level} className="rounded-xl border border-muted/20 bg-bg/40 p-3">
-              <p className="mb-1 text-xs font-mono uppercase tracking-[0.14em] text-muted">
-                Hint {hint.level}
-              </p>
-              <MarkdownView text={hint.text} />
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="mt-4">
-        <GhostEditor value={draft} onChange={setDraft} ghost="" disabled={pending || itemEnded} />
-      </div>
-
-      <div className="mt-3 min-h-11" aria-live="polite" role="status">
-        {message ? <p className="text-sm text-muted">{message}</p> : null}
-        {itemEnded && itemPassed ? (
-          <p className="mt-1 text-sm font-medium text-success">
-            Correct {itemCredit != null ? formatCredit(itemCredit) : ""}
-          </p>
-        ) : null}
-        {itemEnded && !itemPassed && answer ? (
-          <div className="mt-2">
-            <p className="text-sm font-medium">Right answer</p>
-            <pre className="mt-1 overflow-x-auto rounded-xl bg-bg p-3 font-mono text-sm">{answer}</pre>
-            {reviewLessonId ? (
-              <Link
-                to={`/learn/lessons/${reviewLessonId}`}
-                className="mt-2 inline-flex min-h-11 items-center text-sm text-accent"
-              >
-                Review this lesson
-              </Link>
+        <div className="mt-4">
+          <p className="text-sm font-medium">Need a nudge?</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {costs.map((cost) => {
+              const opened = hintLevel >= cost.level;
+              const next = cost.level === hintLevel + 1;
+              return (
+                <button
+                  key={cost.level}
+                  type="button"
+                  className="hint-open-btn disabled:opacity-50"
+                  disabled={pending || itemEnded || opened || !next}
+                  onClick={() => openHint(cost.level)}
+                >
+                  {cost.label} (item worth {formatWorth(cost.worth)})
+                </button>
+              );
+            })}
+            {costs.length === 0 ? (
+              <p className="text-sm text-muted">No authored hints for this item.</p>
             ) : null}
           </div>
-        ) : null}
-      </div>
+        </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        {!itemEnded ? (
-          <>
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-60"
-              disabled={pending}
-              onClick={submit}
-            >
-              Check
+        {openedHints.length ? (
+          <div className="mt-4 flex flex-col gap-2" aria-live="polite">
+            {openedHints.map((hint) => (
+              <div key={hint.level} className="hint-card">
+                <p className="mb-1 text-xs font-mono uppercase tracking-[0.14em] text-muted">
+                  Hint {hint.level}
+                </p>
+                <MarkdownView text={hint.text} />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="mt-4">
+          <GhostEditor value={draft} onChange={setDraft} ghost="" disabled={pending || itemEnded} />
+        </div>
+
+        <div className="mt-3 min-h-11" aria-live="polite" role="status">
+          {message && !itemEnded ? (
+            <p className="practice-check-fail">{message}</p>
+          ) : null}
+          {itemEnded && itemPassed ? (
+            <p className="practice-check-pass">
+              Correct {itemCredit != null ? formatCredit(itemCredit) : ""}
+            </p>
+          ) : null}
+          {itemEnded && !itemPassed && answer ? (
+            <div className="practice-check-fail">
+              <p>{message || "Missed."}</p>
+              <p className="mt-2 text-sm font-medium">Right answer</p>
+              <pre className="mt-1 overflow-x-auto rounded-xl bg-bg/70 p-3 font-mono text-sm text-text">
+                {answer}
+              </pre>
+              {reviewLessonId ? (
+                <Link
+                  to={`/learn/lessons/${reviewLessonId}`}
+                  className="mt-2 inline-flex min-h-11 items-center text-sm text-accent"
+                >
+                  Review this lesson
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="practice-actions mt-4">
+          {!itemEnded ? (
+            <>
+              <button type="button" className="practice-btn" disabled={pending} onClick={submit}>
+                Check
+              </button>
+              <button
+                type="button"
+                className="practice-btn-quiet"
+                disabled={pending}
+                onClick={reveal}
+              >
+                Show answer
+              </button>
+            </>
+          ) : (
+            <button type="button" className="practice-btn" disabled={pending} onClick={goNext}>
+              {index + 1 >= total ? "See results" : "Next"}
             </button>
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center text-sm text-muted underline-offset-2 hover:underline disabled:opacity-60"
-              disabled={pending}
-              onClick={reveal}
-            >
-              Show answer
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 text-sm font-medium text-on-accent disabled:opacity-60"
-            disabled={pending}
-            onClick={goNext}
-          >
-            {index + 1 >= total ? "See results" : "Next"}
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );
