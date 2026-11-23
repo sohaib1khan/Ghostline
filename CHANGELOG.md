@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.0 — 2026-11-23
+
+Recorded step-through for Go (and multi-language playback UI).
+
+- Walkthrough schema accepts recorded `steps`, `given`, `args`, `files`, stdout/stderr, and `source_sha`; stale recordings fall back to read-only notes.
+- StepThrough plays Go recordings without running code; Python still records live in Pyodide. JS/SQL/etc. get the same chrome (run chips, stderr, Given/Files) when content is imported later.
+- Seed `go.yaml` + `python.yaml` updated with walkthroughs, quizzes, and boss hints; tracer emits a final `end` step.
+
 ## 1.8.1 — 2026-11-18
 
 Practice chrome polish (all languages).

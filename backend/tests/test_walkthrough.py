@@ -26,13 +26,22 @@ def _tracer():
 
 
 def _walkthroughs():
+    """Live-tracer checks are Python-only. Recorded languages use test_go_walkthrough."""
     for path in sorted(SEED.glob("*.yaml")):
+        if path.stem != "python":
+            continue
         track = yaml.safe_load(path.read_text(encoding="utf-8"))
         for module in track.get("modules", []):
             for lesson in module["lessons"]:
                 for exercise in lesson["exercises"]:
-                    if "walkthrough" in exercise:
-                        yield pytest.param(lesson["title"], exercise, id=f"{path.stem}:{lesson['title']}:{exercise['order']}")
+                    walk = exercise.get("walkthrough")
+                    if not walk or walk.get("steps"):
+                        continue
+                    yield pytest.param(
+                        lesson["title"],
+                        exercise,
+                        id=f"{path.stem}:{lesson['title']}:{exercise.get('order')}",
+                    )
 
 
 def _program(exercise):

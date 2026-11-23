@@ -111,24 +111,98 @@ class CheckIn(BaseModel):
         return self
 
 
+class FrameIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = Field(min_length=1, max_length=120)
+    vars: dict[str, str] = Field(default_factory=dict, max_length=80)
+
+    @field_validator("vars")
+    @classmethod
+    def short_vars(cls, value: dict[str, str]) -> dict[str, str]:
+        cleaned: dict[str, str] = {}
+        for key, raw in value.items():
+            text = str(raw)
+            # DECISION: Go recordings can include long struct dumps; keep under 3 KB.
+            if len(text) > 3000:
+                raise ValueError("Each frame variable value must be at most 3000 characters")
+            cleaned[str(key)] = text
+        return cleaned
+
+
+class StepIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    line: int = Field(ge=1)
+    event: Literal["line", "return", "yield", "exception", "defer", "end"]
+    globals: dict[str, str] = Field(default_factory=dict, max_length=80)
+    frames: list[FrameIn] = Field(default_factory=list, max_length=30)
+    stdout_len: int = Field(default=0, ge=0)
+    stderr_len: int = Field(default=0, ge=0)
+    returned: str | None = Field(default=None, max_length=300)
+    error: str | None = Field(default=None, max_length=300)
+
+    @field_validator("globals")
+    @classmethod
+    def short_globals(cls, value: dict[str, str]) -> dict[str, str]:
+        cleaned: dict[str, str] = {}
+        for key, raw in value.items():
+            text = str(raw)
+            if len(text) > 3000:
+                raise ValueError("Each global value must be at most 3000 characters")
+            cleaned[str(key)] = text
+        return cleaned
+
+
 class WalkthroughIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     setup: str = Field(default="", max_length=4000)
-    stdin: list[str] = Field(default_factory=list, max_length=20)
+    given: str = Field(default="", max_length=4000)
+    stdin: list[str] = Field(default_factory=list, max_length=60)
+    args: list[str] = Field(default_factory=list, max_length=60)
+    files: dict[str, str] = Field(default_factory=dict, max_length=10)
     try_it: str = Field(default="", max_length=4000)
     run: bool = True
     expect_error: str | None = Field(
         default=None, pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,60}$"
     )
+    stdout: str | None = Field(default=None, max_length=20000)
+    stderr: str | None = Field(default=None, max_length=20000)
+    exit_code: int | None = Field(default=None, ge=0, le=255)
+    nondeterministic: bool = False
+    source_sha: str | None = Field(default=None, max_length=16)
+    steps: list[StepIn] = Field(default_factory=list, max_length=600)
     notes: dict[int, str] = Field(default_factory=dict, max_length=300)
 
-    @field_validator("stdin")
+    @field_validator("stdin", "args")
     @classmethod
-    def short_stdin(cls, value: list[str]) -> list[str]:
+    def short_lines(cls, value: list[str]) -> list[str]:
         for item in value:
             if len(item) > 200:
-                raise ValueError("Each stdin line must be at most 200 characters")
+                raise ValueError("Each args/stdin line must be at most 200 characters")
         return value
+
+    @field_validator("files")
+    @classmethod
+    def short_files(cls, value: dict[str, str]) -> dict[str, str]:
+        cleaned: dict[str, str] = {}
+        for key, raw in value.items():
+            name = str(key)
+            if len(name) > 200:
+                raise ValueError("Each file name must be at most 200 characters")
+            text = str(raw)
+            if len(text) > 10000:
+                raise ValueError("Each walkthrough file must be at most 10 KB")
+            cleaned[name] = text
+        return cleaned
+
+    @field_validator("source_sha")
+    @classmethod
+    def sha_ok(cls, value: str | None) -> str | None:
+        if value is None or value == "":
+            return None
+        text = str(value).strip().lower()
+        if len(text) != 16 or any(ch not in "0123456789abcdef" for ch in text):
+            raise ValueError("source_sha must be 16 hex characters")
+        return text
 
     @field_validator("notes")
     @classmethod
@@ -219,6 +293,25 @@ class ExerciseData(BaseModel):
         # The admin editor still defaults new short challenges to 60 seconds.
         if self.runtime != "none" and self.expected_output is None:
             raise ValueError("A browser runtime needs expected output")
+        walk = self.walkthrough
+        if walk and walk.steps:
+            source = str(self.code or "").rstrip("\n")
+            if not source.strip():
+                for item in self.check.accepted_answers or []:
+                    sample = str(item).rstrip("\n")
+                    if sample.strip():
+                        source = sample
+                        break
+            try_it = str(walk.try_it or "").strip("\n")
+            program = source.rstrip("\n") + ("\n\n" + try_it if try_it else "")
+            line_count = len(program.splitlines()) if program else 0
+            if line_count < 1:
+                raise ValueError("Recorded walkthrough steps need a program")
+            for step in walk.steps:
+                if step.line > line_count:
+                    raise ValueError(
+                        f"Walkthrough step line {step.line} is past the program ({line_count} lines)"
+                    )
         return self
 
 

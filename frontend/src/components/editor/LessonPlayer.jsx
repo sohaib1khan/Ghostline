@@ -84,16 +84,20 @@ function GhostwalkPracticeLink({ lesson }) {
   const [link, setLink] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    if ((lesson.track_slug || "").toLowerCase() !== "python") {
+    const language = String(lesson.track_slug || "").toLowerCase();
+    if (!language) {
       return undefined;
     }
-    api("/api/ghostwalk/levels")
+    const path = `/api/ghostwalk/levels?language=${encodeURIComponent(language)}`;
+    api(path)
       .then((board) => {
         if (cancelled) return;
         const title = String(lesson.title || "").toLowerCase();
         const match = (board.levels || []).find((level) => {
           const concept = String(level.concept || "").toLowerCase();
-          const slug = String(level.python_lesson_slug || "").toLowerCase();
+          const slug = String(
+            level.python_lesson_slug || level.lesson_slug || level.slug || "",
+          ).toLowerCase();
           return (
             (concept && title.includes(concept.split(" ")[0])) ||
             (slug && (title.includes(slug) || slug.includes(title.slice(0, 12))))

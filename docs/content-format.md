@@ -52,6 +52,16 @@ modules:
               - 'From the lesson "List a folder": ls lists names.'
               - "You need:\n- the command ls"
               - "The shape:\n```bash\n___\n```"
+            # Optional walkthrough: Python may omit steps (live Pyodide).
+            # Go/JS/SQL use recorded steps + source_sha (no server execution).
+            walkthrough:
+              given: ""
+              try_it: ""
+              args: []
+              stdin: []
+              files: {}
+              notes:
+                1: "List names in this folder."
             simulated_output: |
               notes.txt
             expected_output: null

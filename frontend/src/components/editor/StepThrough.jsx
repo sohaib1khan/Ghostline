@@ -9,6 +9,30 @@ function setupChips(setup) {
     .filter(Boolean);
 }
 
+function runCommandLabel(trackSlug, args) {
+  const list = (args || []).map(String);
+  const joined = list.length ? ` ${list.join(" ")}` : "";
+  const slug = String(trackSlug || "").toLowerCase();
+  if (slug === "go") return `$ go run .${joined}`;
+  if (slug === "javascript") return `$ node .${joined}`;
+  if (slug === "python") return `$ python main.py${joined}`;
+  if (slug === "bash") return `$ bash main.sh${joined}`;
+  if (slug === "sql") return list.length ? `$ sql ${list.join(" ")}` : "$ sql";
+  if (slug === "java") return `$ java Main${joined}`;
+  if (slug === "csharp") return `$ dotnet run${joined}`;
+  if (list.length) return `$ run${joined}`;
+  return null;
+}
+
+function globalsTitle(trackSlug) {
+  const slug = String(trackSlug || "").toLowerCase();
+  if (slug === "go") return "main";
+  if (slug === "javascript") return "module";
+  if (slug === "sql") return "session";
+  if (slug === "java" || slug === "csharp") return "main";
+  return "Variables";
+}
+
 function parseChanged(prev, next) {
   const was = prev || {};
   const now = next || {};
@@ -22,7 +46,7 @@ function parseChanged(prev, next) {
   });
 }
 
-function specialNote(step, expectError) {
+function specialNote(step, expectError, exitCode) {
   if (!step) return null;
   if (step.event === "return") {
     const name = step.frames?.length
@@ -35,6 +59,14 @@ function specialNote(step, expectError) {
       ? step.frames[step.frames.length - 1]?.name || "generator"
       : "generator";
     return `\`${name}\` pauses and hands out \`${step.returned}\``;
+  }
+  if (step.event === "defer") {
+    return "Deferred call runs now, because its function is ending.";
+  }
+  if (step.event === "end") {
+    const status =
+      exitCode != null && Number(exitCode) !== 0 ? ` exit status ${exitCode}.` : "";
+    return `Program finished.${status}`;
   }
   if (step.event === "exception" || step.error) {
     const text = step.error || "An error stopped the program.";
@@ -97,20 +129,26 @@ function VarTable({ rows }) {
 
 /**
  * Thonny-style step-through viewer.
+ * Plays recorded steps (Go/JS/SQL/…) or records live in Pyodide (Python).
  * @param {{ walk: object, onClose?: () => void, exerciseId?: string }} props
  */
 export default function StepThrough({ walk, onClose = null, exerciseId = null }) {
   const prefs = readPrefs();
   const reduce = prefs.reduceMotion;
-  const notesOnly = walk?.run === false;
+  const trackSlug = walk?.track_slug || "";
+  const recorded = Boolean(walk?.recorded && (walk?.steps || []).length);
+  const stale = Boolean(walk?.stale);
+  const notesOnly = walk?.run === false || stale || (!recorded && trackSlug && trackSlug !== "python");
   const [recording, setRecording] = useState(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(!notesOnly);
+  const [loading, setLoading] = useState(!(notesOnly || recorded));
   const [index, setIndex] = useState(0);
   const [predictOff] = useState(() => prefs.predictValues === false);
   const [predictAnswer, setPredictAnswer] = useState("");
   const [predictRevealed, setPredictRevealed] = useState({});
   const [predictAsked, setPredictAsked] = useState(0);
+  const [fileOpen, setFileOpen] = useState(null);
+  const [givenOpen, setGivenOpen] = useState(false);
   const codeRef = useRef(null);
   const panelRef = useRef(null);
 
@@ -120,11 +158,39 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
   );
   const sourceLines = Number(walk?.source_lines || lines.length);
   const notes = walk?.notes || {};
+  const files = walk?.files || {};
+  const fileNames = Object.keys(files);
 
   useEffect(() => {
     if (notesOnly) {
-      setRecording({ steps: lines.map((_, i) => ({ line: i + 1, event: "line", globals: {}, frames: [], stdout_len: 0 })), stdout: "", error: null, truncated: false });
+      setRecording({
+        steps: lines.map((_, i) => ({
+          line: i + 1,
+          event: "line",
+          globals: {},
+          frames: [],
+          stdout_len: 0,
+          stderr_len: 0,
+        })),
+        stdout: "",
+        stderr: "",
+        error: null,
+        truncated: false,
+      });
       setLoading(false);
+      setIndex(0);
+      return undefined;
+    }
+    if (recorded) {
+      setRecording({
+        steps: walk.steps || [],
+        stdout: walk.stdout || "",
+        stderr: walk.stderr || "",
+        error: null,
+        truncated: false,
+      });
+      setLoading(false);
+      setIndex(0);
       return undefined;
     }
     let cancelled = false;
@@ -151,7 +217,7 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
     return () => {
       cancelled = true;
     };
-  }, [walk, notesOnly, lines]);
+  }, [walk, notesOnly, recorded, lines]);
 
   const steps = recording?.steps || [];
   const step = steps[index] || null;
@@ -179,17 +245,21 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
       : null;
 
   const noteText = notes[step?.line] || notes[String(step?.line)] || "";
-  const special = specialNote(step, walk?.expect_error);
+  const special = specialNote(step, walk?.expect_error, walk?.exit_code);
 
   const globalRows = useMemo(
     () => parseChanged(prev?.globals, step?.globals).filter((row) => row.after !== undefined),
     [prev, step],
   );
 
-  const stdout = String(recording?.stdout || "");
+  const stdout = String(recording?.stdout ?? walk?.stdout ?? "");
+  const stderr = String(recording?.stderr ?? walk?.stderr ?? "");
   const shownOut = step ? stdout.slice(0, step.stdout_len || 0) : "";
   const prevOut = prev ? stdout.slice(0, prev.stdout_len || 0) : "";
   const newOut = shownOut.slice(prevOut.length);
+  const shownErr = step ? stderr.slice(0, step.stderr_len || 0) : "";
+  const prevErr = prev ? stderr.slice(0, prev.stderr_len || 0) : "";
+  const newErr = shownErr.slice(prevErr.length);
 
   const predictTarget = useMemo(() => {
     if (notesOnly || predictOff || predictAsked >= 2 || !step || step.event !== "line") {
@@ -254,6 +324,16 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
   });
 
   const chips = setupChips(walk?.setup);
+  const runChip = runCommandLabel(trackSlug, walk?.args);
+  const typedChip =
+    (walk?.stdin || []).length > 0 ? `Typed: ${(walk.stdin || []).join(", ")}` : null;
+  const modeLabel = notesOnly
+    ? stale
+      ? "Read line by line"
+      : "Read line by line"
+    : recorded
+      ? "Step through · recorded"
+      : "Step through";
 
   return (
     <section
@@ -264,34 +344,90 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">
-            {notesOnly ? "Read line by line" : "Step through"}
-          </p>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-accent">{modeLabel}</p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">
             Watch the program one line at a time
           </h2>
         </div>
         {onClose ? (
-          <button type="button" className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm" onClick={onClose}>
+          <button
+            type="button"
+            className="min-h-11 rounded-xl border border-muted/30 px-4 text-sm"
+            onClick={onClose}
+          >
             Close
           </button>
         ) : null}
       </div>
 
-      {chips.length ? (
-        <div className="mt-4" aria-label="Values given before the program">
-          <p className="text-sm font-medium text-muted">Given</p>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {chips.map((chip) => (
-              <li
-                key={chip}
-                className="rounded-full border border-muted/30 bg-bg px-3 py-2 font-mono text-sm"
-              >
-                {chip}
-              </li>
-            ))}
-          </ul>
+      <div className="mt-4 flex flex-wrap gap-2" aria-label="Run context">
+        {runChip ? (
+          <span className="rounded-full border border-muted/30 bg-bg px-3 py-2 font-mono text-sm">
+            {runChip}
+          </span>
+        ) : null}
+        {typedChip ? (
+          <span className="rounded-full border border-muted/30 bg-bg px-3 py-2 text-sm">{typedChip}</span>
+        ) : null}
+        {fileNames.map((name) => (
+          <button
+            key={name}
+            type="button"
+            className="rounded-full border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent"
+            onClick={() => setFileOpen(fileOpen === name ? null : name)}
+          >
+            Files: {name}
+          </button>
+        ))}
+        {walk?.given ? (
+          <button
+            type="button"
+            className="rounded-full border border-muted/30 bg-bg px-3 py-2 text-sm"
+            aria-expanded={givenOpen}
+            onClick={() => setGivenOpen((value) => !value)}
+          >
+            Given
+          </button>
+        ) : null}
+        {chips.map((chip) => (
+          <span
+            key={chip}
+            className="rounded-full border border-muted/30 bg-bg px-3 py-2 font-mono text-sm"
+          >
+            {chip}
+          </span>
+        ))}
+      </div>
+
+      {givenOpen && walk?.given ? (
+        <pre className="mt-3 max-h-48 overflow-auto rounded-xl border border-muted/25 bg-bg p-3 font-mono text-sm">
+          {walk.given}
+        </pre>
+      ) : null}
+      {fileOpen && files[fileOpen] != null ? (
+        <div className="mt-3 rounded-xl border border-muted/25 bg-bg p-3">
+          <p className="font-mono text-xs text-muted">{fileOpen}</p>
+          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap font-mono text-sm">
+            {files[fileOpen]}
+          </pre>
         </div>
+      ) : null}
+
+      {walk?.nondeterministic ? (
+        <p className="mt-3 text-sm text-muted" role="note">
+          Times and random numbers will be different when you run this yourself.
+        </p>
+      ) : null}
+      {stale ? (
+        <p className="mt-3 text-sm text-muted" role="status">
+          Steps will come back after the content is re-recorded.
+        </p>
+      ) : null}
+      {notesOnly && !stale && trackSlug && trackSlug !== "python" && !recorded ? (
+        <p className="mt-3 text-sm text-muted" role="status">
+          Line notes are ready. Recorded steps will appear here when this language’s walkthroughs
+          are imported.
+        </p>
       ) : null}
 
       {loading ? <p className="mt-4 text-base text-muted">Recording steps…</p> : null}
@@ -351,7 +487,7 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
             <>
               <div className="mt-4 grid gap-4 min-[900px]:grid-cols-2">
                 <div className="rounded-xl border border-muted/25 bg-bg/50 p-4">
-                  <h3 className="text-base font-semibold">Variables</h3>
+                  <h3 className="text-base font-semibold">{globalsTitle(trackSlug)}</h3>
                   {predictTarget && !predictRevealed[index] ? (
                     <div className="mt-3 rounded-lg border border-accent/40 p-3">
                       <p className="text-base">
@@ -424,6 +560,19 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
                     ) : null}
                     {!shownOut ? <span className="text-muted">(no output yet)</span> : null}
                   </pre>
+                  {shownErr || step?.stderr_len ? (
+                    <div className="mt-3" role="group" aria-label="stderr">
+                      <p className="text-sm font-semibold text-error">stderr</p>
+                      <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-error/40 bg-error/10 p-2 font-mono text-sm text-error">
+                        <span>{prevErr}</span>
+                        {newErr ? <span className="font-semibold">{newErr}</span> : null}
+                        {!shownErr ? <span>(empty)</span> : null}
+                      </pre>
+                    </div>
+                  ) : null}
+                  {step?.event === "end" && walk?.exit_code != null && Number(walk.exit_code) !== 0 ? (
+                    <p className="mt-2 font-mono text-sm text-muted">exit status {walk.exit_code}</p>
+                  ) : null}
                 </div>
               </div>
               {recording?.truncated ? (

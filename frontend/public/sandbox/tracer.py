@@ -131,6 +131,10 @@ def record(program: str, setup: str = "", stdin: list[str] | None = None, max_st
                 tb = tb.tb_next
             error = {"type": type(exc).__name__, "message": str(exc), "line": line}
 
+    if steps and not error and len(steps) < max_steps:
+        # Final state: every line has run, so the whole output is visible.
+        steps.append({"line": steps[-1]["line"], "event": "end", "globals": _visible(namespace),
+                      "frames": [], "stdout_len": len(out.getvalue())})
     if error and steps:
         steps.append({**steps[-1], "event": "exception", "line": error["line"] or steps[-1]["line"],
                       "error": f"{error['type']}: {error['message']}"})

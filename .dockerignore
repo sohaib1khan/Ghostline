@@ -9,3 +9,5 @@
 **/.vite
 *.md
 !README.md
+NEWFEATURE/
+tools/walkthroughs/
