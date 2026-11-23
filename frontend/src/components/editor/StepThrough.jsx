@@ -14,7 +14,7 @@ function runCommandLabel(trackSlug, args) {
   const joined = list.length ? ` ${list.join(" ")}` : "";
   const slug = String(trackSlug || "").toLowerCase();
   if (slug === "go") return `$ go run .${joined}`;
-  if (slug === "javascript") return `$ node .${joined}`;
+  if (slug === "javascript") return `$ node main.js${joined}`;
   if (slug === "python") return `$ python main.py${joined}`;
   if (slug === "bash") return `$ bash main.sh${joined}`;
   if (slug === "sql") return list.length ? `$ sql ${list.join(" ")}` : "$ sql";
@@ -425,8 +425,11 @@ export default function StepThrough({ walk, onClose = null, exerciseId = null })
       ) : null}
       {notesOnly && !stale && trackSlug && trackSlug !== "python" && !recorded ? (
         <p className="mt-3 text-sm text-muted" role="status">
-          Line notes are ready. Recorded steps will appear here when this language’s walkthroughs
-          are imported.
+          {walk?.synthetic
+            ? trackSlug === "javascript"
+              ? "Line-by-line notes from this exercise. Full recorded steps (with values and output) will appear when JavaScript walkthroughs are imported — same playback as Go."
+              : "Line-by-line notes from this exercise. Recorded steps with live values will appear here after this language’s walkthroughs are imported."
+            : "Line notes are ready. Recorded steps will appear here when this language’s walkthroughs are imported."}
         </p>
       ) : null}
 

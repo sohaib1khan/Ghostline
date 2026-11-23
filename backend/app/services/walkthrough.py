@@ -44,10 +44,88 @@ def program_sha(program: str) -> str:
     return hashlib.sha256(program.encode("utf-8")).hexdigest()[:16]
 
 
+# Tracks without a browser live-tracer get notes-only step-through from tokens/code
+# until recorded steps are imported (same UX shape as Go).
+_SYNTHETIC_TRACKS = frozenset(
+    {"javascript", "sql", "bash", "csharp", "java", "go"}
+)
+
+
+def synthetic_walkthrough(data: dict, track_slug: str | None) -> dict | None:
+    """Build a notes-only walkthrough when authors have not added one yet."""
+    if data.get("walkthrough"):
+        return None
+    slug = (track_slug or "").lower()
+    if slug not in _SYNTHETIC_TRACKS:
+        return None
+    program, _source_lines = build_walkthrough_program(data)
+    lines = program.splitlines() if program else []
+    if not any(line.strip() for line in lines):
+        return None
+    notes: dict[int, str] = {}
+    for token in data.get("tokens") or []:
+        match = str(token.get("match") or "").strip()
+        explain = str(token.get("explain") or "").strip()
+        if not match or not explain:
+            continue
+        for index, line in enumerate(lines, 1):
+            if match in line and index not in notes:
+                notes[index] = explain[:300]
+                break
+    for index, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("//") or stripped.startswith("#"):
+            continue
+        if index not in notes:
+            notes[index] = "Watch what this line does."
+    if not notes:
+        return None
+    return {
+        "setup": "",
+        "given": "",
+        "try_it": "",
+        "run": False,
+        "stdin": [],
+        "args": [],
+        "files": {},
+        "notes": notes,
+        "steps": [],
+        "stdout": data.get("simulated_output"),
+        "stderr": None,
+        "exit_code": None,
+        "nondeterministic": False,
+        "source_sha": None,
+        "expect_error": None,
+    }
+
+
+def has_walkthrough_payload(data: dict, track_slug: str | None = None) -> bool:
+    if data.get("walkthrough"):
+        return True
+    return synthetic_walkthrough(data, track_slug) is not None
+
+
+def walkthrough_mode(data: dict, track_slug: str | None = None) -> str | None:
+    """recorded | notes | live — drives learner button labels."""
+    walk = data.get("walkthrough")
+    if walk:
+        if walk.get("steps"):
+            return "recorded"
+        if walk.get("run") is False:
+            return "notes"
+        return "live"
+    if synthetic_walkthrough(data, track_slug):
+        return "notes"
+    return None
+
+
 def serialize_walkthrough(data: dict, *, track_slug: str | None = None) -> dict | None:
     walk = data.get("walkthrough")
     if not walk:
-        return None
+        walk = synthetic_walkthrough(data, track_slug)
+        if not walk:
+            return None
+        data = {**data, "walkthrough": walk}
     program, source_lines = build_walkthrough_program(data)
     notes = walk.get("notes") or {}
     notes_out = {int(key): str(value) for key, value in notes.items()}
@@ -109,7 +187,11 @@ async def walkthrough_for_user(
     if exercise is None or exercise.status != "published":
         raise ContentError(404, "Exercise not found")
     data = exercise.data or {}
-    if not data.get("walkthrough"):
+    track_slug = None
+    if exercise.lesson and exercise.lesson.module and exercise.lesson.module.track:
+        track_slug = exercise.lesson.module.track.slug
+
+    if not has_walkthrough_payload(data, track_slug):
         raise ContentError(404, "This exercise has no walkthrough.")
 
     if exercise.type in {"trace", "fill"}:
@@ -132,11 +214,10 @@ async def walkthrough_for_user(
     if not allowed:
         raise ContentError(403, "Finish this exercise to step through it.")
 
-    track_slug = None
-    if exercise.lesson and exercise.lesson.module and exercise.lesson.module.track:
-        track_slug = exercise.lesson.module.track.slug
-
     payload = serialize_walkthrough(data, track_slug=track_slug)
     if payload is None:
         raise ContentError(404, "This exercise has no walkthrough.")
+    # Mark synthetic so the UI can show language-aware copy.
+    if not (data.get("walkthrough")):
+        payload["synthetic"] = True
     return payload

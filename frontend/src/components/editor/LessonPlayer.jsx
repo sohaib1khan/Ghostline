@@ -98,8 +98,11 @@ function GhostwalkPracticeLink({ lesson }) {
           const slug = String(
             level.python_lesson_slug || level.lesson_slug || level.slug || "",
           ).toLowerCase();
+          const levelTitle = String(level.title || "").toLowerCase();
+          const conceptWord = concept.split(/[\s/-]+/).find(Boolean) || "";
           return (
-            (concept && title.includes(concept.split(" ")[0])) ||
+            (conceptWord && title.includes(conceptWord)) ||
+            (levelTitle && (title.includes(levelTitle) || levelTitle.includes(title))) ||
             (slug && (title.includes(slug) || slug.includes(title.slice(0, 12))))
           );
         });
@@ -541,7 +544,11 @@ export default function LessonPlayer({
                 disabled={walkLoading}
                 onClick={() => openWalkthrough()}
               >
-                {walkLoading ? "Loading…" : "Watch it run first"}
+                {walkLoading
+                  ? "Loading…"
+                  : exercise.walkthrough_mode === "notes"
+                    ? "Read line by line"
+                    : "Watch it run first"}
               </button>
             </p>
           ) : null}
@@ -748,7 +755,7 @@ export default function LessonPlayer({
             >
               {walkLoading
                 ? "Loading…"
-                : walkthrough?.run === false
+                : walkthrough?.run === false || exercise.walkthrough_mode === "notes"
                   ? "Read line by line"
                   : "Step through"}
             </button>

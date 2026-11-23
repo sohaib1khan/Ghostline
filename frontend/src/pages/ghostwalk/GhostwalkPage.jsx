@@ -36,12 +36,29 @@ function LevelCard({ level, badge }) {
   );
 }
 
+const GHOSTWALK_LANG_KEY = "ghostline.ghostwalk.language";
+
+function initialGhostwalkLanguage() {
+  try {
+    const saved = localStorage.getItem(GHOSTWALK_LANG_KEY);
+    if (saved) return saved;
+  } catch {
+    // ignore
+  }
+  return "python";
+}
+
 export default function GhostwalkPage() {
-  const [language, setLanguage] = useState("python");
+  const [language, setLanguage] = useState(initialGhostwalkLanguage);
   const [board, setBoard] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    try {
+      localStorage.setItem(GHOSTWALK_LANG_KEY, language);
+    } catch {
+      // ignore
+    }
     let cancelled = false;
     setError("");
     api(`/api/ghostwalk/levels?language=${encodeURIComponent(language)}`)

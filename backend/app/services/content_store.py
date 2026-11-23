@@ -135,6 +135,7 @@ def _jsonable(value):
 
 
 def learner_lesson(lesson: Lesson, exercises: list[Exercise] | None = None) -> dict:
+    track_slug = lesson.module.track.slug
     return {
         "id": lesson.id,
         "title": lesson.title,
@@ -146,11 +147,11 @@ def learner_lesson(lesson: Lesson, exercises: list[Exercise] | None = None) -> d
         "source_attribution": lesson.source_attribution,
         "source_url": lesson.source_url,
         "license_note": lesson.license_note,
-        "track_slug": lesson.module.track.slug,
+        "track_slug": track_slug,
         "track_name": lesson.module.track.name,
         "module_title": lesson.module.title,
         "exercises": [
-            _learner_exercise(item)
+            _learner_exercise(item, track_slug=track_slug)
             for item in (lesson.exercises if exercises is None else exercises)
         ],
     }
@@ -228,13 +229,15 @@ def _ghost_answer(data: dict) -> str:
     return str(data.get("code") or "").strip()
 
 
-def _learner_exercise(row: Exercise) -> dict:
+def _learner_exercise(row: Exercise, *, track_slug: str | None = None) -> dict:
     data = row.data or {}
     # DECISION: recall and challenge hide the canonical code so the answer is
     # not pasted into the study panel. Trace and fill need that code as ghost text.
     # `ghost` is the typing guide unlocked client-side when the learner opens a hint.
     code = data.get("code", "") if row.type in {"trace", "fill"} else ""
     ghost = _ghost_answer(data) if row.type in {"recall", "challenge"} else ""
+    from app.services.walkthrough import has_walkthrough_payload, walkthrough_mode
+
     return {
         "id": row.id,
         "order": row.position,
@@ -253,7 +256,8 @@ def _learner_exercise(row: Exercise) -> dict:
         "mode": data.get("mode") or ("parsons" if data.get("parsons") else None),
         "parsons": bool(data.get("parsons") or data.get("mode") == "parsons"),
         # Flag only — program/notes stay behind GET /api/exercises/{id}/walkthrough.
-        "has_walkthrough": bool(data.get("walkthrough")),
+        "has_walkthrough": has_walkthrough_payload(data, track_slug),
+        "walkthrough_mode": walkthrough_mode(data, track_slug),
         # Practice quizzes may show answers in the browser; they are not graded via /api/check.
         "quiz": data.get("quiz") or [],
     }

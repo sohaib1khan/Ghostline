@@ -242,7 +242,8 @@ export default function HomePage() {
             <li>
               <p className="landing-mode-title">Ghostwalk</p>
               <p className="landing-mode-body">
-                Guide a ghost through Python mazes in the browser — loops, functions, and more.
+                Guide a ghost through mazes for Python, JavaScript, Go, and more — each language is
+                its own world.
               </p>
             </li>
             <li>
@@ -499,7 +500,9 @@ export default function HomePage() {
                 ? ghostwalkContinue.label.replace(/^Ghostwalk · /, "")
                 : "Python maze levels"}
             </p>
-            <p className="home-jump-copy">Guide the ghost with real Python in your browser.</p>
+            <p className="home-jump-copy">
+              Guide the ghost in Python, JavaScript, Go, and more — each language is its own world.
+            </p>
             <Link
               to={ghostwalkContinue ? `/ghostwalk/${ghostwalkContinue.slug}` : "/ghostwalk"}
               className="btn-primary home-jump-cta"

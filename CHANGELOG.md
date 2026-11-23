@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.1 — 2026-11-23
+
+JavaScript step-through UI without new YAML.
+
+- JS (and SQL/Bash/C#/Java) traces synthesize notes-only walkthroughs from tokens/code so “Read line by line” appears like Go’s notes mode.
+- Home / Ghostwalk copy is language-neutral; Ghostwalk remembers the last language picked.
+
 ## 1.9.0 — 2026-11-23
 
 Recorded step-through for Go (and multi-language playback UI).
